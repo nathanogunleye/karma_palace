@@ -9,10 +9,11 @@ environment:
 
 dependencies:
   cupertino_icons: ^1.0.2
-  dio: ^4.0.0
+  dio: ^4.0.4
   flutter:
     sdk: flutter
-  retrofit: ^3.0.0
+  json_serializable: ^6.1.4
+  retrofit: ^3.0.1+1
 
 dev_dependencies:
   build_runner: ^2.1.7
