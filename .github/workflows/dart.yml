@@ -3,7 +3,7 @@ name: Dart (Flutter) CI
 on:
   push:
     branches:
-      - master
+      - main
       - 'FEATURE-*'
 
 env:
