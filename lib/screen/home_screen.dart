@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icons.play_arrow_rounded,
               ),
               label: const Text('Play'),
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, '/game'),
             ),
             ElevatedButton.icon(
               icon: const Icon(

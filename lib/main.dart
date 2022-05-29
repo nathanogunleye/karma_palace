@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:karma_palace/screen/game_screen.dart';
 import 'package:karma_palace/screen/home_screen.dart';
 
 void main() {
@@ -16,7 +17,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(),
+      // home: const HomeScreen(),
+      routes: {
+        '/': (BuildContext context) => const HomeScreen(),
+        '/game': (BuildContext context) => const GameScreen(),
+      },
     );
   }
 }
