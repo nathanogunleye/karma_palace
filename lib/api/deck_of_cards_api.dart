@@ -12,13 +12,13 @@ abstract class DeckOfCardsAPI {
 
   @GET('/api/deck/new/shuffle')
   Future<DeckResponse> createNewShuffledDeck(
-    @Query('deck_count') String deckCount,
+    @Query('deck_count') int deckCount,
   );
 
   @GET('/api/deck/{deckId}/draw')
-  Future<DrawACardResponse> drawACard(
+  Future<DrawCardResponse> drawCards(
     @Path('deckId') String deckId,
-    @Query('count') String count,
+    @Query('count') int count,
   );
 
   @GET('/api/deck/{deckId}/shuffle')

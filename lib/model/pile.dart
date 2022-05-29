@@ -1,11 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:karma_palace/model/card.dart';
+import 'package:karma_palace/model/playing_card.dart';
 
 part 'pile.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Pile {
-  List<Card> cards;
+  List<PlayingCard> cards;
 
   int remaining;
 

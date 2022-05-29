@@ -5,10 +5,18 @@ part 'shuffle_cards_response.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class DeckResponse extends DeckOfCardsResponse {
-  bool shuffled;
+  bool? shuffled;
 
-  DeckResponse(bool success, String deckId, int remaining, this.shuffled)
-      : super(success, deckId, remaining);
+  DeckResponse({
+    bool? success,
+    String? deckId,
+    int? remaining,
+    this.shuffled,
+  }) : super(
+          success: success,
+          deckId: deckId,
+          remaining: remaining,
+        );
 
   factory DeckResponse.fromJson(Map<String, dynamic> json) =>
       _$DeckResponseFromJson(json);

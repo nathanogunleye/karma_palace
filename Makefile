@@ -13,17 +13,18 @@ lint: pub-build
 test: lint
 	flutter test test/*
 
-appbundle:
+build-appbundle:
 	flutter build appbundle
 
-ipa:
+build-ipa:
 	flutter build ipa
 
+build-web:
+	flutter build web
+
+.PHONY: build
 build:
 	flutter pub run build_runner build --delete-conflicting-outputs
-
-watch:
-	flutter pub run build_runner watch --delete-conflicting-outputs
 
 upgrade:
 	flutter pub upgrade

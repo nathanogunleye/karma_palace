@@ -6,10 +6,18 @@ part 'piles_response.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PilesResponse extends DeckOfCardsResponse {
-  Map<String, Pile> piles;
+  Map<String, Pile>? piles;
 
-  PilesResponse(bool success, String deckId, int remaining, this.piles)
-      : super(success, deckId, remaining);
+  PilesResponse({
+    bool? success,
+    String? deckId,
+    int? remaining,
+    this.piles,
+  }) : super(
+          success: success,
+          deckId: deckId,
+          remaining: remaining,
+        );
 
   factory PilesResponse.fromJson(Map<String, dynamic> json) =>
       _$PilesResponseFromJson(json);

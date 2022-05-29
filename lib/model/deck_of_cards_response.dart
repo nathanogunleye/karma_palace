@@ -4,14 +4,18 @@ part 'deck_of_cards_response.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class DeckOfCardsResponse {
-  bool success;
+  bool? success;
 
   @JsonKey(name: 'deck_id')
-  String deckId;
+  String? deckId;
 
-  int remaining;
+  int? remaining;
 
-  DeckOfCardsResponse(this.success, this.deckId, this.remaining);
+  DeckOfCardsResponse({
+    this.success,
+    this.deckId,
+    this.remaining,
+  });
 
   factory DeckOfCardsResponse.fromJson(Map<String, dynamic> json) =>
       _$DeckOfCardsResponseFromJson(json);
