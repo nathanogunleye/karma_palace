@@ -41,7 +41,7 @@ abstract class DeckOfCardsAPI {
   Future<PilesResponse> addToPile(
     @Path('deckId') String deckId,
     @Path('pileName') String pileName,
-    @Query('cards') List<String> cards,
+    @Query('cards') String cards,
   );
 
   @GET('/api/deck/{deckId}/pile/{pileName}/list')

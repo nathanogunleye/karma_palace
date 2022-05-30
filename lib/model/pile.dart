@@ -5,11 +5,14 @@ part 'pile.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Pile {
-  List<PlayingCard> cards;
+  List<PlayingCard>? cards;
 
-  int remaining;
+  int? remaining;
 
-  Pile(this.cards, this.remaining);
+  Pile({
+    this.cards,
+    this.remaining,
+  });
 
   factory Pile.fromJson(Map<String, dynamic> json) => _$PileFromJson(json);
 

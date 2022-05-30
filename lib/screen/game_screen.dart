@@ -3,7 +3,9 @@ import 'package:karma_palace/model/draw_a_card_response.dart';
 import 'package:karma_palace/model/playing_card.dart';
 import 'package:karma_palace/model/shuffle_cards_response.dart';
 import 'package:karma_palace/service/card_service.dart';
+import 'package:logger/logger.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -13,13 +15,27 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  final Logger _logger = Logger();
   final CardService _cardService = CardService();
-  final String _pileName = 'Nathan';
+
+  late String _pileNamePrefix;
+  late String _pileNameHand;
+  late String _pileNameCardsFaceDown;
+  late String _pileNameCardsFaceUp;
 
   String _deckId = '';
   List<PlayingCard> _hand = [];
   List<PlayingCard> _cardsFaceDown = [];
   List<PlayingCard> _cardsFaceUp = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _pileNamePrefix = const Uuid().v4().split('-')[0];
+    _pileNameHand = '${_pileNamePrefix}_hand';
+    _pileNameCardsFaceDown = '${_pileNamePrefix}_face_down';
+    _pileNameCardsFaceUp = '${_pileNamePrefix}_face_up';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +132,9 @@ class _GameScreenState extends State<GameScreen> {
                                       );
                                     },
                                   ).then(
-                                    (value) => setState(() => _deckId = value!),
+                                    (value) => setState(() {
+                                      _deckId = value!;
+                                    }),
                                   );
                                 },
                                 child: const Text('Join Room'),
@@ -187,12 +205,32 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _drawInitialPiles() async {
+    List<PlayingCard> hand = [];
+    List<PlayingCard> cardsFaceDown = [];
+    List<PlayingCard> cardsFaceUp = [];
+
     DrawCardResponse drawCardResponse =
         await _cardService.drawCards(_deckId, 9);
+
+    hand = drawCardResponse.cards!.getRange(0, 3).toList();
+    cardsFaceDown = drawCardResponse.cards!.getRange(3, 6).toList();
+    cardsFaceUp = drawCardResponse.cards!.getRange(6, 9).toList();
+
+    await _cardService.addToPile(
+        _deckId, _pileNameHand, hand.map((e) => e.code).toList());
+
+    await _cardService.addToPile(_deckId, _pileNameCardsFaceDown,
+        cardsFaceDown.map((e) => e.code).toList());
+
+    await _cardService.addToPile(
+        _deckId, _pileNameCardsFaceUp, cardsFaceUp.map((e) => e.code).toList());
+
     setState(() {
-      _hand = drawCardResponse.cards!.getRange(0, 3).toList();
-      _cardsFaceDown = drawCardResponse.cards!.getRange(3, 6).toList();
-      _cardsFaceUp = drawCardResponse.cards!.getRange(6, 9).toList();
+      _hand = hand;
+      _cardsFaceDown = cardsFaceDown;
+      _cardsFaceUp = cardsFaceUp;
     });
+
+    _logger.d('_deckId: $_deckId');
   }
 }
