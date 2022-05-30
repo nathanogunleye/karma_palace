@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:karma_palace/model/draw_a_card_response.dart';
+import 'package:karma_palace/model/piles_response.dart';
 import 'package:karma_palace/model/playing_card.dart';
 import 'package:karma_palace/model/shuffle_cards_response.dart';
 import 'package:karma_palace/service/card_service.dart';
@@ -17,6 +18,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final Logger _logger = Logger();
   final CardService _cardService = CardService();
+  final String _pileNameMiddle = 'middle';
 
   late String _pileNamePrefix;
   late String _pileNameHand;
@@ -24,6 +26,7 @@ class _GameScreenState extends State<GameScreen> {
   late String _pileNameCardsFaceUp;
 
   String _deckId = '';
+  List<PlayingCard> _middle = [];
   List<PlayingCard> _hand = [];
   List<PlayingCard> _cardsFaceDown = [];
   List<PlayingCard> _cardsFaceUp = [];
@@ -31,10 +34,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _pileNamePrefix = const Uuid().v4().split('-')[0];
-    _pileNameHand = '${_pileNamePrefix}_hand';
-    _pileNameCardsFaceDown = '${_pileNamePrefix}_face_down';
-    _pileNameCardsFaceUp = '${_pileNamePrefix}_face_up';
+    _setPileNames();
   }
 
   @override
@@ -89,7 +89,7 @@ class _GameScreenState extends State<GameScreen> {
                               TextButton(
                                 onPressed: () async {
                                   DeckResponse deckResponse = await _cardService
-                                      .createNewShuffledDeck();
+                                      .createNewShuffledDeck(false);
                                   setState(() {
                                     _deckId = deckResponse.deckId ?? '';
                                     _drawInitialPiles();
@@ -113,8 +113,7 @@ class _GameScreenState extends State<GameScreen> {
                                               onChanged: (value) =>
                                                   roomId = value,
                                               decoration: const InputDecoration(
-                                                hintText:
-                                                    'Fucking join already!',
+                                                hintText: 'Enter room code...',
                                                 prefixIcon: Icon(Icons.code),
                                               ),
                                               autocorrect: false,
@@ -134,6 +133,14 @@ class _GameScreenState extends State<GameScreen> {
                                   ).then(
                                     (value) => setState(() {
                                       _deckId = value!;
+                                      if (_deckId.isNotEmpty) {
+                                        _drawInitialPiles().catchError(
+                                            (Object error,
+                                                StackTrace stackTrace) {
+                                          _deckId = '';
+                                          _showErrorMessage(context);
+                                        });
+                                      }
                                     }),
                                   );
                                 },
@@ -141,11 +148,24 @@ class _GameScreenState extends State<GameScreen> {
                               ),
                             ],
                           )
-                        : TextButton(
-                            onPressed: () {
-                              Share.share(_deckId);
-                            },
-                            child: Text(_deckId),
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Share.share(_deckId);
+                                },
+                                child: Text(_deckId),
+                              ),
+                              if (_middle.isNotEmpty)
+                                IconButton(
+                                  icon: Image.network(_middle.last.image),
+                                  iconSize: 200,
+                                  onPressed: () async {
+                                    // TODO: Pick up if you cannot play
+                                  },
+                                ),
+                            ],
                           ),
                   ),
                   Flexible(
@@ -176,35 +196,106 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _showErrorMessage(BuildContext context) {
+    showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Could not enter room'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text('Fuck'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Dammit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _setPileNames() {
+    _pileNamePrefix = const Uuid().v4().split('-')[0];
+    _pileNameHand = '${_pileNamePrefix}_hand';
+    _pileNameCardsFaceDown = '${_pileNamePrefix}_face_down';
+    _pileNameCardsFaceUp = '${_pileNamePrefix}_face_up';
+  }
+
   Widget _buildCards() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildCardsSet(_hand),
-        _buildCardsSet(_cardsFaceDown),
-        _buildCardsSet(_cardsFaceUp),
+        _buildCardsSet(_hand, _pileNameHand),
+        _buildCardsSet(_cardsFaceUp, _pileNameCardsFaceUp),
+        _buildCardsSet(_cardsFaceDown, _pileNameCardsFaceDown, true),
       ],
     );
   }
 
-  Row _buildCardsSet(List<PlayingCard> cards) {
+  Row _buildCardsSet(List<PlayingCard> cards, String pileName,
+      [bool faceDown = false]) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: cards.map((c) {
         return Expanded(
           child: IconButton(
-            icon: Image.network(c.image),
-            iconSize: 72,
-            onPressed: () {},
+            icon: faceDown
+                ? const Icon(Icons.hide_image_rounded)
+                : Image.network(c.image),
+            iconSize: 80,
+            onPressed: () async {
+              // TODO: Check card is a valid play
+              // TODO: Draw cards from pile
+              PilesResponse p =
+                  await _cardService.drawFromPile(_deckId, pileName, [c.code]);
+
+              // Put cards into 'middle' pile
+              await _cardService.addToPile(
+                  _deckId, _pileNameMiddle, _extractPlayingCardCodes(p.cards!));
+              p = await _cardService.listPile(_deckId, _pileNameMiddle);
+              setState(() {
+                _middle = p.piles![_pileNameMiddle]!.cards!;
+              });
+
+              // If pile is the hand, then draw from deck
+              if (pileName == _pileNameHand) {
+                // TODO: Draw card from deck if hand <= 2 && deck is not empty
+                DrawCardResponse dcr = await _cardService.drawCards(_deckId, 1);
+                await _cardService.addToPile(_deckId, _pileNameHand,
+                    _extractPlayingCardCodes(dcr.cards!));
+                setState(() {
+                  _hand.remove(c);
+                  _hand.addAll(dcr.cards!);
+                });
+              } else if (pileName == _pileNameCardsFaceUp) {
+                setState(() {
+                  _cardsFaceUp.remove(c);
+                });
+              } else if (pileName == _pileNameCardsFaceDown) {
+                _cardsFaceDown.remove(c);
+              }
+            },
           ),
         );
       }).toList(),
     );
   }
 
-  void _drawInitialPiles() async {
+  List<String> _extractPlayingCardCodes(List<PlayingCard> cards) {
+    return cards.map((c) => c.code).toList();
+  }
+
+  Future<void> _drawInitialPiles() async {
     List<PlayingCard> hand = [];
     List<PlayingCard> cardsFaceDown = [];
     List<PlayingCard> cardsFaceUp = [];
@@ -217,13 +308,11 @@ class _GameScreenState extends State<GameScreen> {
     cardsFaceUp = drawCardResponse.cards!.getRange(6, 9).toList();
 
     await _cardService.addToPile(
-        _deckId, _pileNameHand, hand.map((e) => e.code).toList());
-
+        _deckId, _pileNameHand, _extractPlayingCardCodes(hand));
     await _cardService.addToPile(_deckId, _pileNameCardsFaceDown,
-        cardsFaceDown.map((e) => e.code).toList());
-
+        _extractPlayingCardCodes(cardsFaceDown));
     await _cardService.addToPile(
-        _deckId, _pileNameCardsFaceUp, cardsFaceUp.map((e) => e.code).toList());
+        _deckId, _pileNameCardsFaceUp, _extractPlayingCardCodes(cardsFaceUp));
 
     setState(() {
       _hand = hand;

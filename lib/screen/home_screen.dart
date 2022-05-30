@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:karma_palace/constants/text_constants.dart';
 
@@ -33,20 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
               label: const Text('Play'),
               onPressed: () => Navigator.pushNamed(context, '/game'),
             ),
-            ElevatedButton.icon(
-              icon: const Icon(
-                Icons.rule_folder_rounded,
-              ),
-              label: const Text('Rules'),
-              onPressed: () {},
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(
-                Icons.exit_to_app_rounded,
-              ),
-              label: const Text('Exit'),
-              onPressed: () => exit(0),
-            ),
+            // ElevatedButton.icon(
+            //   icon: const Icon(
+            //     Icons.rule_folder_rounded,
+            //   ),
+            //   label: const Text('Rules'),
+            //   onPressed: () {},
+            // ),
           ],
         ),
       ),

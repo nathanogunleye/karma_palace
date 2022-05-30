@@ -13,6 +13,7 @@ abstract class DeckOfCardsAPI {
   @GET('/api/deck/new/shuffle')
   Future<DeckResponse> createNewShuffledDeck(
     @Query('deck_count') int deckCount,
+    @Query('jokers_enabled') bool jokersEnabled,
   );
 
   @GET('/api/deck/{deckId}/draw')
@@ -34,7 +35,7 @@ abstract class DeckOfCardsAPI {
 
   @GET('/api/deck/new/shuffle')
   Future<DeckResponse> createPartialDeck(
-    @Query('cards') List<String> cards,
+    @Query('cards') String cards,
   );
 
   @GET('/api/deck/{deckId}/pile/{pileName}/add')
@@ -54,13 +55,13 @@ abstract class DeckOfCardsAPI {
   Future<PilesResponse> drawFromPiles(
     @Path('deckId') String deckId,
     @Path('pileName') String pileName,
-    @Query('cards') List<String> cards,
+    @Query('cards') String cards,
   );
 
   @GET('/api/deck/{deckId}/pile/{pileName}/return')
   Future<PilesResponse> returnCardsToDeck(
     @Path('deckId') String deckId,
     @Path('pileName') String pileName,
-    @Query('cards') List<String> cards,
+    @Query('cards') String cards,
   );
 }

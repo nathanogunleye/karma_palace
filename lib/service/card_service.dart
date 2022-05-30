@@ -24,10 +24,10 @@ class CardService {
         onRequest:
             (RequestOptions options, RequestInterceptorHandler handler) async {
           _logger.i(options.path);
-
           return handler.next(options);
         },
         onResponse: (Response response, ResponseInterceptorHandler handler) {
+          _logger.d(response);
           return handler.next(response);
         },
         onError: (DioError e, ErrorInterceptorHandler handler) {
@@ -46,16 +46,26 @@ class CardService {
     _deckOfCardsAPI = DeckOfCardsAPI(_dio, baseUrl: baseUrl);
   }
 
-  Future<DeckResponse> createNewShuffledDeck() {
-    return _deckOfCardsAPI.createNewShuffledDeck(1);
+  Future<DeckResponse> createNewShuffledDeck(bool includeJoker) {
+    return _deckOfCardsAPI.createNewShuffledDeck(1, includeJoker);
   }
 
   Future<DrawCardResponse> drawCards(String deckId, int count) {
     return _deckOfCardsAPI.drawCards(deckId, count);
   }
 
+  /// Add cards (by code) to pile. This will NOT return cards in the pile.
   Future<PilesResponse> addToPile(
       String deckId, String pileName, List<String> cards) {
     return _deckOfCardsAPI.addToPile(deckId, pileName, cards.join(','));
+  }
+
+  Future<PilesResponse> drawFromPile(
+      String deckId, String pileName, List<String> cards) {
+    return _deckOfCardsAPI.drawFromPiles(deckId, pileName, cards.join(','));
+  }
+
+  Future<PilesResponse> listPile(String deckId, String pileName) {
+    return _deckOfCardsAPI.listPiles(deckId, pileName);
   }
 }
