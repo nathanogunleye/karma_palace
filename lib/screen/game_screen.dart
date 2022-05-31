@@ -160,7 +160,7 @@ class _GameScreenState extends State<GameScreen> {
                               if (_middle.isNotEmpty)
                                 IconButton(
                                   icon: Image.network(_middle.last.image),
-                                  iconSize: 200,
+                                  iconSize: 100,
                                   onPressed: () async {
                                     // TODO: Pick up if you cannot play
                                   },
@@ -233,10 +233,23 @@ class _GameScreenState extends State<GameScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildCardsSet(_hand, _pileNameHand),
-        _buildCardsSet(_cardsFaceUp, _pileNameCardsFaceUp),
-        _buildCardsSet(_cardsFaceDown, _pileNameCardsFaceDown, true),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            _buildCardsSet(_cardsFaceDown, _pileNameCardsFaceDown, true),
+            Positioned.fill(
+              top: 5,
+              bottom: -5,
+              left: 5,
+              right: -5,
+              child: _buildCardsSet(_cardsFaceUp, _pileNameCardsFaceUp),
+              // child: Container(height: 50, width: 50, color: Colors.purple),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -247,12 +260,12 @@ class _GameScreenState extends State<GameScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: cards.map((c) {
-        return Expanded(
+        return Flexible(
           child: IconButton(
             icon: faceDown
-                ? const Icon(Icons.hide_image_rounded)
+                ? Image.asset('assets/images/card_back.png')
                 : Image.network(c.image),
-            iconSize: 80,
+            iconSize: 60,
             onPressed: () async {
               // TODO: Check card is a valid play
               // TODO: Draw cards from pile
