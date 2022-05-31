@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "461906582742",
+    "project_id": "karma-palace",
+    "storage_bucket": "karma-palace.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461906582742:android:0ffe43d19048602fdafd77",
+        "android_client_info": {
+          "package_name": "com.nathanodong.karma_palace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "461906582742-bo6qpem8a83p11ksqcrmg1hvp7jqtaob.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBivBkqg_q8wknd1sVaag_IJPxf3N27jO4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "461906582742-bo6qpem8a83p11ksqcrmg1hvp7jqtaob.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "461906582742-c0pip9cfn2nstg8j1bm4muo7j7elvb9e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nathanodong.karmaPalace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
