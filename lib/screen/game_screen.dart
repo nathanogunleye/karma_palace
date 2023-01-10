@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:karma_palace/model/draw_a_card_response.dart';
 import 'package:karma_palace/model/piles_response.dart';
+import 'package:karma_palace/model/player.dart';
 import 'package:karma_palace/model/playing_card.dart';
 import 'package:karma_palace/model/shuffle_cards_response.dart';
 import 'package:karma_palace/service/card_service.dart';
+import 'package:karma_palace/service/messaging_service.dart';
 import 'package:logger/logger.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -18,14 +20,17 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final Logger _logger = Logger();
   final CardService _cardService = CardService();
+  final MessagingService _messagingService = MessagingService();
   final String _pileNameMiddle = 'middle';
 
-  late String _pileNamePrefix;
   late String _pileNameHand;
   late String _pileNameCardsFaceDown;
   late String _pileNameCardsFaceUp;
 
-  String _deckId = '';
+  late String _deckId = '';
+  late String _playerId;
+  late Player _player;
+
   List<PlayingCard> _middle = [];
   List<PlayingCard> _hand = [];
   List<PlayingCard> _cardsFaceDown = [];
@@ -34,7 +39,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _setPileNames();
+    _setUp();
   }
 
   @override
@@ -91,8 +96,7 @@ class _GameScreenState extends State<GameScreen> {
                                   DeckResponse deckResponse = await _cardService
                                       .createNewShuffledDeck(false);
                                   setState(() {
-                                    _deckId = deckResponse.deckId ?? '';
-                                    _drawInitialPiles();
+                                    _startNewGame(deckResponse);
                                   });
                                 },
                                 child: const Text('Create Room'),
@@ -134,6 +138,8 @@ class _GameScreenState extends State<GameScreen> {
                                     (value) => setState(() {
                                       _deckId = value!;
                                       if (_deckId.isNotEmpty) {
+                                        _messagingService.joinExistingRoom(
+                                            _deckId, _player);
                                         _drawInitialPiles().catchError(
                                             (Object error,
                                                 StackTrace stackTrace) {
@@ -196,6 +202,12 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _startNewGame(DeckResponse deckResponse) {
+    _deckId = deckResponse.deckId ?? '';
+    _messagingService.saveNewRoom(_deckId, _player);
+    _drawInitialPiles();
+  }
+
   void _showErrorMessage(BuildContext context) {
     showDialog<String>(
       context: context,
@@ -222,11 +234,16 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _setPileNames() {
-    _pileNamePrefix = const Uuid().v4().split('-')[0];
-    _pileNameHand = '${_pileNamePrefix}_hand';
-    _pileNameCardsFaceDown = '${_pileNamePrefix}_face_down';
-    _pileNameCardsFaceUp = '${_pileNamePrefix}_face_up';
+  void _setUp() {
+    _playerId = const Uuid().v4().split('-')[0];
+    _player = Player(
+      id: _playerId,
+      name: 'Player_$_playerId',
+    );
+
+    _pileNameHand = '${_playerId}_hand';
+    _pileNameCardsFaceDown = '${_playerId}_face_down';
+    _pileNameCardsFaceUp = '${_playerId}_face_up';
   }
 
   Widget _buildCards() {

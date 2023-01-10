@@ -52,6 +52,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '461906582742',
     projectId: 'karma-palace',
     authDomain: 'karma-palace.firebaseapp.com',
+    databaseURL: 'https://karma-palace-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'karma-palace.appspot.com',
   );
 
@@ -60,6 +61,7 @@ class DefaultFirebaseOptions {
     appId: '1:461906582742:android:0ffe43d19048602fdafd77',
     messagingSenderId: '461906582742',
     projectId: 'karma-palace',
+    databaseURL: 'https://karma-palace-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'karma-palace.appspot.com',
   );
 
@@ -68,6 +70,7 @@ class DefaultFirebaseOptions {
     appId: '1:461906582742:ios:e9e743fa9b6fc034dafd77',
     messagingSenderId: '461906582742',
     projectId: 'karma-palace',
+    databaseURL: 'https://karma-palace-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'karma-palace.appspot.com',
     iosClientId: '461906582742-c0pip9cfn2nstg8j1bm4muo7j7elvb9e.apps.googleusercontent.com',
     iosBundleId: 'com.nathanodong.karmaPalace',
