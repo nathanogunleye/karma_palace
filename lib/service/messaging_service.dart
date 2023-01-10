@@ -1,11 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:karma_palace/model/player.dart';
 import 'package:karma_palace/model/room.dart';
-import 'package:logger/logger.dart';
 
 class MessagingService {
-  final Logger _logger = Logger();
-
   static final MessagingService _messagingService =
       MessagingService._internal();
 
