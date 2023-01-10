@@ -2,13 +2,10 @@ name: Dart (Flutter) CI
 
 on:
   push:
-    branches:
-      - main
-      - 'FEATURE-*'
 
 env:
-  FLUTTER_VERSION: 3.0.0
-  FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION: 3.3.10
+  FLUTTER_CHANNEL: 'stable'
 
 jobs:
   build-flutter:
@@ -53,97 +50,3 @@ jobs:
 
       - name: Run tests
         run: flutter test test/*
-
-#  build-flutter-appbundle:
-#    name: Build Android App Bundle
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v1
-#
-#      - name: Setup Java
-#        uses: actions/setup-java@v1
-#        with:
-#          java-version: '12.x'
-#
-#      - name: Setup Flutter
-#        uses: subosito/flutter-action@v1
-#        with:
-#          flutter-version: ${{ env.FLUTTER_VERSION }}
-#          channel: ${{ env.FLUTTER_CHANNEL }}
-#
-#      - name: Flutter version
-#        run: flutter --version
-#
-#      - name: Cache pub dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ${{ env.FLUTTER_HOME }}/.pub-cache
-#          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-#          restore-keys: ${{ runner.os }}-pub-
-#
-#      - name: Clean
-#        run: flutter clean
-#
-#      - name: Download dependencies
-#        run: flutter pub get
-#
-#      - name: Build
-#        run: flutter pub run build_runner build --delete-conflicting-outputs
-#
-#      - name: Download Android keystore
-#        id: android_keystore
-#        uses: timheuer/base64-to-file@v1.0.3
-#        with:
-#          fileName: key.jks
-#          encodedString: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-#
-#      - name: Create key.properties
-#        run: |
-#          echo "storeFile=${{ steps.android_keystore.outputs.filePath }}" > android/key.properties
-#          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
-#          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
-#          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
-#
-#      - name: Build Android App Bundle
-#        run: flutter build appbundle
-
-#  build-ios:
-#    name: Build iOS
-#    runs-on: macos-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v1
-#
-#      - name: Setup Java
-#        uses: actions/setup-java@v1
-#        with:
-#          java-version: '12.x'
-#
-#      - name: Setup Flutter
-#        uses: subosito/flutter-action@v1
-#        with:
-#          flutter-version: '2.2.1'
-#          channel: 'stable'
-#
-#      - name: Flutter version
-#        run: flutter --version
-#
-#      - name: Cache pub dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ${{ env.FLUTTER_HOME }}/.pub-cache
-#          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-#          restore-keys: ${{ runner.os }}-pub-
-#
-#      - name: Clean
-#        run: flutter clean
-#
-#      - name: Download dependencies
-#        run: flutter pub get
-#
-#      - name: Build
-#        run: flutter pub run build_runner build --delete-conflicting-outputs
-#
-#      - name: Build iOS
-#        run: flutter build ios --no-codesign
