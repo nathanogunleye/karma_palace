@@ -18,7 +18,7 @@ dependencies:
   share_plus: ^4.0.4
   uuid: ^3.0.7
   logger: ^1.1.0
-  firebase_core: ^1.17.1
+  firebase_core: ^1.24.0
   firebase_database: ^9.0.15
 
 dev_dependencies:
