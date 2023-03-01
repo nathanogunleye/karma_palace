@@ -18,7 +18,7 @@ dependencies:
   retrofit: ^3.0.1+1
   share_plus: ^4.0.4
   uuid: ^3.0.7
-  logger: ^1.1.0
+  logger: ^1.2.2
   firebase_core: ^2.4.1
   firebase_database: ^10.0.9
 
