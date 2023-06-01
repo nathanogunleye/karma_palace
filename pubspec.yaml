@@ -22,7 +22,7 @@ dependencies:
   firebase_core: ^2.4.1
   firebase_crashlytics: ^3.0.3  # Error reporting
   firebase_database: ^10.2.0
-  audioplayers: ^3.0.0
+  audioplayers: ^4.1.0
   go_router: ^6.0.1
   logging: ^1.1.0
   provider: ^6.0.2
