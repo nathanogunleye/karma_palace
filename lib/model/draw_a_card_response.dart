@@ -9,15 +9,11 @@ class DrawCardResponse extends DeckOfCardsResponse {
   List<PlayingCard>? cards;
 
   DrawCardResponse({
-    bool? success,
-    String? deckId,
-    int? remaining,
+    super.success,
+    super.deckId,
+    super.remaining,
     this.cards,
-  }) : super(
-          success: success,
-          deckId: deckId,
-          remaining: remaining,
-        );
+  });
 
   factory DrawCardResponse.fromJson(Map<String, dynamic> json) =>
       _$DrawCardResponseFromJson(json);

@@ -11,16 +11,12 @@ class PilesResponse extends DeckOfCardsResponse {
   List<PlayingCard>? cards;
 
   PilesResponse({
-    bool? success,
-    String? deckId,
-    int? remaining,
+    super.success,
+    super.deckId,
+    super.remaining,
     this.piles,
     this.cards,
-  }) : super(
-          success: success,
-          deckId: deckId,
-          remaining: remaining,
-        );
+  });
 
   factory PilesResponse.fromJson(Map<String, dynamic> json) =>
       _$PilesResponseFromJson(json);

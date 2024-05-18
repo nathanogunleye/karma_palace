@@ -15,16 +15,15 @@ pub-get: clean ## Install referenced packages
 pub-build: pub-get
 	flutter pub run build_runner build --delete-conflicting-outputs
 
-pub-lint: pub-build
-	flutter analyze
+pub-lint: pub-build lint
 
-pub-test: pub-lint
-	flutter test test/*
+pub-test: pub-lint test
 
 .PHONY: test
 test:
 	flutter test test/*
 
+.PHONY: lint
 lint:
 	flutter analyze
 
@@ -64,6 +63,7 @@ force-push-beta:
 
 reset-beta: checkout-beta reset-feature-beta force-push-beta
 
+.PHONY: all
 all: pub-test
 
 refresh-tags:

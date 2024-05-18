@@ -30,7 +30,7 @@ class CardService {
           _logger.d(response);
           return handler.next(response);
         },
-        onError: (DioError e, ErrorInterceptorHandler handler) {
+        onError: (DioException e, ErrorInterceptorHandler handler) {
           _logger.e('DioError', e.error);
           return handler.next(e);
         },

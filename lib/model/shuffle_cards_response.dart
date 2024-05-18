@@ -8,15 +8,11 @@ class DeckResponse extends DeckOfCardsResponse {
   bool? shuffled;
 
   DeckResponse({
-    bool? success,
-    String? deckId,
-    int? remaining,
+    super.success,
+    super.deckId,
+    super.remaining,
     this.shuffled,
-  }) : super(
-          success: success,
-          deckId: deckId,
-          remaining: remaining,
-        );
+  });
 
   factory DeckResponse.fromJson(Map<String, dynamic> json) =>
       _$DeckResponseFromJson(json);
