@@ -165,6 +165,9 @@ class AudioController {
       case AppLifecycleState.inactive:
         // No need to react to this state change.
         break;
+      case AppLifecycleState.hidden:
+        // TODO: Handle this case.
+        break;
     }
   }
 
@@ -225,6 +228,9 @@ class AudioController {
             "Music should never be 'completed' as it's either not playing "
             "or looping forever.");
         await _playFirstSongInPlaylist();
+        break;
+      case PlayerState.disposed:
+        // TODO: Handle this case.
         break;
     }
   }

@@ -68,3 +68,7 @@ all: pub-test
 
 refresh-tags:
 	./run_tag_refresh.bash
+
+pod-update:
+	cd ios
+	pod repo update
