@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:karma_palace/model/draw_a_card_response.dart';
-import 'package:karma_palace/model/piles_response.dart';
-import 'package:karma_palace/model/shuffle_cards_response.dart';
+import 'package:karma_palace/model/api/draw_a_card_response.dart';
+import 'package:karma_palace/model/api/piles_response.dart';
+import 'package:karma_palace/model/api/shuffle_cards_response.dart';
+
 import 'package:retrofit/retrofit.dart';
 
 part 'deck_of_cards_api.g.dart';

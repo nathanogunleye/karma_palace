@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:karma_palace/api/deck_of_cards_api.dart';
-import 'package:karma_palace/model/draw_a_card_response.dart';
-import 'package:karma_palace/model/piles_response.dart';
-import 'package:karma_palace/model/shuffle_cards_response.dart';
+import 'package:karma_palace/model/api/draw_a_card_response.dart';
+import 'package:karma_palace/model/api/piles_response.dart';
+import 'package:karma_palace/model/api/shuffle_cards_response.dart';
 import 'package:logger/logger.dart';
 
 class CardService {

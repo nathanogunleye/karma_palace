@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:karma_palace/model/playing_card.dart';
+import 'package:karma_palace/model/api/playing_card.dart';
 
 part 'pile.g.dart';
 
