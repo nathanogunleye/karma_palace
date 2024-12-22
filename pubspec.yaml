@@ -30,6 +30,7 @@ dependencies:
   games_services: ^3.0.1  # Achievements and leaderboards
   google_mobile_ads: ^5.2.0  # Ads
   in_app_purchase: ^3.0.1  # In-app purchases
+  async: any
 
 dev_dependencies:
   build_runner: ^2.3.3
