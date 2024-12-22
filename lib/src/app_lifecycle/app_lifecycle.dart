@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
+typedef AppLifecycleStateNotifier = ValueNotifier<AppLifecycleState>;
+
 class AppLifecycleObserver extends StatefulWidget {
   final Widget child;
 
@@ -15,9 +17,9 @@ class AppLifecycleObserver extends StatefulWidget {
   State<AppLifecycleObserver> createState() => _AppLifecycleObserverState();
 }
 
-class _AppLifecycleObserverState extends State<AppLifecycleObserver>
-    with WidgetsBindingObserver {
+class _AppLifecycleObserverState extends State<AppLifecycleObserver> {
   static final _log = Logger('AppLifecycleObserver');
+  late final AppLifecycleListener _appLifecycleListener;
 
   final ValueNotifier<AppLifecycleState> lifecycleListenable =
       ValueNotifier(AppLifecycleState.inactive);
@@ -36,28 +38,24 @@ class _AppLifecycleObserverState extends State<AppLifecycleObserver>
     // is trying to provide a Listenable (such as ValueNotifier) without using
     // something like ValueListenableProvider. InheritedProvider is more
     // low-level and doesn't have this problem.
-    return InheritedProvider<ValueNotifier<AppLifecycleState>>.value(
+    return InheritedProvider<AppLifecycleStateNotifier>.value(
       value: lifecycleListenable,
       child: widget.child,
     );
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    _log.info(() => 'didChangeAppLifecycleState: $state');
-    lifecycleListenable.value = state;
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    _appLifecycleListener.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    _appLifecycleListener = AppLifecycleListener(
+      onStateChange: (s) => lifecycleListenable.value = s,
+    );
     _log.info('Subscribed to app lifecycle updates');
   }
 }

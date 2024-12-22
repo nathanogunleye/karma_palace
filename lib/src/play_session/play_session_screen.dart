@@ -9,22 +9,22 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart' hide Level;
 import 'package:provider/provider.dart';
 
-import '../ads/ads_controller.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
-import '../game_internals/level_state.dart';
-import '../games_services/games_services.dart';
-import '../games_services/score.dart';
-import '../in_app_purchase/in_app_purchase.dart';
-import '../level_selection/levels.dart';
-import '../player_progress/player_progress.dart';
+import '../game_internals/board_state.dart';
+import '../game_internals/score.dart';
 import '../style/confetti.dart';
+import '../style/my_button.dart';
 import '../style/palette.dart';
+import 'board_widget.dart';
 
+/// This widget defines the entirety of the screen that the player sees when
+/// they are playing a level.
+///
+/// It is a stateful widget because it manages some state of its own,
+/// such as whether the game is in a "celebration" state.
 class PlaySessionScreen extends StatefulWidget {
-  final GameLevel level;
-
-  const PlaySessionScreen(this.level, {super.key});
+  const PlaySessionScreen({super.key});
 
   @override
   State<PlaySessionScreen> createState() => _PlaySessionScreenState();
@@ -41,66 +41,55 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
   late DateTime _startOfPlay;
 
+  late final BoardState _boardState;
+
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (context) => LevelState(
-            goal: widget.level.difficulty,
-            onWin: _playerWon,
-          ),
-        ),
+        Provider.value(value: _boardState),
       ],
       child: IgnorePointer(
+        // Ignore all input during the celebration animation.
         ignoring: _duringCelebration,
         child: Scaffold(
           backgroundColor: palette.backgroundPlaySession,
+          // The stack is how you layer widgets on top of each other.
+          // Here, it is used to overlay the winning confetti animation on top
+          // of the game.
           body: Stack(
             children: [
-              Center(
-                // This is the entirety of the "game".
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkResponse(
-                        onTap: () => GoRouter.of(context).push('/settings'),
-                        child: Image.asset(
-                          'assets/images/settings.png',
-                          semanticLabel: 'Settings',
-                        ),
+              // This is the main layout of the play session screen,
+              // with a settings button at top, the actual play area
+              // in the middle, and a back button at the bottom.
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: InkResponse(
+                      onTap: () => GoRouter.of(context).push('/settings'),
+                      child: Image.asset(
+                        'assets/images/settings.png',
+                        semanticLabel: 'Settings',
                       ),
                     ),
-                    const Spacer(),
-                    Text('Drag the slider to ${widget.level.difficulty}%'
-                        ' or above!'),
-                    Consumer<LevelState>(
-                      builder: (context, levelState, child) => Slider(
-                        label: 'Level Progress',
-                        autofocus: true,
-                        value: levelState.progress / 100,
-                        onChanged: (value) =>
-                            levelState.setProgress((value * 100).round()),
-                        onChangeEnd: (value) => levelState.evaluate(),
-                      ),
+                  ),
+                  const Spacer(),
+                  // The actual UI of the game.
+                  const BoardWidget(),
+                  const Text('Drag cards to the two areas above.'),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: MyButton(
+                      onPressed: () => GoRouter.of(context).go('/'),
+                      child: const Text('Back'),
                     ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () => GoRouter.of(context).go('/play'),
-                          child: const Text('Back'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               SizedBox.expand(
                 child: Visibility(
@@ -120,31 +109,26 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
   }
 
   @override
+  void dispose() {
+    _boardState.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
-
     _startOfPlay = DateTime.now();
-
-    // Preload ad for the win screen.
-    final adsRemoved =
-        context.read<InAppPurchaseController?>()?.adRemoval.active ?? false;
-    if (!adsRemoved) {
-      final adsController = context.read<AdsController?>();
-      adsController?.preloadAd();
-    }
+    _boardState = BoardState(onWin: _playerWon);
   }
 
   Future<void> _playerWon() async {
-    _log.info('Level ${widget.level.number} won');
+    _log.info('Player won');
 
-    final score = Score(
-      widget.level.number,
-      widget.level.difficulty,
-      DateTime.now().difference(_startOfPlay),
-    );
+    // TODO: replace with some meaningful score for the card game
+    final score = Score(1, 1, DateTime.now().difference(_startOfPlay));
 
-    final playerProgress = context.read<PlayerProgress>();
-    playerProgress.setLevelReached(widget.level.number);
+    // final playerProgress = context.read<PlayerProgress>();
+    // playerProgress.setLevelReached(widget.level.number);
 
     // Let the player see the game just after winning for a bit.
     await Future<void>.delayed(_preCelebrationDuration);
@@ -156,20 +140,6 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
     final audioController = context.read<AudioController>();
     audioController.playSfx(SfxType.congrats);
-
-    final gamesServicesController = context.read<GamesServicesController?>();
-    if (gamesServicesController != null) {
-      // Award achievement.
-      if (widget.level.awardsAchievement) {
-        await gamesServicesController.awardAchievement(
-          android: widget.level.achievementIdAndroid!,
-          iOS: widget.level.achievementIdIOS!,
-        );
-      }
-
-      // Send score to leaderboard.
-      await gamesServicesController.submitLeaderboardScore(score);
-    }
 
     /// Give the player some time to see the celebration animation.
     await Future<void>.delayed(_celebrationDuration);

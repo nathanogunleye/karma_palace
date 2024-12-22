@@ -6,33 +6,29 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'persistence/local_storage_player_progress_persistence.dart';
 import 'persistence/player_progress_persistence.dart';
 
 /// Encapsulates the player's progress.
 class PlayerProgress extends ChangeNotifier {
   static const maxHighestScoresPerPlayer = 10;
 
+  /// By default, settings are persisted using
+  /// [LocalStoragePlayerProgressPersistence] (i.e. NSUserDefaults on iOS,
+  /// SharedPreferences on Android or local storage on the web).
   final PlayerProgressPersistence _store;
 
   int _highestLevelReached = 0;
 
   /// Creates an instance of [PlayerProgress] backed by an injected
   /// persistence [store].
-  PlayerProgress(PlayerProgressPersistence store) : _store = store;
+  PlayerProgress({PlayerProgressPersistence? store})
+      : _store = store ?? LocalStoragePlayerProgressPersistence() {
+    _getLatestFromStore();
+  }
 
   /// The highest level that the player has reached so far.
   int get highestLevelReached => _highestLevelReached;
-
-  /// Fetches the latest data from the backing persistence store.
-  Future<void> getLatestFromStore() async {
-    final level = await _store.getHighestLevelReached();
-    if (level > _highestLevelReached) {
-      _highestLevelReached = level;
-      notifyListeners();
-    } else if (level < _highestLevelReached) {
-      await _store.saveHighestLevelReached(_highestLevelReached);
-    }
-  }
 
   /// Resets the player's progress so it's like if they just started
   /// playing the game for the first time.
@@ -52,6 +48,17 @@ class PlayerProgress extends ChangeNotifier {
       notifyListeners();
 
       unawaited(_store.saveHighestLevelReached(level));
+    }
+  }
+
+  /// Fetches the latest data from the backing persistence store.
+  Future<void> _getLatestFromStore() async {
+    final level = await _store.getHighestLevelReached();
+    if (level > _highestLevelReached) {
+      _highestLevelReached = level;
+      notifyListeners();
+    } else if (level < _highestLevelReached) {
+      await _store.saveHighestLevelReached(_highestLevelReached);
     }
   }
 }
