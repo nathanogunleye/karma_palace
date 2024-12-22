@@ -4,7 +4,7 @@ on:
   push:
 
 env:
-  FLUTTER_VERSION: 3.19.3
+  FLUTTER_VERSION: 3.27.1
   FLUTTER_CHANNEL: 'stable'
 
 jobs:
