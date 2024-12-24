@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:karma_palace/model/api/draw_a_card_response.dart';
-import 'package:karma_palace/model/api/piles_response.dart';
-import 'package:karma_palace/model/api/shuffle_cards_response.dart';
+import 'package:karma_palace/src/model/api/draw_a_card_response.dart';
+import 'package:karma_palace/src/model/api/piles_response.dart';
+import 'package:karma_palace/src/model/api/shuffle_cards_response.dart';
 
 import 'package:retrofit/retrofit.dart';
 

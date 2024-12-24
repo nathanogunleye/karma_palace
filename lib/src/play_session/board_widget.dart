@@ -27,16 +27,38 @@ class _BoardWidgetState extends State<BoardWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Player Two
         Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(5),
           child: Row(
             children: [
-              Expanded(child: PlayingAreaWidget(boardState.areaOne)),
-              const SizedBox(width: 20),
               Expanded(child: PlayingAreaWidget(boardState.areaTwo)),
             ],
           ),
         ),
+
+        // Playing area (deck an discard pile)
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              Expanded(child: PlayingAreaWidget(boardState.deck)),
+              const SizedBox(width: 20),
+              Expanded(child: PlayingAreaWidget(boardState.discardPile)),
+            ],
+          ),
+        ),
+
+        // Player One
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              Expanded(child: PlayingAreaWidget(boardState.areaOne)),
+            ],
+          ),
+        ),
+
         const PlayerHandWidget(),
       ],
     );

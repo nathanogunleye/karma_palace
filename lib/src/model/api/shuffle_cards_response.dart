@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:karma_palace/model/api/deck_of_cards_response.dart';
+import 'package:karma_palace/src/model/api/deck_of_cards_response.dart';
 
 part 'shuffle_cards_response.g.dart';
 

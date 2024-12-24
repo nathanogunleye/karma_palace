@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:karma_palace/model/api/deck_of_cards_response.dart';
-import 'package:karma_palace/model/api/playing_card.dart';
+import 'package:karma_palace/src/model/api/deck_of_cards_response.dart';
+import 'package:karma_palace/src/model/api/playing_card.dart';
 
 part 'draw_a_card_response.g.dart';
 

@@ -27,7 +27,7 @@ class _PlayingAreaWidgetState extends State<PlayingAreaWidget> {
     final palette = context.watch<Palette>();
 
     return LimitedBox(
-      maxHeight: 200,
+      maxHeight: 100,
       child: AspectRatio(
         aspectRatio: 1 / 1,
         child: DragTarget<PlayingCardDragData>(

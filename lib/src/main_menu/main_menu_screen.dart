@@ -47,9 +47,18 @@ class MainMenuScreen extends StatelessWidget {
                 audioController.playSfx(SfxType.buttonTap);
                 GoRouter.of(context).go('/play');
               },
-              child: const Text('Play'),
+              child: const Text('New Game'),
             ),
-            _gap,
+            MyButton(
+              onPressed: () {
+                audioController.playSfx(SfxType.buttonTap);
+
+
+                GoRouter.of(context).go('/play');
+              },
+              child: const Text('Join Game'),
+            ),
+            // _gap,
             MyButton(
               onPressed: () => GoRouter.of(context).push('/settings'),
               child: const Text('Settings'),

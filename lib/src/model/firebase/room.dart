@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:karma_palace/model/firebase/player.dart';
+import 'package:karma_palace/src/model/firebase/player.dart';
 
 part 'room.g.dart';
 

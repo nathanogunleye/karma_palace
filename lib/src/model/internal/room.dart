@@ -1,5 +1,5 @@
-import 'package:karma_palace/model/internal/card.dart';
-import 'package:karma_palace/model/internal/player.dart';
+import 'package:karma_palace/src/model/internal/card.dart';
+import 'package:karma_palace/src/model/internal/player.dart';
 
 class Room {
   String id;

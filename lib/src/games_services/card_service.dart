@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:karma_palace/api/deck_of_cards_api.dart';
-import 'package:karma_palace/model/api/draw_a_card_response.dart';
-import 'package:karma_palace/model/api/piles_response.dart';
-import 'package:karma_palace/model/api/shuffle_cards_response.dart';
-import 'package:logger/logger.dart';
+import 'package:karma_palace/src/api/deck_of_cards_api.dart';
+import 'package:karma_palace/src/model/api/draw_a_card_response.dart';
+import 'package:karma_palace/src/model/api/piles_response.dart';
+import 'package:karma_palace/src/model/api/shuffle_cards_response.dart';
+import 'package:logging/logging.dart';
 
 class CardService {
-  final Logger _logger = Logger();
+  static final Logger _log = Logger('CardService');
   final Dio _dio = Dio();
 
   late DeckOfCardsAPI _deckOfCardsAPI;
@@ -23,15 +23,15 @@ class CardService {
       InterceptorsWrapper(
         onRequest:
             (RequestOptions options, RequestInterceptorHandler handler) async {
-          _logger.i(options.path);
+          _log.info(options.path);
           return handler.next(options);
         },
         onResponse: (Response response, ResponseInterceptorHandler handler) {
-          _logger.d(response);
+          _log.finest(response);
           return handler.next(response);
         },
         onError: (DioException e, ErrorInterceptorHandler handler) {
-          _logger.e('DioError', e.error);
+          _log.severe('DioError', e.error);
           return handler.next(e);
         },
       ),

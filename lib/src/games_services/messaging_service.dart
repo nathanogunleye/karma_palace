@@ -1,10 +1,19 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:logging/logging.dart';
 
-import '../model/firebase/player.dart' as firebase_player;
-import '../model/firebase/room.dart';
-import '../model/internal/player.dart';
+import 'package:karma_palace/src/model/firebase/player.dart' as firebase_player;
+
+import 'package:karma_palace/src/model/firebase/room.dart';
+
+class RoomNotFoundException implements Exception {
+  String cause;
+
+  RoomNotFoundException(this.cause);
+}
 
 class MessagingService {
+  static final Logger _log = Logger('MessagingService');
+
   static final MessagingService _messagingService =
       MessagingService._internal();
 
@@ -14,7 +23,7 @@ class MessagingService {
 
   MessagingService._internal();
 
-  void createRoom(String id, Player player) async {
+  void createRoom(String id, firebase_player.Player player) async {
     Room room = Room(
       id: id,
       players: [
@@ -26,12 +35,14 @@ class MessagingService {
       currentPlayer: player.name,
     );
 
+    _log.fine('Room ID: ${room.id}');
+
     FirebaseDatabase database = FirebaseDatabase.instance;
     DatabaseReference ref = database.ref('room/${room.id}');
     await ref.set(room.toJson());
   }
 
-  Future<void> joinRoom(String id, Player player) async {
+  Future<void> joinRoom(String id, firebase_player.Player player) async {
     FirebaseDatabase database = FirebaseDatabase.instance;
     DatabaseReference roomRef = database.ref('room/$id');
 
@@ -45,6 +56,6 @@ class MessagingService {
       ).toJson());
     }
 
-    throw 'Room does not exist!';
+    throw RoomNotFoundException('Room does not exist!');
   }
 }

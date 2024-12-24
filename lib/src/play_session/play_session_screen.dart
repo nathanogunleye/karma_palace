@@ -77,13 +77,12 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  // const Spacer(),
                   // The actual UI of the game.
                   const BoardWidget(),
-                  const Text('Drag cards to the two areas above.'),
-                  const Spacer(),
+                  // const Spacer(),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(5.0),
                     child: MyButton(
                       onPressed: () => GoRouter.of(context).go('/'),
                       child: const Text('Back'),
