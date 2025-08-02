@@ -4,9 +4,11 @@
 
 import 'dart:developer' as dev;
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:karma_palace/firebase_options.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +32,12 @@ void main() async {
   });
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Init Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // Put game into full screen mode on mobile devices.
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   // Lock the game to portrait mode on mobile devices.

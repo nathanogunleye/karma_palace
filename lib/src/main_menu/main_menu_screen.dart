@@ -4,7 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:karma_palace/constants/text_constants.dart';
+import 'package:karma_palace/src/play_session/play_session_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
@@ -45,7 +48,13 @@ class MainMenuScreen extends StatelessWidget {
             MyButton(
               onPressed: () {
                 audioController.playSfx(SfxType.buttonTap);
-                GoRouter.of(context).go('/play');
+                GoRouter.of(context).go(
+                  '/$pathPlay',
+                  extra: PlaySessionScreenExtra(
+                    gameId: const Uuid().v1(),
+                    isHost: true,
+                  ),
+                );
               },
               child: const Text('New Game'),
             ),
@@ -53,8 +62,13 @@ class MainMenuScreen extends StatelessWidget {
               onPressed: () {
                 audioController.playSfx(SfxType.buttonTap);
 
-
-                GoRouter.of(context).go('/play');
+                GoRouter.of(context).go(
+                  '/$pathPlay',
+                  extra: PlaySessionScreenExtra(
+                    gameId: null,
+                    isHost: false,
+                  ),
+                );
               },
               child: const Text('Join Game'),
             ),

@@ -4,6 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:karma_palace/constants/text_constants.dart';
 import 'package:karma_palace/src/main_menu/main_menu_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -23,9 +24,9 @@ final router = GoRouter(
       builder: (context, state) => const MainMenuScreen(key: Key('main menu')),
       routes: [
         GoRoute(
-          path: 'play',
+          path: pathPlay,
           pageBuilder: (context, state) => buildMyTransition<void>(
-            key: const ValueKey('play'),
+            key: const ValueKey(pathPlay),
             color: context.watch<Palette>().backgroundPlaySession,
             child: const PlaySessionScreen(
               key: Key('level selection'),

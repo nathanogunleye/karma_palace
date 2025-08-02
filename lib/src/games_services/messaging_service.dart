@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
 
+import 'package:karma_palace/src/model/internal/player.dart' as internal_player;
 import 'package:karma_palace/src/model/firebase/player.dart' as firebase_player;
 
 import 'package:karma_palace/src/model/firebase/room.dart';
@@ -23,7 +24,7 @@ class MessagingService {
 
   MessagingService._internal();
 
-  void createRoom(String id, firebase_player.Player player) async {
+  void createRoom(String id, internal_player.Player player) async {
     Room room = Room(
       id: id,
       players: [
@@ -50,12 +51,13 @@ class MessagingService {
     if (event.snapshot.exists) {
       DatabaseReference roomPlayerRef = roomRef.child('players');
       DatabaseReference newPlayerRef = roomPlayerRef.push();
-      newPlayerRef.set(firebase_player.Player(
+      await newPlayerRef.set(firebase_player.Player(
         name: player.name,
         isPlaying: false,
       ).toJson());
+      _log.fine('Successfully joined room: ${id}');
+    } else {
+      throw RoomNotFoundException('Room does not exist!');
     }
-
-    throw RoomNotFoundException('Room does not exist!');
   }
 }

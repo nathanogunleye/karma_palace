@@ -6,6 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:karma_palace/src/games_services/messaging_service.dart';
+import 'package:karma_palace/src/model/internal/player.dart';
+import 'package:karma_palace/src/model/firebase/player.dart' as firebase_player;
 import 'package:logging/logging.dart' hide Level;
 import 'package:provider/provider.dart';
 
@@ -17,6 +20,17 @@ import '../style/confetti.dart';
 import '../style/my_button.dart';
 import '../style/palette.dart';
 import 'board_widget.dart';
+import 'game_id_dialog.dart';
+
+class PlaySessionScreenExtra {
+  final String? gameId;
+  final bool isHost;
+
+  PlaySessionScreenExtra({
+    required this.gameId,
+    this.isHost = true,
+  });
+}
 
 /// This widget defines the entirety of the screen that the player sees when
 /// they are playing a level.
@@ -42,6 +56,98 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
   late DateTime _startOfPlay;
 
   late final BoardState _boardState;
+
+  final MessagingService _messagingService = MessagingService();
+
+  // To store the retrieved extra data
+  PlaySessionScreenExtra? _screenExtra;
+
+  @override
+  void initState() {
+    super.initState();
+    _startOfPlay = DateTime.now();
+    _boardState = BoardState(onWin: _playerWon);
+
+    _messagingService.createRoom('test', Player(name: ''));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This is a good place to access route arguments.
+    if (_screenExtra == null) { // Only fetch it once
+      final extra = GoRouterState.of(context).extra;
+      if (extra is PlaySessionScreenExtra) {
+        _screenExtra = extra;
+        _log.info('Received gameId via GoRouterState.extra: ${_screenExtra?.gameId}');
+        
+        // Check if we need to show the game ID dialog
+        if (!_screenExtra!.isHost && _screenExtra!.gameId == null) {
+          _showGameIdDialog();
+        } else {
+          _initializeMessagingService();
+        }
+      } else {
+        _log.warning(
+            'PlaySessionScreenExtra not found in GoRouterState.extra. Type was: ${extra?.runtimeType}');
+        // Fallback if no gameId is passed - e.g. creating a default room
+        _messagingService.createRoom('default_test_room_no_extra', Player(name: 'PlayerHost'));
+      }
+    }
+  }
+
+  void _initializeMessagingService() {
+    if (_screenExtra?.gameId != null) {
+      if (_screenExtra!.isHost) {
+        // Host creates a new room
+        _messagingService.createRoom(_screenExtra!.gameId!, Player(name: 'PlayerHost'));
+        _log.info('Host created room with gameId: ${_screenExtra!.gameId}');
+      } else {
+        // Guest joins an existing room
+        _messagingService.joinRoom(_screenExtra!.gameId!, firebase_player.Player(name: 'PlayerGuest', isPlaying: false))
+            .catchError((error) {
+          _log.severe('Failed to join room: $error');
+          // Handle room not found error - could show a dialog or go back to main menu
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Room not found: ${_screenExtra!.gameId}')),
+            );
+            GoRouter.of(context).go('/');
+          }
+        });
+        _log.info('Guest joining room with gameId: ${_screenExtra!.gameId}');
+      }
+    } else {
+      _log.warning('gameId is null in PlaySessionScreenExtra. Using default for MessagingService.');
+      _messagingService.createRoom('default_test_room', Player(name: 'PlayerHost')); // Fallback
+    }
+  }
+
+  Future<void> _showGameIdDialog() async {
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return GameIdDialog(
+          animation: ModalRoute.of(context)!.animation!,
+        );
+      },
+    );
+
+    if (result != null) {
+      // Update the screen extra with the provided game ID
+      _screenExtra = PlaySessionScreenExtra(
+        gameId: result,
+        isHost: _screenExtra!.isHost,
+      );
+      _initializeMessagingService();
+    } else {
+      // User cancelled, go back to main menu
+      if (mounted) {
+        GoRouter.of(context).go('/');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +217,6 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
   void dispose() {
     _boardState.dispose();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _startOfPlay = DateTime.now();
-    _boardState = BoardState(onWin: _playerWon);
   }
 
   Future<void> _playerWon() async {

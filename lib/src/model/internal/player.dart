@@ -15,8 +15,8 @@ class Player {
 
   Player({
     required this.name,
-    required this.hand,
-    required this.downHand,
-    required this.upHand,
+    this.hand = const [],
+    this.downHand = const [],
+    this.upHand = const [],
   });
 }
