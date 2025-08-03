@@ -70,8 +70,19 @@ class Card {
   }
 
   /// Check if card can be played on J, Q, K
-  bool get canPlayOnHighCards {
-    return value == '5' || !['J', 'Q', 'K'].contains(value);
+  /// This method should be called with the top card as context
+  bool canPlayOnHighCard(Card topCard) {
+    // 5 (glass) can always be played on high cards
+    if (value == '5') return true;
+    
+    // Special cards (2, 7, 9, 10) cannot be played on high cards
+    if (hasSpecialEffect && value != '5') return false;
+    
+    // Higher cards can be played on high cards
+    if (numericValue > topCard.numericValue) return true;
+    
+    // Lower cards cannot be played on high cards
+    return false;
   }
 
   /// Get display string

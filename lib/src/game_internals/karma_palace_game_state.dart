@@ -51,42 +51,124 @@ class KarmaPalaceGameState extends ChangeNotifier {
 
   // Initialize game state
   void initializeGame(Room room, String playerId) {
+    print('DEBUG: Initializing game state');
+    print('DEBUG: Room game state: ${room.gameState}');
+    print('DEBUG: Room current player: ${room.currentPlayer}');
+    print('DEBUG: My player ID: $playerId');
+    print('DEBUG: Previous player ID was: $_currentPlayerId');
+    
+    // Reset state completely for new player
     _room = room;
     _currentPlayerId = playerId;
     _gameInProgress = room.gameState == GameState.playing;
+    _isMyTurn = false; // Reset turn status
     _updateTurnStatus();
     notifyListeners();
   }
 
   // Update room data
   void updateRoom(Room room) {
+    print('DEBUG: Updating room data');
+    print('DEBUG: Room game state: ${room.gameState}');
+    print('DEBUG: Room current player: ${room.currentPlayer}');
+    
     _room = room;
     _gameInProgress = room.gameState == GameState.playing;
     _updateTurnStatus();
     notifyListeners();
   }
 
+  // Set current player ID
+  void setCurrentPlayerId(String playerId) {
+    print('DEBUG: Setting current player ID: $playerId');
+    _currentPlayerId = playerId;
+    _updateTurnStatus();
+    notifyListeners();
+  }
+
+  // Reset game state for new player
+  void resetForNewPlayer() {
+    print('DEBUG: Resetting game state for new player');
+    _room = null;
+    _currentPlayerId = null;
+    _isMyTurn = false;
+    _gameInProgress = false;
+    notifyListeners();
+  }
+
   // Update turn status
   void _updateTurnStatus() {
-    if (_room == null || _currentPlayerId == null) return;
+    if (_room == null || _currentPlayerId == null) {
+      print('DEBUG: Cannot update turn status - room or playerId is null');
+      return;
+    }
     
     _isMyTurn = _room!.currentPlayer == _currentPlayerId;
+    print('DEBUG: Turn status - Room current player: ${_room!.currentPlayer}, My ID: $_currentPlayerId, Is my turn: $_isMyTurn');
+    print('DEBUG: Game in progress: $_gameInProgress');
   }
 
   // Check if a card can be played
   bool canPlayCard(game_card.Card card) {
-    if (!_isMyTurn || !_gameInProgress) return false;
+    print('DEBUG: canPlayCard called');
+    print('DEBUG: _isMyTurn: $_isMyTurn');
+    print('DEBUG: _gameInProgress: $_gameInProgress');
+    print('DEBUG: _currentPlayerId: $_currentPlayerId');
+    print('DEBUG: Room current player: ${_room?.currentPlayer}');
+    
+    if (!_isMyTurn || !_gameInProgress) {
+      print('DEBUG: Not my turn or game not in progress');
+      return false;
+    }
     
     final topCard = this.topCard;
-    if (topCard == null) return true; // First card of the game
+    print('DEBUG: Top card: ${topCard?.displayString ?? "null"}');
+    print('DEBUG: Play pile length: ${playPile.length}');
+    
+    if (topCard == null) {
+      print('DEBUG: No top card - any card can be played');
+      return true; // First card of the game
+    }
+
+    // Check if reset effect is active (2 was played)
+    if (_room?.resetActive == true) {
+      final canPlay = true; // Any card can be played after a 2
+      print('DEBUG: Reset effect active - any card can be played');
+      return canPlay;
+    }
+
+    // Check if current player is forced to play low (from card 7 effect)
+    if (myPlayer?.forcedToPlayLow == true) {
+      final canPlay = card.numericValue <= 7;
+      print('DEBUG: Player forced to play low - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay');
+      return canPlay;
+    }
 
     // Check if card can be played on high cards (J, Q, K)
     if (['J', 'Q', 'K'].contains(topCard.value)) {
-      return card.canPlayOnHighCards;
+      final canPlay = card.canPlayOnHighCard(topCard);
+      print('DEBUG: Playing on high card ${topCard.value} - can play: $canPlay');
+      return canPlay;
+    }
+
+    // Check if top card is 7 - forces next player to play 7 or lower
+    if (topCard.value == '7') {
+      final canPlay = card.numericValue <= 7;
+      print('DEBUG: Top card is 7 - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay');
+      return canPlay;
+    }
+
+    // Check if playing a special card on a non-royal card
+    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(topCard.value)) {
+      final canPlay = true; // Special cards can be played on any non-royal card
+      print('DEBUG: Playing special card ${card.value} on non-royal ${topCard.value} - can play: $canPlay');
+      return canPlay;
     }
 
     // Normal card comparison
-    return card.numericValue >= topCard.numericValue;
+    final canPlay = card.numericValue >= topCard.numericValue;
+    print('DEBUG: Playing ${card.value} on ${topCard.value} - can play: $canPlay');
+    return canPlay;
   }
 
   // Get playable cards from player's hand
@@ -159,10 +241,11 @@ class KarmaPalaceGameState extends ChangeNotifier {
   Player? getPlayerById(String playerId) {
     if (_room == null) return null;
     
-    return _room!.players.firstWhere(
-      (p) => p.id == playerId,
-      orElse: null,
-    );
+    try {
+      return _room!.players.firstWhere((p) => p.id == playerId);
+    } catch (e) {
+      return null;
+    }
   }
 
       // Get player position (0-5 for 6 player positions)

@@ -30,6 +30,9 @@ class Room {
   /// Last activity timestamp
   DateTime lastActivity;
 
+  /// Flag indicating if a 2 was played (reset effect active)
+  bool resetActive;
+
   Room({
     required this.id,
     required this.players,
@@ -39,6 +42,7 @@ class Room {
     required this.playPile,
     required this.createdAt,
     required this.lastActivity,
+    this.resetActive = false,
   });
 
   factory Room.fromJson(Map<String, dynamic> json) {
@@ -52,6 +56,7 @@ class Room {
       'playPile': json['playPile'] ?? [],
       'createdAt': json['createdAt'] ?? DateTime.now().toIso8601String(),
       'lastActivity': json['lastActivity'] ?? DateTime.now().toIso8601String(),
+      'resetActive': json['resetActive'] ?? false,
     };
     return _$RoomFromJson(safeJson);
   }

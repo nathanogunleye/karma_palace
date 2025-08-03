@@ -19,16 +19,59 @@ class KarmaPalaceLiveScreen extends StatefulWidget {
   State<KarmaPalaceLiveScreen> createState() => _KarmaPalaceLiveScreenState();
 }
 
-class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
+class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with WidgetsBindingObserver {
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Defer initialization to avoid build-time notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeGameState();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Listen for Firebase service changes and update game state
+    final gameService = context.read<FirebaseGameService>();
+    final gameState = context.read<KarmaPalaceGameState>();
+    
+    // Update game state whenever Firebase room changes
+    if (gameService.currentRoom != null && gameService.currentPlayerId != null) {
+      print('DEBUG: Updating game state for player: ${gameService.currentPlayerId}');
+      print('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
+      
+      // Initialize game state if not already done for this player
+      if (gameState.currentPlayerId == null || gameState.currentPlayerId != gameService.currentPlayerId) {
+        print('DEBUG: Initializing game state for new player: ${gameService.currentPlayerId}');
+        print('DEBUG: Previous player ID was: ${gameState.currentPlayerId}');
+        
+        // Reset game state completely for new player
+        if (gameState.currentPlayerId != null) {
+          print('DEBUG: Resetting game state for different player');
+          gameState.resetForNewPlayer();
+        }
+        
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          gameState.initializeGame(gameService.currentRoom!, gameService.currentPlayerId!);
+        });
+      } else {
+        // Just update the room data
+        print('DEBUG: Updating room data for existing player');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          gameState.updateRoom(gameService.currentRoom!);
+        });
+      }
+    }
   }
 
   void _initializeGameState() {
@@ -36,8 +79,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
     final gameState = context.read<KarmaPalaceGameState>();
     
     if (gameService.currentRoom != null && gameService.currentPlayerId != null) {
+      print('DEBUG: Initializing game state for player: ${gameService.currentPlayerId}');
+      print('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
       gameState.initializeGame(gameService.currentRoom!, gameService.currentPlayerId!);
       _log.info('Initialized game state for room: ${gameService.currentRoomId}');
+    } else {
+      print('DEBUG: Cannot initialize game state - room or playerId is null');
     }
   }
 
@@ -58,14 +105,51 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
 
   Future<void> _playCard(game_card.Card card, String sourceZone) async {
     try {
+      final gameState = context.read<KarmaPalaceGameState>();
+      
+      // Validate the card play
+      print('DEBUG: Validating card play: ${card.displayString}');
+      print('DEBUG: Game state can play card: ${gameState.canPlayCard(card)}');
+      print('DEBUG: Is my turn: ${gameState.isMyTurn}');
+      print('DEBUG: Game in progress: ${gameState.gameInProgress}');
+      print('DEBUG: Current player ID: ${gameState.currentPlayerId}');
+      print('DEBUG: Room current player: ${gameState.room?.currentPlayer}');
+      
+      if (!gameState.canPlayCard(card)) {
+        print('DEBUG: Card play validation failed');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Cannot play ${card.displayString} - invalid move'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      print('DEBUG: Card play validation passed');
+
       final gameService = context.read<FirebaseGameService>();
       await gameService.playCard(card, sourceZone);
       _log.info('Played card: ${card.displayString} from $sourceZone');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Played ${card.displayString}'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
       _log.severe('Failed to play card: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to play card: $e')),
+          SnackBar(
+            content: Text('Failed to play card: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -98,10 +182,18 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
     }
   }
 
+  void _onCardTap(game_card.Card card, String sourceZone) {
+    print('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
+    _playCard(card, sourceZone);
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
     final gameService = context.watch<FirebaseGameService>();
+    final gameState = context.read<KarmaPalaceGameState>();
+
+    // Update game state when room changes - moved to didChangeDependencies
 
     if (!gameService.isConnected || gameService.currentRoom == null) {
       return Scaffold(
@@ -173,78 +265,22 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
           // Room Status
           Container(
             padding: const EdgeInsets.all(16),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Players: ${room.players.length}/6',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: palette.ink,
-                      ),
-                    ),
-                    Text(
-                      'Status: ${room.gameState.name.toUpperCase()}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: palette.ink,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Room ID display with copy button
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: palette.ink.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                Text(
+                  'Players: ${room.players.length}/6',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: palette.ink,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Room ID:',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: palette.ink,
-                              ),
-                            ),
-                            Text(
-                              room.id,
-                              style: TextStyle(
-                                fontFamily: 'monospace',
-                                fontSize: 14,
-                                color: palette.ink,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: room.id));
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Room ID copied to clipboard!'),
-                                backgroundColor: Colors.green,
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                        icon: Icon(Icons.copy, color: palette.ink, size: 20),
-                        tooltip: 'Copy Room ID',
-                      ),
-                    ],
+                ),
+                Text(
+                  'Status: ${room.gameState.name.toUpperCase()}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: palette.ink,
                   ),
                 ),
               ],
@@ -252,8 +288,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> {
           ),
 
           // Game Board
-          const Expanded(
-            child: KarmaPalaceBoardWidget(),
+          Expanded(
+            child: KarmaPalaceBoardWidget(
+              onCardTap: _onCardTap,
+            ),
           ),
 
           // Player Controls

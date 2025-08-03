@@ -89,6 +89,8 @@ class FirebaseGameService extends ChangeNotifier {
   Future<void> joinRoom(String roomId, String playerName) async {
     try {
       final playerId = _uuid.v4();
+      print('DEBUG: Joining room $roomId with player name: $playerName');
+      print('DEBUG: Generated player ID: $playerId');
       
       // Get current room data
       final roomRef = _database.ref('rooms/$roomId');
@@ -103,14 +105,15 @@ class FirebaseGameService extends ChangeNotifier {
         throw Exception('Invalid room data');
       }
       final room = Room.fromJson(_convertFirebaseMap(roomData));
+      print('DEBUG: Current room players: ${room.players.map((p) => p.id).toList()}');
       
       if (room.gameState != GameState.waiting) {
         throw Exception('Game already in progress');
       }
 
-              if (room.players.length >= 6) {
-          throw Exception('Room is full (maximum 6 players)');
-        }
+      if (room.players.length >= 6) {
+        throw Exception('Room is full (maximum 6 players)');
+      }
 
       // Create new player
       final newPlayer = Player(
@@ -234,26 +237,78 @@ class FirebaseGameService extends ChangeNotifier {
       // Add card to play pile
       final updatedPlayPile = [..._currentRoom!.playPile, card];
       
+      // Draw cards from deck until player has 3 cards in hand (if deck has cards)
+      final cardsToDraw = 3 - updatedPlayer.hand.length;
+      final cardsDrawn = <game_card.Card>[];
+      final remainingDeck = <game_card.Card>[];
+      
+      if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
+        // Draw up to the number needed or what's available in deck
+        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
+        remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
+      } else {
+        remainingDeck.addAll(_currentRoom!.deck);
+      }
+      
+      // Update player with drawn cards
+      final finalPlayer = Player(
+        id: updatedPlayer.id,
+        name: updatedPlayer.name,
+        isPlaying: updatedPlayer.isPlaying,
+        hand: [...updatedPlayer.hand, ...cardsDrawn],
+        faceUp: updatedPlayer.faceUp,
+        faceDown: updatedPlayer.faceDown,
+        isConnected: updatedPlayer.isConnected,
+        lastSeen: updatedPlayer.lastSeen,
+        turnOrder: updatedPlayer.turnOrder,
+      );
+      
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
       
-      final updatedPlayers = _currentRoom!.players.map((p) => 
-        p.id == _currentPlayerId ? updatedPlayer : p
-      ).toList();
+      // Update isPlaying status for all players
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == _currentPlayerId) {
+          return finalPlayer;
+        } else {
+          return Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == nextPlayerId, // Only the next player is playing
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+            forcedToPlayLow: p.id == nextPlayerId ? p.forcedToPlayLow : false, // Reset for non-next players
+          );
+        }
+      }).toList();
+
+      // Handle special card effects
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
+        card, 
+        updatedPlayPile, 
+        nextPlayerId, 
+        updatedPlayers
+      );
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
-        players: updatedPlayers,
-        currentPlayer: nextPlayerId,
+        players: finalCurrentPlayer,
+        currentPlayer: finalNextPlayerId,
         gameState: _currentRoom!.gameState,
-        deck: _currentRoom!.deck,
-        playPile: updatedPlayPile,
+        deck: remainingDeck,
+        playPile: finalPlayPile,
         createdAt: _currentRoom!.createdAt,
         lastActivity: DateTime.now(),
+        resetActive: card.specialEffect == game_card.SpecialEffect.reset,
       );
 
       await roomRef.set(updatedRoom.toJson());
-      _log.info('Played card: ${card.displayString}');
+      _log.info('Played card: ${card.displayString}, drew ${cardsDrawn.length} cards');
       
     } catch (e) {
       _log.severe('Failed to play card: $e');
@@ -278,11 +333,25 @@ class FirebaseGameService extends ChangeNotifier {
       // Add all cards from play pile to player's hand
       final updatedHand = [...currentPlayer.hand, ..._currentRoom!.playPile];
       
+      // Draw cards from deck until player has 3 cards in hand (if deck has cards)
+      final cardsToDraw = 3 - updatedHand.length;
+      final cardsDrawn = <game_card.Card>[];
+      final remainingDeck = <game_card.Card>[];
+      
+      if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
+        // Draw up to the number needed or what's available in deck
+        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
+        remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
+      } else {
+        remainingDeck.addAll(_currentRoom!.deck);
+      }
+      
       final updatedPlayer = Player(
         id: currentPlayer.id,
         name: currentPlayer.name,
         isPlaying: currentPlayer.isPlaying,
-        hand: updatedHand,
+        hand: [...updatedHand, ...cardsDrawn],
         faceUp: currentPlayer.faceUp,
         faceDown: currentPlayer.faceDown,
         isConnected: currentPlayer.isConnected,
@@ -302,14 +371,14 @@ class FirebaseGameService extends ChangeNotifier {
         players: updatedPlayers,
         currentPlayer: nextPlayerId,
         gameState: _currentRoom!.gameState,
-        deck: _currentRoom!.deck,
+        deck: remainingDeck,
         playPile: [], // Empty the play pile
         createdAt: _currentRoom!.createdAt,
         lastActivity: DateTime.now(),
       );
 
       await roomRef.set(updatedRoom.toJson());
-      _log.info('Picked up play pile');
+      _log.info('Picked up play pile, drew ${cardsDrawn.length} cards');
       
     } catch (e) {
       _log.severe('Failed to pick up pile: $e');
@@ -372,11 +441,14 @@ class FirebaseGameService extends ChangeNotifier {
 
   /// Join a room and start listening for updates
   Future<void> _joinRoom(String roomId, String playerId, Room room) async {
+    print('DEBUG: _joinRoom called for player: $playerId');
     _currentRoomId = roomId;
     _currentPlayerId = playerId;
     _currentRoom = room;
     _isHost = room.players.first.id == playerId;
     _isConnected = true;
+    print('DEBUG: Set current player ID to: $_currentPlayerId');
+    print('DEBUG: Is host: $_isHost');
 
     // Start listening for room updates
     final roomRef = _database.ref('rooms/$roomId');
@@ -386,7 +458,12 @@ class FirebaseGameService extends ChangeNotifier {
         if (data is Map) {
           // Convert the map to the correct type recursively
           final convertedData = _convertFirebaseMap(data);
-          _currentRoom = Room.fromJson(convertedData);
+          final updatedRoom = Room.fromJson(convertedData);
+          print('DEBUG: Room updated - Game state: ${updatedRoom.gameState}');
+          print('DEBUG: Room updated - Current player: ${updatedRoom.currentPlayer}');
+          print('DEBUG: Room updated - My player ID: $_currentPlayerId');
+          print('DEBUG: Room updated - Players: ${updatedRoom.players.map((p) => p.id).toList()}');
+          _currentRoom = updatedRoom;
           notifyListeners();
         }
       }
@@ -479,6 +556,97 @@ class FirebaseGameService extends ChangeNotifier {
     
     final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
     if (currentIndex == -1) return _currentRoom!.players.first.id;
+    
+    final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
+    final nextPlayerId = _currentRoom!.players[nextIndex].id;
+    
+    print('DEBUG: Next player calculation');
+    print('DEBUG: Current player: ${_currentRoom!.currentPlayer}');
+    print('DEBUG: Current index: $currentIndex');
+    print('DEBUG: Next index: $nextIndex');
+    print('DEBUG: Next player ID: $nextPlayerId');
+    print('DEBUG: All players: ${_currentRoom!.players.map((p) => p.id).toList()}');
+    
+    return nextPlayerId;
+  }
+
+  /// Handle special card effects
+  (List<game_card.Card>, List<Player>, String) _handleSpecialCardEffects(
+    game_card.Card card,
+    List<game_card.Card> playPile,
+    String nextPlayerId,
+    List<Player> players,
+  ) {
+    var finalPlayPile = playPile;
+    var finalPlayers = players;
+    var finalNextPlayerId = nextPlayerId;
+
+    switch (card.specialEffect) {
+      case game_card.SpecialEffect.reset:
+        // 2 - Resets the count (any card can be played after)
+        // Don't clear the play pile, just mark that any card can be played next
+        // The play pile stays as is, but the next card can be any card
+        _log.info('Card 2 played - count reset, any card can be played next');
+        // Note: resetActive will be set in the updatedRoom creation
+        break;
+
+      case game_card.SpecialEffect.glass:
+        // 5 - Glass (can be played on J, Q, K)
+        // No special action needed, just log
+        _log.info('Card 5 (glass) played');
+        break;
+
+      case game_card.SpecialEffect.forceLow:
+        // 7 - Next player has to play 7 or lower
+        // Mark the next player as forced to play low
+        finalPlayers = players.map((p) {
+          if (p.id == nextPlayerId) {
+            return Player(
+              id: p.id,
+              name: p.name,
+              isPlaying: p.isPlaying,
+              hand: p.hand,
+              faceUp: p.faceUp,
+              faceDown: p.faceDown,
+              isConnected: p.isConnected,
+              lastSeen: p.lastSeen,
+              turnOrder: p.turnOrder,
+              forcedToPlayLow: true, // Add this field to Player model
+            );
+          }
+          return p;
+        }).toList();
+        _log.info('Card 7 played - next player forced to play 7 or lower');
+        break;
+
+      case game_card.SpecialEffect.skip:
+        // 9 - Skips the next player
+        finalNextPlayerId = _getNextPlayerIdAfter(nextPlayerId);
+        _log.info('Card 9 played - skipped player: $nextPlayerId, next player: $finalNextPlayerId');
+        break;
+
+      case game_card.SpecialEffect.burn:
+        // 10 - Burns the play pile (discards cards from game)
+        // Clear the play pile and let the same player play again
+        finalPlayPile = [];
+        finalNextPlayerId = _currentPlayerId!; // Same player plays again
+        _log.info('Card 10 played - play pile burned, same player plays again');
+        break;
+
+      case null:
+        // No special effect
+        break;
+    }
+
+    return (finalPlayPile, finalPlayers, finalNextPlayerId);
+  }
+
+  /// Get next player ID after a specific player
+  String _getNextPlayerIdAfter(String playerId) {
+    final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == playerId);
+    if (currentIndex == -1) {
+      return _currentRoom!.players.first.id;
+    }
     
     final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
     return _currentRoom!.players[nextIndex].id;

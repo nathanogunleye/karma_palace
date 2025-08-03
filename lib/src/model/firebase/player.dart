@@ -32,6 +32,9 @@ class Player {
   /// Player's turn order
   int turnOrder;
 
+  /// Flag for if player is forced to play 7 or lower (from card 7 effect)
+  bool forcedToPlayLow;
+
   Player({
     required this.id,
     required this.name,
@@ -42,6 +45,7 @@ class Player {
     required this.isConnected,
     required this.lastSeen,
     required this.turnOrder,
+    this.forcedToPlayLow = false,
   });
 
   factory Player.fromJson(Map<String, dynamic> json) {
@@ -56,6 +60,7 @@ class Player {
       'isConnected': json['isConnected'] ?? false,
       'lastSeen': json['lastSeen'] ?? DateTime.now().toIso8601String(),
       'turnOrder': json['turnOrder'] ?? 0,
+      'forcedToPlayLow': json['forcedToPlayLow'] ?? false,
     };
     return _$PlayerFromJson(safeJson);
   }
