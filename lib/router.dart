@@ -10,6 +10,9 @@ import 'package:provider/provider.dart';
 
 import 'package:karma_palace/src/game_internals/score.dart';
 import 'package:karma_palace/src/play_session/play_session_screen.dart';
+import 'package:karma_palace/src/play_session/karma_palace_test_screen.dart';
+import 'package:karma_palace/src/play_session/karma_palace_live_screen.dart';
+import 'package:karma_palace/src/play_session/room_management_screen.dart';
 import 'package:karma_palace/src/settings/settings_screen.dart';
 import 'package:karma_palace/src/style/my_transition.dart';
 import 'package:karma_palace/src/style/palette.dart';
@@ -33,6 +36,10 @@ final router = GoRouter(
             ),
           ),
           routes: [
+            GoRoute(
+              path: 'karma-palace-test',
+              builder: (context, state) => const KarmaPalaceTestScreen(),
+            ),
             GoRoute(
               path: 'won',
               redirect: (context, state) {
@@ -65,6 +72,16 @@ final router = GoRouter(
           path: 'settings',
           builder: (context, state) =>
               const SettingsScreen(key: Key('settings')),
+        ),
+        GoRoute(
+          path: 'room-management',
+          builder: (context, state) =>
+              const RoomManagementScreen(key: Key('room management')),
+        ),
+        GoRoute(
+          path: 'karma-palace-live',
+          builder: (context, state) =>
+              const KarmaPalaceLiveScreen(key: Key('karma palace live')),
         ),
       ],
     ),

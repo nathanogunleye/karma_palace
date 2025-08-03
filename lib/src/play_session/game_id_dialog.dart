@@ -22,7 +22,7 @@ class _GameIdDialogState extends State<GameIdDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.watch<Palette>();
+    context.watch<Palette>();
     
     return ScaleTransition(
       scale: CurvedAnimation(

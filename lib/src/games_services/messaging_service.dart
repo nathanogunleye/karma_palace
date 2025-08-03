@@ -29,11 +29,23 @@ class MessagingService {
       id: id,
       players: [
         firebase_player.Player(
+          id: player.name,
           name: player.name,
           isPlaying: true,
+          hand: [],
+          faceUp: [],
+          faceDown: [],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
         ),
       ],
       currentPlayer: player.name,
+      gameState: GameState.waiting,
+      deck: [],
+      playPile: [],
+      createdAt: DateTime.now(),
+      lastActivity: DateTime.now(),
     );
 
     _log.fine('Room ID: ${room.id}');
@@ -52,10 +64,17 @@ class MessagingService {
       DatabaseReference roomPlayerRef = roomRef.child('players');
       DatabaseReference newPlayerRef = roomPlayerRef.push();
       await newPlayerRef.set(firebase_player.Player(
+        id: player.name,
         name: player.name,
         isPlaying: false,
+        hand: [],
+        faceUp: [],
+        faceDown: [],
+        isConnected: true,
+        lastSeen: DateTime.now(),
+        turnOrder: 1,
       ).toJson());
-      _log.fine('Successfully joined room: ${id}');
+      _log.fine('Successfully joined room: $id');
     } else {
       throw RoomNotFoundException('Room does not exist!');
     }

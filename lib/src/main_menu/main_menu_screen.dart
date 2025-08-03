@@ -77,6 +77,20 @@ class MainMenuScreen extends StatelessWidget {
               onPressed: () => GoRouter.of(context).push('/settings'),
               child: const Text('Settings'),
             ),
+            MyButton(
+              onPressed: () {
+                audioController.playSfx(SfxType.buttonTap);
+                GoRouter.of(context).go('/$pathPlay/karma-palace-test');
+              },
+              child: const Text('Test Karma Palace'),
+            ),
+            MyButton(
+              onPressed: () {
+                audioController.playSfx(SfxType.buttonTap);
+                GoRouter.of(context).go('/room-management');
+              },
+              child: const Text('Play Karma Palace'),
+            ),
             _gap,
             Padding(
               padding: const EdgeInsets.only(top: 32),

@@ -104,7 +104,17 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
         _log.info('Host created room with gameId: ${_screenExtra!.gameId}');
       } else {
         // Guest joins an existing room
-        _messagingService.joinRoom(_screenExtra!.gameId!, firebase_player.Player(name: 'PlayerGuest', isPlaying: false))
+        _messagingService.joinRoom(_screenExtra!.gameId!, firebase_player.Player(
+          id: 'PlayerGuest',
+          name: 'PlayerGuest', 
+          isPlaying: false,
+          hand: [],
+          faceUp: [],
+          faceDown: [],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        ))
             .catchError((error) {
           _log.severe('Failed to join room: $error');
           // Handle room not found error - could show a dialog or go back to main menu
