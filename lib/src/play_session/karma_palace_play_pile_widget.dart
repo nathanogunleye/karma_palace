@@ -22,10 +22,10 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
       width: 200,
       height: 180, // Increased height to accommodate the stack
       decoration: BoxDecoration(
-        color: palette.backgroundPlaySession.withOpacity(0.8),
+        color: palette.backgroundPlaySession.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: palette.ink.withOpacity(0.3),
+          color: palette.ink.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -67,10 +67,10 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                           width: 40,
                           height: 25,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.7),
+                            color: Colors.grey.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(2),
                             border: Border.all(
-                              color: Colors.grey.withOpacity(0.8),
+                              color: Colors.grey.withValues(alpha: 0.8),
                               width: 1,
                             ),
                           ),
@@ -95,10 +95,10 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
               width: 60,
               height: 90,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: Colors.grey.withValues(alpha: 0.5),
                 ),
               ),
               child: const Center(
@@ -119,7 +119,7 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
             '${playPile.length} cards',
             style: TextStyle(
               fontSize: 12,
-              color: palette.ink.withOpacity(0.7),
+              color: palette.ink.withValues(alpha: 0.7),
             ),
           ),
 

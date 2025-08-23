@@ -236,13 +236,14 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                                 ),
                                 IconButton(
                                   onPressed: () async {
+                                    final scaffoldMessenger = ScaffoldMessenger.of(context);
                                     await Clipboard.setData(ClipboardData(text: _roomIdController.text));
                                     if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: const Text('Room ID copied to clipboard!'),
+                                      scaffoldMessenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Room ID copied to clipboard!'),
                                           backgroundColor: Colors.green,
-                                          duration: const Duration(seconds: 2),
+                                          duration: Duration(seconds: 2),
                                         ),
                                       );
                                     }

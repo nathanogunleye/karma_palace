@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
@@ -42,8 +43,8 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
           height: playerAreaHeight,
           decoration: BoxDecoration(
             color: currentIsCurrentTurn
-                ? palette.trueWhite.withOpacity(0.9)
-                : Colors.grey.withOpacity(0.3),
+                ? palette.trueWhite.withValues(alpha: 0.9)
+                : Colors.grey.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: currentIsCurrentTurn ? palette.ink : Colors.grey,
@@ -129,10 +130,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
       width: 100,
       height: 140,
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.3),
+          color: Colors.grey.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -141,7 +142,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.person_add,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
             size: 24,
           ),
           const SizedBox(height: 8),
@@ -149,7 +150,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
             'Empty',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.withOpacity(0.5),
+              color: Colors.grey.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -199,7 +200,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                             final isPlayable =
                                 isMyPlayer && isHand && isCurrentTurn;
                             if (isMyPlayer && isHand) {
-                              print(
+                              dev.log(
                                   'DEBUG: Card ${cards[i].displayString} - isMyPlayer: $isMyPlayer, isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
                             }
                             return KarmaPalaceCardWidget(
@@ -224,10 +225,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           width: playerCardWidth,
                           height: playerCardHeight,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(2),
                             border: Border.all(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -300,10 +301,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           width: playerCardWidth,
                           height: playerCardHeight,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(2),
                             border: Border.all(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -327,10 +328,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           width: playerCardWidth,
                           height: playerCardHeight,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(2),
                             border: Border.all(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                             ),
                           ),
                         ),

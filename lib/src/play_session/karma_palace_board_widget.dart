@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -98,7 +99,7 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
           final position = _getPlayerPosition(i, constraints.maxWidth, constraints.maxHeight, numPositions);
           
           final isCurrentTurn = player?.id == room.currentPlayer;
-          print('DEBUG: Player ${player?.id} at position $i, room.currentPlayer: ${room.currentPlayer}, isCurrentTurn: $isCurrentTurn');
+          dev.log('DEBUG: Player ${player?.id} at position $i, room.currentPlayer: ${room.currentPlayer}, isCurrentTurn: $isCurrentTurn');
           
           widgets.add(
             Positioned(
@@ -137,15 +138,15 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
   List<Player> _reorganizePlayers(List<Player> players, String? currentPlayerId, int numPositions) {
     if (players.isEmpty) return players;
     
-    print('DEBUG: Reorganizing players. Current player ID: $currentPlayerId');
-    print('DEBUG: Original players: ${players.map((p) => p.id).toList()}');
-    print('DEBUG: Number of positions: $numPositions');
+    dev.log('DEBUG: Reorganizing players. Current player ID: $currentPlayerId');
+    dev.log('DEBUG: Original players: ${players.map((p) => p.id).toList()}');
+    dev.log('DEBUG: Number of positions: $numPositions');
     
     // Find current player
     final currentPlayerIndex = players.indexWhere((p) => p.id == currentPlayerId);
     if (currentPlayerIndex == -1) return players;
     
-    print('DEBUG: Current player found at index: $currentPlayerIndex');
+    dev.log('DEBUG: Current player found at index: $currentPlayerIndex');
     
     // Create new list with current player at the appropriate position
     final reorganized = <Player>[];
@@ -174,8 +175,8 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
     }
     reorganized.insert(myPosition, players[currentPlayerIndex]);
     
-    print('DEBUG: Reorganized players: ${reorganized.map((p) => p.id).toList()}');
-    print('DEBUG: Player at position $myPosition: ${reorganized[myPosition].id}');
+    dev.log('DEBUG: Reorganized players: ${reorganized.map((p) => p.id).toList()}');
+    dev.log('DEBUG: Player at position $myPosition: ${reorganized[myPosition].id}');
     
     return reorganized;
   }
@@ -239,12 +240,12 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
     return Container(
       color: Colors.black54,
       child: Center(
-                  child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -255,11 +256,9 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // TODO: Handle rematch or return to lobby
-                },
-                child: const Text('Play Again'),
+              const ElevatedButton(
+                onPressed: null,
+                child: Text('Play Again'),
               ),
             ],
           ),
@@ -273,7 +272,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.1)
+      ..color = Colors.grey.withValues(alpha: 0.1)
       ..strokeWidth = 1;
 
     // Draw vertical lines

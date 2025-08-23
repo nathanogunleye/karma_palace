@@ -89,8 +89,8 @@ class FirebaseGameService extends ChangeNotifier {
   Future<void> joinRoom(String roomId, String playerName) async {
     try {
       final playerId = _uuid.v4();
-      print('DEBUG: Joining room $roomId with player name: $playerName');
-      print('DEBUG: Generated player ID: $playerId');
+      _log.info('DEBUG: Joining room $roomId with player name: $playerName');
+      _log.info('DEBUG: Generated player ID: $playerId');
       
       // Get current room data
       final roomRef = _database.ref('rooms/$roomId');
@@ -105,7 +105,7 @@ class FirebaseGameService extends ChangeNotifier {
         throw Exception('Invalid room data');
       }
       final room = Room.fromJson(_convertFirebaseMap(roomData));
-      print('DEBUG: Current room players: ${room.players.map((p) => p.id).toList()}');
+      _log.info('DEBUG: Current room players: ${room.players.map((p) => p.id).toList()}');
       
       if (room.gameState != GameState.waiting) {
         throw Exception('Game already in progress');
@@ -441,14 +441,14 @@ class FirebaseGameService extends ChangeNotifier {
 
   /// Join a room and start listening for updates
   Future<void> _joinRoom(String roomId, String playerId, Room room) async {
-    print('DEBUG: _joinRoom called for player: $playerId');
+    _log.info('DEBUG: _joinRoom called for player: $playerId');
     _currentRoomId = roomId;
     _currentPlayerId = playerId;
     _currentRoom = room;
     _isHost = room.players.first.id == playerId;
     _isConnected = true;
-    print('DEBUG: Set current player ID to: $_currentPlayerId');
-    print('DEBUG: Is host: $_isHost');
+    _log.info('DEBUG: Set current player ID to: $_currentPlayerId');
+    _log.info('DEBUG: Is host: $_isHost');
 
     // Start listening for room updates
     final roomRef = _database.ref('rooms/$roomId');
@@ -459,10 +459,10 @@ class FirebaseGameService extends ChangeNotifier {
           // Convert the map to the correct type recursively
           final convertedData = _convertFirebaseMap(data);
           final updatedRoom = Room.fromJson(convertedData);
-          print('DEBUG: Room updated - Game state: ${updatedRoom.gameState}');
-          print('DEBUG: Room updated - Current player: ${updatedRoom.currentPlayer}');
-          print('DEBUG: Room updated - My player ID: $_currentPlayerId');
-          print('DEBUG: Room updated - Players: ${updatedRoom.players.map((p) => p.id).toList()}');
+          _log.info('DEBUG: Room updated - Game state: ${updatedRoom.gameState}');
+          _log.info('DEBUG: Room updated - Current player: ${updatedRoom.currentPlayer}');
+          _log.info('DEBUG: Room updated - My player ID: $_currentPlayerId');
+          _log.info('DEBUG: Room updated - Players: ${updatedRoom.players.map((p) => p.id).toList()}');
           _currentRoom = updatedRoom;
           notifyListeners();
         }
@@ -560,12 +560,12 @@ class FirebaseGameService extends ChangeNotifier {
     final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
     final nextPlayerId = _currentRoom!.players[nextIndex].id;
     
-    print('DEBUG: Next player calculation');
-    print('DEBUG: Current player: ${_currentRoom!.currentPlayer}');
-    print('DEBUG: Current index: $currentIndex');
-    print('DEBUG: Next index: $nextIndex');
-    print('DEBUG: Next player ID: $nextPlayerId');
-    print('DEBUG: All players: ${_currentRoom!.players.map((p) => p.id).toList()}');
+    _log.info('DEBUG: Next player calculation');
+    _log.info('DEBUG: Current player: ${_currentRoom!.currentPlayer}');
+    _log.info('DEBUG: Current index: $currentIndex');
+    _log.info('DEBUG: Next index: $nextIndex');
+    _log.info('DEBUG: Next player ID: $nextPlayerId');
+    _log.info('DEBUG: All players: ${_currentRoom!.players.map((p) => p.id).toList()}');
     
     return nextPlayerId;
   }

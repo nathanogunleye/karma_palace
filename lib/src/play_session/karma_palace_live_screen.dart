@@ -47,17 +47,17 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     
     // Update game state whenever Firebase room changes
     if (gameService.currentRoom != null && gameService.currentPlayerId != null) {
-      print('DEBUG: Updating game state for player: ${gameService.currentPlayerId}');
-      print('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
+      _log.info('DEBUG: Updating game state for player: ${gameService.currentPlayerId}');
+      _log.info('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
       
       // Initialize game state if not already done for this player
       if (gameState.currentPlayerId == null || gameState.currentPlayerId != gameService.currentPlayerId) {
-        print('DEBUG: Initializing game state for new player: ${gameService.currentPlayerId}');
-        print('DEBUG: Previous player ID was: ${gameState.currentPlayerId}');
+        _log.info('DEBUG: Initializing game state for new player: ${gameService.currentPlayerId}');
+        _log.info('DEBUG: Previous player ID was: ${gameState.currentPlayerId}');
         
         // Reset game state completely for new player
         if (gameState.currentPlayerId != null) {
-          print('DEBUG: Resetting game state for different player');
+          _log.info('DEBUG: Resetting game state for different player');
           gameState.resetForNewPlayer();
         }
         
@@ -66,7 +66,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
         });
       } else {
         // Just update the room data
-        print('DEBUG: Updating room data for existing player');
+        _log.info('DEBUG: Updating room data for existing player');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           gameState.updateRoom(gameService.currentRoom!);
         });
@@ -79,12 +79,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     final gameState = context.read<KarmaPalaceGameState>();
     
     if (gameService.currentRoom != null && gameService.currentPlayerId != null) {
-      print('DEBUG: Initializing game state for player: ${gameService.currentPlayerId}');
-      print('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
+      _log.info('DEBUG: Initializing game state for player: ${gameService.currentPlayerId}');
+      _log.info('DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
       gameState.initializeGame(gameService.currentRoom!, gameService.currentPlayerId!);
       _log.info('Initialized game state for room: ${gameService.currentRoomId}');
     } else {
-      print('DEBUG: Cannot initialize game state - room or playerId is null');
+      _log.info('DEBUG: Cannot initialize game state - room or playerId is null');
     }
   }
 
@@ -108,15 +108,15 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       final gameState = context.read<KarmaPalaceGameState>();
       
       // Validate the card play
-      print('DEBUG: Validating card play: ${card.displayString}');
-      print('DEBUG: Game state can play card: ${gameState.canPlayCard(card)}');
-      print('DEBUG: Is my turn: ${gameState.isMyTurn}');
-      print('DEBUG: Game in progress: ${gameState.gameInProgress}');
-      print('DEBUG: Current player ID: ${gameState.currentPlayerId}');
-      print('DEBUG: Room current player: ${gameState.room?.currentPlayer}');
+      _log.info('DEBUG: Validating card play: ${card.displayString}');
+      _log.info('DEBUG: Game state can play card: ${gameState.canPlayCard(card)}');
+      _log.info('DEBUG: Is my turn: ${gameState.isMyTurn}');
+      _log.info('DEBUG: Game in progress: ${gameState.gameInProgress}');
+      _log.info('DEBUG: Current player ID: ${gameState.currentPlayerId}');
+      _log.info('DEBUG: Room current player: ${gameState.room?.currentPlayer}');
       
       if (!gameState.canPlayCard(card)) {
-        print('DEBUG: Card play validation failed');
+        _log.info('DEBUG: Card play validation failed');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -127,7 +127,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
         }
         return;
       }
-      print('DEBUG: Card play validation passed');
+      _log.info('DEBUG: Card play validation passed');
 
       final gameService = context.read<FirebaseGameService>();
       await gameService.playCard(card, sourceZone);
@@ -183,7 +183,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   void _onCardTap(game_card.Card card, String sourceZone) {
-    print('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
+    _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
     _playCard(card, sourceZone);
   }
 
@@ -232,13 +232,14 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
           // Copy Room ID button
           IconButton(
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               await Clipboard.setData(ClipboardData(text: room.id));
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Room ID copied to clipboard!'),
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Room ID copied to clipboard!'),
                     backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
+                    duration: Duration(seconds: 2),
                   ),
                 );
               }
