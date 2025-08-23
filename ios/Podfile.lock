@@ -61,18 +61,9 @@ PODS:
     - PromisesSwift (~> 2.1)
   - FirebaseSharedSwift (11.6.0)
   - Flutter (1.0.0)
-  - games_services (0.0.1):
-    - Flutter
-  - Google-Mobile-Ads-SDK (11.10.0):
-    - GoogleUserMessagingPlatform (>= 1.1)
-  - google_mobile_ads (5.2.0):
-    - Flutter
-    - Google-Mobile-Ads-SDK (~> 11.10.0)
-    - webview_flutter_wkwebview
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
-  - GoogleUserMessagingPlatform (2.7.0)
   - GoogleUtilities/Environment (8.0.2):
     - GoogleUtilities/Privacy
   - GoogleUtilities/Logger (8.0.2):
@@ -104,9 +95,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - webview_flutter_wkwebview (0.0.1):
-    - Flutter
-    - FlutterMacOS
 
 DEPENDENCIES:
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
@@ -114,13 +102,10 @@ DEPENDENCIES:
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
   - firebase_database (from `.symlinks/plugins/firebase_database/ios`)
   - Flutter (from `Flutter`)
-  - games_services (from `.symlinks/plugins/games_services/ios`)
-  - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -135,9 +120,7 @@ SPEC REPOS:
     - FirebaseRemoteConfigInterop
     - FirebaseSessions
     - FirebaseSharedSwift
-    - Google-Mobile-Ads-SDK
     - GoogleDataTransport
-    - GoogleUserMessagingPlatform
     - GoogleUtilities
     - leveldb-library
     - nanopb
@@ -155,10 +138,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_database/ios"
   Flutter:
     :path: Flutter
-  games_services:
-    :path: ".symlinks/plugins/games_services/ios"
-  google_mobile_ads:
-    :path: ".symlinks/plugins/google_mobile_ads/ios"
   in_app_purchase_storekit:
     :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   path_provider_foundation:
@@ -167,8 +146,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  webview_flutter_wkwebview:
-    :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 877d9a4d06331c5c374595e46e16453ac7eafa40
@@ -187,11 +164,7 @@ SPEC CHECKSUMS:
   FirebaseSessions: 3f56f177d9e53a85021d16b31f9a111849d1dd8b
   FirebaseSharedSwift: a4e5dfca3e210633bb3a3dfb94176c019211948b
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  games_services: 6c9a23d55bc6ae0129b24507e008643dcb02f341
-  Google-Mobile-Ads-SDK: 13e6e98edfd78ad8d8a791edb927658cc260a56f
-  google_mobile_ads: 2a538d8e42b1813809782792e48f8cf4374c2180
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
-  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   in_app_purchase_storekit: 8c3b0b3eb1b0f04efbff401c3de6266d4258d433
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
@@ -201,7 +174,6 @@ SPEC CHECKSUMS:
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
-  webview_flutter_wkwebview: 0982481e3d9c78fd5c6f62a002fcd24fc791f1e4
 
 PODFILE CHECKSUM: 0940a686eb3f7747ff575b8c89d61b33faac475a
 

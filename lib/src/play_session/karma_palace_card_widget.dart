@@ -128,37 +128,37 @@ class KarmaPalaceCardWidget extends StatelessWidget {
     }
   }
 
-  Color _getSpecialEffectColor() {
-    switch (card.specialEffect) {
-      case game_card.SpecialEffect.reset:
-        return Colors.orange;
-      case game_card.SpecialEffect.glass:
-        return Colors.cyan;
-      case game_card.SpecialEffect.forceLow:
-        return Colors.purple;
-      case game_card.SpecialEffect.skip:
-        return Colors.red;
-      case game_card.SpecialEffect.burn:
-        return Colors.deepOrange;
-      default:
-        return Colors.grey;
-    }
-  }
+  // Color _getSpecialEffectColor() {
+  //   switch (card.specialEffect) {
+  //     case game_card.SpecialEffect.reset:
+  //       return Colors.orange;
+  //     case game_card.SpecialEffect.glass:
+  //       return Colors.cyan;
+  //     case game_card.SpecialEffect.forceLow:
+  //       return Colors.purple;
+  //     case game_card.SpecialEffect.skip:
+  //       return Colors.red;
+  //     case game_card.SpecialEffect.burn:
+  //       return Colors.deepOrange;
+  //     default:
+  //       return Colors.grey;
+  //   }
+  // }
 
-  String _getSpecialEffectSymbol() {
-    switch (card.specialEffect) {
-      case game_card.SpecialEffect.reset:
-        return '↻';
-      case game_card.SpecialEffect.glass:
-        return '👁';
-      case game_card.SpecialEffect.forceLow:
-        return '↓';
-      case game_card.SpecialEffect.skip:
-        return '⏭';
-      case game_card.SpecialEffect.burn:
-        return '🔥';
-      default:
-        return '';
-    }
-  }
+  // String _getSpecialEffectSymbol() {
+  //   switch (card.specialEffect) {
+  //     case game_card.SpecialEffect.reset:
+  //       return '↻';
+  //     case game_card.SpecialEffect.glass:
+  //       return '👁';
+  //     case game_card.SpecialEffect.forceLow:
+  //       return '↓';
+  //     case game_card.SpecialEffect.skip:
+  //       return '⏭';
+  //     case game_card.SpecialEffect.burn:
+  //       return '🔥';
+  //     default:
+  //       return '';
+  //   }
+  // }
 } 
