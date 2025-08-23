@@ -78,8 +78,8 @@ class Card {
     // Special cards (2, 7, 9, 10) cannot be played on high cards
     if (hasSpecialEffect && value != '5') return false;
     
-    // Higher cards can be played on high cards
-    if (numericValue > topCard.numericValue) return true;
+    // Higher or equal cards can be played on high cards
+    if (numericValue >= topCard.numericValue) return true;
     
     // Lower cards cannot be played on high cards
     return false;
