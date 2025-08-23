@@ -227,7 +227,7 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
           case 4: // Bottom-left (other player)
             return Offset(margin, height - playerHeight - margin - 30);
           case 5: // Top-left (other player)
-            return Offset(margin, margin + 30);
+            return const Offset(margin, margin + 30);
           default:
             return const Offset(0, 0);
         }
