@@ -74,8 +74,8 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                   if (currentIsCurrentTurn)
                     Container(
                       margin: const EdgeInsets.only(left: 2.0),
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 2.0, vertical: 1.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 2.0, vertical: 1.0),
                       decoration: BoxDecoration(
                         color: palette.ink,
                         borderRadius: BorderRadius.circular(4),
@@ -101,14 +101,14 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                 isCurrentTurn: currentIsCurrentTurn,
               ),
 
-              // Hand cards (3 cards)
-              _buildCardZone(
-                context,
-                player!.hand,
-                isHand: true,
-                isMyPlayer: isMyPlayer,
-                isCurrentTurn: currentIsCurrentTurn,
-              ),
+              if (isMyPlayer)
+                // Hand cards (3 cards)
+                _buildCardZone(
+                  context,
+                  player!.hand,
+                  isHand: true,
+                  isCurrentTurn: currentIsCurrentTurn,
+                ),
 
               // Card count
               // Text(
@@ -163,7 +163,6 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
     List<game_card.Card> cards, {
     bool isFaceDown = false,
     bool isHand = false,
-    bool isMyPlayer = false,
     bool isCurrentTurn = false,
   }) {
     return Column(
@@ -176,9 +175,9 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
               : isFaceDown
                   ? 'Down'
                   : 'Up',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 8,
-            color: isMyPlayer ? Colors.blue : Colors.grey,
+            color: Colors.blue,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -197,11 +196,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                   child: i < cards.length
                       ? Builder(
                           builder: (context) {
-                            final isPlayable =
-                                isMyPlayer && isHand && isCurrentTurn;
-                            if (isMyPlayer && isHand) {
+                            final isPlayable = isHand && isCurrentTurn;
+                            if (isHand) {
                               dev.log(
-                                  'DEBUG: Card ${cards[i].displayString} - isMyPlayer: $isMyPlayer, isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
+                                  'DEBUG: Card ${cards[i].displayString} - isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
                             }
                             return KarmaPalaceCardWidget(
                               card: cards[i],
