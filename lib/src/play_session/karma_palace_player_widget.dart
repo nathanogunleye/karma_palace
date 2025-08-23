@@ -54,16 +54,41 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Player name
-              Text(
-                player!.name,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: currentIsCurrentTurn ? palette.ink : Colors.white,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    player!.name,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: currentIsCurrentTurn ? palette.ink : Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // Turn indicator
+                  if (currentIsCurrentTurn)
+                    Container(
+                      margin: const EdgeInsets.only(left: 2.0),
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 2.0, vertical: 1.0),
+                      decoration: BoxDecoration(
+                        color: palette.ink,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'TURN',
+                        style: TextStyle(
+                          fontSize: 8.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
               ),
 
               // Face down and face up cards (stacked)
@@ -85,33 +110,13 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
               ),
 
               // Card count
-              Text(
-                '${player!.totalCards} cards',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: currentIsCurrentTurn ? palette.ink : Colors.white70,
-                ),
-              ),
-
-              // Turn indicator
-              if (currentIsCurrentTurn)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: palette.ink,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'TURN',
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+              // Text(
+              //   '${player!.totalCards} cards',
+              //   style: TextStyle(
+              //     fontSize: 10,
+              //     color: currentIsCurrentTurn ? palette.ink : Colors.white70,
+              //   ),
+              // ),
             ],
           ),
         );

@@ -93,23 +93,23 @@ class KarmaPalaceCardWidget extends StatelessWidget {
         ),
         
         // Special effect indicator
-        if (card.hasSpecialEffect)
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-            decoration: BoxDecoration(
-              color: _getSpecialEffectColor(),
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: Text(
-              _getSpecialEffectSymbol(),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: fontSize * 0.4,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+        // if (card.hasSpecialEffect)
+        //   Container(
+        //     margin: const EdgeInsets.only(top: 2),
+        //     padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+        //     decoration: BoxDecoration(
+        //       color: _getSpecialEffectColor(),
+        //       borderRadius: BorderRadius.circular(2),
+        //     ),
+        //     child: Text(
+        //       _getSpecialEffectSymbol(),
+        //       style: TextStyle(
+        //         color: Colors.white,
+        //         fontSize: fontSize * 0.3,
+        //         fontWeight: FontWeight.bold,
+        //       ),
+        //     ),
+        //   ),
       ],
     );
   }
