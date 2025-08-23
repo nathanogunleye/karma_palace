@@ -191,7 +191,6 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
     final gameService = context.watch<FirebaseGameService>();
-    final gameState = context.read<KarmaPalaceGameState>();
 
     // Update game state when room changes - moved to didChangeDependencies
 

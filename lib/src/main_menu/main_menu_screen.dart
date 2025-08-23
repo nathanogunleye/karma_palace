@@ -4,10 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:karma_palace/constants/text_constants.dart';
-import 'package:karma_palace/src/play_session/play_session_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
@@ -48,48 +45,14 @@ class MainMenuScreen extends StatelessWidget {
             MyButton(
               onPressed: () {
                 audioController.playSfx(SfxType.buttonTap);
-                GoRouter.of(context).go(
-                  '/$pathPlay',
-                  extra: PlaySessionScreenExtra(
-                    gameId: const Uuid().v1(),
-                    isHost: true,
-                  ),
-                );
-              },
-              child: const Text('New Game'),
-            ),
-            MyButton(
-              onPressed: () {
-                audioController.playSfx(SfxType.buttonTap);
-
-                GoRouter.of(context).go(
-                  '/$pathPlay',
-                  extra: PlaySessionScreenExtra(
-                    gameId: null,
-                    isHost: false,
-                  ),
-                );
-              },
-              child: const Text('Join Game'),
-            ),
-            // _gap,
-            MyButton(
-              onPressed: () => GoRouter.of(context).push('/settings'),
-              child: const Text('Settings'),
-            ),
-            MyButton(
-              onPressed: () {
-                audioController.playSfx(SfxType.buttonTap);
-                GoRouter.of(context).go('/$pathPlay/karma-palace-test');
-              },
-              child: const Text('Test Karma Palace'),
-            ),
-            MyButton(
-              onPressed: () {
-                audioController.playSfx(SfxType.buttonTap);
                 GoRouter.of(context).go('/room-management');
               },
               child: const Text('Play Karma Palace'),
+            ),
+            _gap,
+            MyButton(
+              onPressed: () => GoRouter.of(context).push('/settings'),
+              child: const Text('Settings'),
             ),
             _gap,
             Padding(
