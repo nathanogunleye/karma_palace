@@ -181,8 +181,8 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
 
   Offset _getPlayerPosition(int index, double width, double height, int numPositions) {
     // Use a more structured layout with proper spacing
-    const playerWidth = 100.0;
-    const playerHeight = 140.0;
+    const playerWidth = 150.0;
+    const playerHeight = 150.0;
     const margin = 20.0;
     
     // Position players based on number of positions

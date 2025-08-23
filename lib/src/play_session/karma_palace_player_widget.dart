@@ -3,6 +3,7 @@ import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/style/palette.dart';
 import 'package:provider/provider.dart';
+import '../../constants/number_constants.dart';
 import 'karma_palace_card_widget.dart';
 import '../game_internals/karma_palace_game_state.dart';
 
@@ -36,8 +37,8 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
         final currentIsCurrentTurn = player?.id == gameState.room?.currentPlayer;
         
         return Container(
-          width: 100,
-          height: 140,
+          width: 150,
+          height: 150,
           decoration: BoxDecoration(
             color: currentIsCurrentTurn 
                 ? palette.trueWhite.withOpacity(0.9)
@@ -209,14 +210,14 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                               card: cards[i],
                               isFaceDown: isFaceDown,
                               isPlayable: isPlayable,
-                              size: const Size(16, 26), // Even smaller cards
+                              size: const Size(playerCardWidth, playerCardHeight),
                               onTap: onCardTap != null ? () => onCardTap!(cards[i], isHand ? 'hand' : isFaceDown ? 'faceDown' : 'faceUp') : null,
                             );
                           },
                         )
                       : Container(
-                          width: 16,
-                          height: 26,
+                          width: playerCardWidth,
+                          height: playerCardHeight,
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(2),
@@ -286,12 +287,12 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           card: faceDownCards[i],
                           isFaceDown: true,
                           isPlayable: isMyPlayer && isCurrentTurn,
-                          size: const Size(18, 28),
+                          size: const Size(playerCardWidth, playerCardHeight),
                           onTap: onCardTap != null ? () => onCardTap!(faceDownCards[i], 'faceDown') : null,
                         )
                       : Container(
-                          width: 18,
-                          height: 28,
+                          width: playerCardWidth,
+                          height: playerCardHeight,
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(2),
@@ -311,12 +312,12 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           card: faceUpCards[i],
                           isFaceDown: false,
                           isPlayable: isMyPlayer && isCurrentTurn,
-                          size: const Size(18, 28),
+                          size: const Size(playerCardWidth, playerCardHeight),
                           onTap: onCardTap != null ? () => onCardTap!(faceUpCards[i], 'faceUp') : null,
                         )
                       : Container(
-                          width: 18,
-                          height: 28,
+                          width: playerCardWidth,
+                          height: playerCardHeight,
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(2),
