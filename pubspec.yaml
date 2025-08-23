@@ -26,8 +26,8 @@ dependencies:
   logging: ^1.1.0
   provider: ^6.0.2
   shared_preferences: ^2.0.13
-  games_services: ^3.0.1  # Achievements and leaderboards
-  google_mobile_ads: ^5.2.0  # Ads
+#  games_services: ^3.0.1  # Achievements and leaderboards
+#  google_mobile_ads: ^6.0.0 # Ads
   in_app_purchase: ^3.0.1  # In-app purchases
   async: any
 
