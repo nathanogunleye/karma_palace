@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants/number_constants.dart';
 import '../game_internals/karma_palace_game_state.dart';
 import '../games_services/firebase_game_service.dart';
 import '../model/firebase/room.dart';
@@ -181,8 +182,8 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
 
   Offset _getPlayerPosition(int index, double width, double height, int numPositions) {
     // Use a more structured layout with proper spacing
-    const playerWidth = 150.0;
-    const playerHeight = 150.0;
+    const playerWidth = playerAreaWidth;
+    const playerHeight = playerAreaHeight;
     const margin = 20.0;
     
     // Position players based on number of positions

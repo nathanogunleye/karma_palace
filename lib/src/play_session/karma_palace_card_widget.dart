@@ -68,7 +68,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
 
   Widget _buildFaceUpCard(BuildContext context, Palette palette) {
     final textColor = _getCardColor(palette);
-    final fontSize = size.width * 0.3;
+    final fontSize = size.width * 0.4;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
