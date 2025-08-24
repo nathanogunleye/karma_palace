@@ -33,11 +33,10 @@ build-appbundle:
 build-ipa:
 	flutter build ipa
 
-# TODO: Implement
-#.PHONY: deploy-ipa
-#deploy-ipa: build-ipa
-#	xcrun altool --validate-app --type ios --file "build/ios/ipa/LBH.ipa" --username $$APP_STORE_USERNAME --password $$APP_STORE_PASSWORD --show-progress
-#	xcrun altool --upload-app --type ios --file "build/ios/ipa/LBH.ipa" --username $$APP_STORE_USERNAME --password $$APP_STORE_PASSWORD --show-progress
+.PHONY: deploy-ipa
+deploy-ipa: build-ipa
+	xcrun altool --validate-app --type ios --file "build/ios/ipa/karma_palace.ipa" --username $$APP_STORE_USERNAME --password $$APP_STORE_PASSWORD --show-progress
+	xcrun altool --upload-app --type ios --file "build/ios/ipa/karma_palace.ipa" --username $$APP_STORE_USERNAME --password $$APP_STORE_PASSWORD --show-progress
 
 build-web:
 	flutter build web
