@@ -72,16 +72,30 @@ class Card {
   /// Check if card can be played on J, Q, K
   /// This method should be called with the top card as context
   bool canPlayOnHighCard(Card topCard) {
+    // Debug logging
+    print('DEBUG: canPlayOnHighCard called with card ${displayString} on topCard ${topCard.displayString}');
+    print('DEBUG: Card value: $value, hasSpecialEffect: $hasSpecialEffect');
+    
     // 5 (glass) can always be played on high cards
-    if (value == '5') return true;
+    if (value == '5') {
+      print('DEBUG: Card is 5 (glass) - can always be played on high cards');
+      return true;
+    }
     
     // Special cards (2, 7, 9, 10) cannot be played on high cards
-    if (hasSpecialEffect && value != '5') return false;
+    if (hasSpecialEffect && value != '5') {
+      print('DEBUG: Card is special card (not 5) - cannot be played on high cards');
+      return false;
+    }
     
     // Higher or equal cards can be played on high cards
-    if (numericValue >= topCard.numericValue) return true;
+    if (numericValue >= topCard.numericValue) {
+      print('DEBUG: Card has higher/equal value (${numericValue} >= ${topCard.numericValue}) - can be played');
+      return true;
+    }
     
     // Lower cards cannot be played on high cards
+    print('DEBUG: Card has lower value (${numericValue} < ${topCard.numericValue}) - cannot be played');
     return false;
   }
 

@@ -140,7 +140,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
           // Human Player (bottom)
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Container(
               margin: const EdgeInsets.all(8),
               child: KarmaPalacePlayerWidget(
