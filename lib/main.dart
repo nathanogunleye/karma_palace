@@ -93,22 +93,85 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: ThemeData.from(
               colorScheme: ColorScheme.fromSeed(
-                seedColor: palette.darkPen,
+                seedColor: palette.pen,
+                brightness: Brightness.dark,
                 surface: palette.backgroundMain,
+                onSurface: palette.ink,
               ),
               textTheme: TextTheme(
                 bodyMedium: TextStyle(color: palette.ink),
+                titleLarge: TextStyle(
+                  color: palette.darkPen,
+                  fontWeight: FontWeight.bold,
+                ),
+                titleMedium: TextStyle(
+                  color: palette.darkPen,
+                  fontWeight: FontWeight.w600,
+                ),
+                labelLarge: TextStyle(
+                  color: palette.pen,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               useMaterial3: true,
             ).copyWith(
-              // Make buttons more fun.
+              // Enhanced button styling
               filledButtonTheme: FilledButtonThemeData(
                 style: FilledButton.styleFrom(
                   textStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
+                  backgroundColor: palette.pen,
+                  foregroundColor: palette.trueWhite,
+                  elevation: 2,
                 ),
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                  backgroundColor: const Color(0xFF1A1A1A), // Dark gray
+                  foregroundColor: palette.pen,
+                  elevation: 1,
+                  side: BorderSide(color: palette.pen.withValues(alpha: 0.5)),
+                ),
+              ),
+              cardTheme: CardThemeData(
+                color: palette.trueWhite,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: palette.trueWhite,
+                hintStyle: TextStyle(
+                  color: palette.inputText.withValues(alpha: 0.6),
+                ),
+                labelStyle: TextStyle(
+                  color: palette.inputText,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: palette.pen.withValues(alpha: 0.3)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: palette.pen.withValues(alpha: 0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: palette.pen, width: 2),
+                ),
+              ),
+              textSelectionTheme: TextSelectionThemeData(
+                cursorColor: palette.pen,
+                selectionColor: palette.pen.withValues(alpha: 0.3),
+                selectionHandleColor: palette.pen,
               ),
             ),
             routerConfig: router,

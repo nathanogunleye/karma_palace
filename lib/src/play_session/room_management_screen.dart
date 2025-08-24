@@ -163,24 +163,31 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: palette.ink,
+                        color: palette.cardInk,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _playerNameController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: palette.inputText,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
                         hintText: 'Enter your player name',
-                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(
+                          color: palette.inputText.withValues(alpha: 0.6),
+                        ),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Create Room Section
             Card(
               child: Padding(
@@ -193,7 +200,7 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: palette.ink,
+                        color: palette.cardInk,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -261,9 +268,9 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Join Room Section
             Card(
               child: Padding(
@@ -276,15 +283,22 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: palette.ink,
+                        color: palette.cardInk,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _joinRoomIdController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: palette.inputText,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
                         hintText: 'Enter room ID',
-                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(
+                          color: palette.inputText.withValues(alpha: 0.6),
+                        ),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 16),
