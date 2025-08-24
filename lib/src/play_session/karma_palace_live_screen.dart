@@ -225,9 +225,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     return Scaffold(
       backgroundColor: palette.backgroundPlaySession,
       appBar: AppBar(
-        title: Text('Room: ${room.id.substring(0, 8)}...'),
+        title: Text('Room: ${room.id}'),
         backgroundColor: palette.backgroundPlaySession,
         foregroundColor: palette.ink,
+        automaticallyImplyLeading: false,
         actions: [
           // Copy Room ID button
           IconButton(

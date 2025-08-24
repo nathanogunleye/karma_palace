@@ -39,7 +39,7 @@ class FirebaseGameService extends ChangeNotifier {
   /// Create a new room and join as host
   Future<String> createRoom(String playerName) async {
     try {
-      final roomId = _uuid.v4();
+      final roomId = _uuid.v4().substring(0, 8); // Use first 8 characters for shorter room ID
       final playerId = _uuid.v4();
       
       // Create initial deck
