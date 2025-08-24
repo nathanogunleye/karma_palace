@@ -171,14 +171,43 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   Future<void> _leaveRoom() async {
-    try {
-      final gameService = context.read<FirebaseGameService>();
-      await gameService.leaveRoom();
-      if (mounted) {
-        context.go('/');
+    // Store services before async operation
+    final gameService = context.read<FirebaseGameService>();
+    
+    // Show confirmation dialog
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Leave Room?'),
+          content: const Text('Are you sure you want to leave this room? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Leave'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user confirmed, leave the room
+    if (shouldLeave == true) {
+      try {
+        await gameService.leaveRoom();
+        if (mounted) {
+          context.go('/');
+        }
+      } catch (e) {
+        _log.severe('Failed to leave room: $e');
       }
-    } catch (e) {
-      _log.severe('Failed to leave room: $e');
     }
   }
 
