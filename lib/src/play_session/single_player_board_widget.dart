@@ -60,7 +60,6 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Container(
-              height: 160,
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 children: [

@@ -20,7 +20,6 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
 
     return Container(
       width: 200,
-      height: 180, // Increased height to accommodate the stack
       decoration: BoxDecoration(
         color: palette.backgroundPlaySession.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
