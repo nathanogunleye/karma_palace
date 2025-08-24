@@ -31,6 +31,7 @@ class Palette {
   // Text colors - light for black background
   Color get inkFullOpacity => const Color(0xFFFFFFFF); // White
   Color get ink => const Color(0xEEFFFFFF); // White with transparency
+  Color get blackInk => const Color(0xFF000000); // White with transparency
   Color get cardInk => const Color(0xFF555555); // White with transparency
 
   // Input text color - dark for white input fields

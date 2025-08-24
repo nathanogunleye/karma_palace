@@ -122,9 +122,9 @@ class KarmaPalaceCardWidget extends StatelessWidget {
         return Colors.red;
       case '♣':
       case '♠':
-        return palette.ink;
+        return palette.blackInk;
       default:
-        return palette.ink;
+        return palette.blackInk;
     }
   }
 
