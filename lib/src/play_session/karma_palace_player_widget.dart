@@ -97,6 +97,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                 context,
                 player!.faceDown,
                 player!.faceUp,
+                player!.hand,
                 isMyPlayer: isMyPlayer,
                 isCurrentTurn: currentIsCurrentTurn,
               ),
@@ -294,7 +295,8 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
   Widget _buildStackedCardZone(
     BuildContext context,
     List<game_card.Card> faceDownCards,
-    List<game_card.Card> faceUpCards, {
+    List<game_card.Card> faceUpCards,
+    List<game_card.Card> handCards, {
     bool isMyPlayer = false,
     bool isCurrentTurn = false,
   }) {
@@ -342,7 +344,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                       ? KarmaPalaceCardWidget(
                           card: faceDownCards[i],
                           isFaceDown: true,
-                          isPlayable: isMyPlayer && isCurrentTurn,
+                          isPlayable: isMyPlayer && isCurrentTurn && faceUpCards.isEmpty,
                           size: const Size(playerCardWidth, playerCardHeight),
                           onTap: onCardTap != null
                               ? () => onCardTap!(faceDownCards[i], 'faceDown')
@@ -369,7 +371,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                       ? KarmaPalaceCardWidget(
                           card: faceUpCards[i],
                           isFaceDown: false,
-                          isPlayable: isMyPlayer && isCurrentTurn,
+                          isPlayable: isMyPlayer && isCurrentTurn && handCards.isEmpty,
                           size: const Size(playerCardWidth, playerCardHeight),
                           onTap: onCardTap != null
                               ? () => onCardTap!(faceUpCards[i], 'faceUp')
