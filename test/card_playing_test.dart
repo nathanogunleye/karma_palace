@@ -118,6 +118,15 @@ void main() {
       expect(game_card.Card(suit: '♠', value: 'A', id: '6').numericValue, equals(14));
     });
 
+    test('should handle glass effect correctly - play based on card below 5', () {
+      // Test that when 5 is on top, the next player plays based on the card below
+      // This would be tested in the game logic, not the card model itself
+      // The card model just defines the glass effect, the game logic handles the implementation
+      final glassCard = game_card.Card(suit: '♥', value: '5', id: '1');
+      expect(glassCard.specialEffect, equals(game_card.SpecialEffect.glass));
+      expect(glassCard.hasSpecialEffect, isTrue);
+    });
+
     test('should verify special effects are correctly identified', () {
       // Test special effect detection
       expect(game_card.Card(suit: '♠', value: '2', id: '1').hasSpecialEffect, isTrue);

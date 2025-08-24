@@ -15,14 +15,14 @@ class AIPlayerService {
   static (game_card.Card, String)? chooseCardToPlay(Player aiPlayer, Room room, AIDifficulty difficulty) {
     _log.info('AI choosing card to play with difficulty: $difficulty');
     
-    final topCard = room.playPile.isNotEmpty ? room.playPile.last : null;
+    final effectiveTopCard = _getEffectiveTopCard(room.playPile);
     
     // Get all playable cards from all zones
     final playableCards = <(game_card.Card, String)>[];
     
     // Check hand cards first
     for (final card in aiPlayer.hand) {
-      if (_canPlayCard(card, topCard, aiPlayer)) {
+      if (_canPlayCard(card, effectiveTopCard, aiPlayer)) {
         playableCards.add((card, 'hand'));
       }
     }
@@ -30,7 +30,7 @@ class AIPlayerService {
     // Check face-up cards if hand is empty
     if (aiPlayer.hand.isEmpty) {
       for (final card in aiPlayer.faceUp) {
-        if (_canPlayCard(card, topCard, aiPlayer)) {
+        if (_canPlayCard(card, effectiveTopCard, aiPlayer)) {
           playableCards.add((card, 'faceUp'));
         }
       }
@@ -39,7 +39,7 @@ class AIPlayerService {
     // Check face-down cards if hand and face-up are empty
     if (aiPlayer.hand.isEmpty && aiPlayer.faceUp.isEmpty) {
       for (final card in aiPlayer.faceDown) {
-        if (_canPlayCard(card, topCard, aiPlayer)) {
+        if (_canPlayCard(card, effectiveTopCard, aiPlayer)) {
           playableCards.add((card, 'faceDown'));
         }
       }
@@ -55,9 +55,9 @@ class AIPlayerService {
       case AIDifficulty.easy:
         return _chooseEasyCard(playableCards);
       case AIDifficulty.medium:
-        return _chooseMediumCard(playableCards, topCard);
+        return _chooseMediumCard(playableCards, effectiveTopCard);
       case AIDifficulty.hard:
-        return _chooseHardCard(playableCards, topCard, aiPlayer);
+        return _chooseHardCard(playableCards, effectiveTopCard, aiPlayer);
     }
   }
   
@@ -134,6 +134,22 @@ class AIPlayerService {
     return specialCards.first;
   }
   
+  /// Get the effective top card (handles glass effect)
+  static game_card.Card? _getEffectiveTopCard(List<game_card.Card> playPile) {
+    if (playPile.isEmpty) {
+      return null;
+    }
+    
+    final topCard = playPile.last;
+    
+    // If the top card is glass (5), look at the card below it
+    if (topCard.value == '5' && playPile.length > 1) {
+      return playPile[playPile.length - 2];
+    }
+    
+    return topCard;
+  }
+
   /// Check if a card can be played (same logic as game state)
   static bool _canPlayCard(game_card.Card card, game_card.Card? topCard, Player player) {
     if (topCard == null) {

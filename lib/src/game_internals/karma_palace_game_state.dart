@@ -109,6 +109,22 @@ class KarmaPalaceGameState extends ChangeNotifier {
     dev.log('DEBUG: Game in progress: $_gameInProgress');
   }
 
+  // Get the effective top card (handles glass effect)
+  game_card.Card? get _effectiveTopCard {
+    if (_room == null || _room!.playPile.isEmpty) {
+      return null;
+    }
+    
+    final topCard = _room!.playPile.last;
+    
+    // If the top card is glass (5), look at the card below it
+    if (topCard.value == '5' && _room!.playPile.length > 1) {
+      return _room!.playPile[_room!.playPile.length - 2];
+    }
+    
+    return topCard;
+  }
+
   // Check if a card can be played
   bool canPlayCard(game_card.Card card) {
     dev.log('DEBUG: canPlayCard called');
@@ -122,12 +138,12 @@ class KarmaPalaceGameState extends ChangeNotifier {
       return false;
     }
     
-    final topCard = this.topCard;
-    dev.log('DEBUG: Top card: ${topCard?.displayString ?? "null"}');
+    final effectiveTopCard = _effectiveTopCard;
+    dev.log('DEBUG: Effective top card: ${effectiveTopCard?.displayString ?? "null"}');
     dev.log('DEBUG: Play pile length: ${playPile.length}');
     
-    if (topCard == null) {
-      dev.log('DEBUG: No top card - any card can be played');
+    if (effectiveTopCard == null) {
+      dev.log('DEBUG: No effective top card - any card can be played');
       return true; // First card of the game
     }
 
@@ -146,29 +162,29 @@ class KarmaPalaceGameState extends ChangeNotifier {
     }
 
     // Check if card can be played on high cards (J, Q, K)
-    if (['J', 'Q', 'K'].contains(topCard.value)) {
-      final canPlay = card.canPlayOnHighCard(topCard);
-      dev.log('DEBUG: Playing on high card ${topCard.value} - can play: $canPlay');
+    if (['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
+      final canPlay = card.canPlayOnHighCard(effectiveTopCard);
+      dev.log('DEBUG: Playing on high card ${effectiveTopCard.value} - can play: $canPlay');
       return canPlay;
     }
 
     // Check if top card is 7 - forces next player to play 7 or lower
-    if (topCard.value == '7') {
+    if (effectiveTopCard.value == '7') {
       final canPlay = card.numericValue <= 7;
       dev.log('DEBUG: Top card is 7 - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay');
       return canPlay;
     }
 
     // Check if playing a special card on a non-royal card
-    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(topCard.value)) {
+    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       const canPlay = true; // Special cards can be played on any non-royal card
-      dev.log('DEBUG: Playing special card ${card.value} on non-royal ${topCard.value} - can play: $canPlay');
+      dev.log('DEBUG: Playing special card ${card.value} on non-royal ${effectiveTopCard.value} - can play: $canPlay');
       return canPlay;
     }
 
     // Normal card comparison
-    final canPlay = card.numericValue >= topCard.numericValue;
-    dev.log('DEBUG: Playing ${card.value} on ${topCard.value} - can play: $canPlay');
+    final canPlay = card.numericValue >= effectiveTopCard.numericValue;
+    dev.log('DEBUG: Playing ${card.value} on ${effectiveTopCard.value} - can play: $canPlay');
     return canPlay;
   }
 

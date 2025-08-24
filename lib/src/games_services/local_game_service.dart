@@ -657,6 +657,22 @@ class LocalGameService extends ChangeNotifier {
 
 
 
+  /// Get the effective top card (handles glass effect)
+  game_card.Card? _getEffectiveTopCard() {
+    if (_currentRoom == null || _currentRoom!.playPile.isEmpty) {
+      return null;
+    }
+    
+    final topCard = _currentRoom!.playPile.last;
+    
+    // If the top card is glass (5), look at the card below it
+    if (topCard.value == '5' && _currentRoom!.playPile.length > 1) {
+      return _currentRoom!.playPile[_currentRoom!.playPile.length - 2];
+    }
+    
+    return topCard;
+  }
+
   /// Check if a card can be played according to game rules
   bool _canPlayCard(game_card.Card card, Player player, [String? sourceZone]) {
     if (_currentRoom == null) return false;
@@ -671,9 +687,9 @@ class LocalGameService extends ChangeNotifier {
       }
     }
     
-    final topCard = _currentRoom!.playPile.isNotEmpty ? _currentRoom!.playPile.last : null;
+    final effectiveTopCard = _getEffectiveTopCard();
     
-    if (topCard == null) {
+    if (effectiveTopCard == null) {
       return true; // First card of the game
     }
 
@@ -688,22 +704,22 @@ class LocalGameService extends ChangeNotifier {
     }
 
     // Check if card can be played on high cards (J, Q, K)
-    if (['J', 'Q', 'K'].contains(topCard.value)) {
-      return card.canPlayOnHighCard(topCard);
+    if (['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
+      return card.canPlayOnHighCard(effectiveTopCard);
     }
 
     // Check if top card is 7 - forces next player to play 7 or lower
-    if (topCard.value == '7') {
+    if (effectiveTopCard.value == '7') {
       return card.numericValue <= 7;
     }
 
     // Check if playing a special card on a non-royal card
-    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(topCard.value)) {
+    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       return true; // Special cards can be played on any non-royal card
     }
 
     // Normal card comparison
-    return card.numericValue >= topCard.numericValue;
+    return card.numericValue >= effectiveTopCard.numericValue;
   }
 
   @override

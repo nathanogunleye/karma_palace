@@ -186,6 +186,25 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
     return false;
   }
 
+  /// Get the effective top card (handles glass effect)
+  game_card.Card? _getEffectiveTopCard() {
+    final gameService = context.read<LocalGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room == null || room.playPile.isEmpty) {
+      return null;
+    }
+    
+    final topCard = room.playPile.last;
+    
+    // If the top card is glass (5), look at the card below it
+    if (topCard.value == '5' && room.playPile.length > 1) {
+      return room.playPile[room.playPile.length - 2];
+    }
+    
+    return topCard;
+  }
+
   /// Check if a specific card can be played by the current player
   bool _canPlayCard(game_card.Card card, Player player, String sourceZone) {
     final gameService = context.read<LocalGameService>();
@@ -201,9 +220,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
       return false; // Can't play face-down cards if hand or face-up has cards
     }
     
-    final topCard = room.playPile.isNotEmpty ? room.playPile.last : null;
+    final effectiveTopCard = _getEffectiveTopCard();
     
-    if (topCard == null) {
+    if (effectiveTopCard == null) {
       return true; // First card of the game
     }
 
@@ -218,22 +237,22 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
     }
 
     // Check if card can be played on high cards (J, Q, K)
-    if (['J', 'Q', 'K'].contains(topCard.value)) {
-      return card.canPlayOnHighCard(topCard);
+    if (['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
+      return card.canPlayOnHighCard(effectiveTopCard);
     }
 
     // Check if top card is 7 - forces next player to play 7 or lower
-    if (topCard.value == '7') {
+    if (effectiveTopCard.value == '7') {
       return card.numericValue <= 7;
     }
 
     // Check if playing a special card on a non-royal card
-    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(topCard.value)) {
+    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       return true; // Special cards can be played on any non-royal card
     }
 
     // Normal card comparison
-    return card.numericValue >= topCard.numericValue;
+    return card.numericValue >= effectiveTopCard.numericValue;
   }
 
   @override
