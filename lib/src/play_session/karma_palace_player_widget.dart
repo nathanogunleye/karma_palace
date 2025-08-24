@@ -63,7 +63,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: currentIsCurrentTurn ? palette.ink : Colors.white,
+                      color: currentIsCurrentTurn ? palette.cardInk : Colors.white,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
@@ -80,11 +80,11 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                         color: palette.ink,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
+                      child: Text(
                         'TURN',
                         style: TextStyle(
                           fontSize: 8.0,
-                          color: Colors.white,
+                          color: palette.cardInk,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

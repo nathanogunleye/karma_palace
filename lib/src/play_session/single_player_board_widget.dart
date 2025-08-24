@@ -43,7 +43,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
         children: [
           // AI Player (top)
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Container(
               margin: const EdgeInsets.all(8),
               child: KarmaPalacePlayerWidget(
@@ -57,82 +57,85 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           ),
 
           // Central Play Area
-          Container(
-            height: 120,
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                // Left side - Game info
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Deck: ${room.deck.length}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: palette.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Turn: ${room.currentPlayer == humanPlayer.id ? "Your Turn" : "AI Turn"}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: room.currentPlayer == humanPlayer.id 
-                              ? Colors.green 
-                              : Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Center - Play Pile
-                Expanded(
-                  flex: 2,
-                  child: KarmaPalacePlayPileWidget(
-                    playPile: room.playPile,
-                    topCard: room.playPile.isNotEmpty ? room.playPile.last : null,
-                  ),
-                ),
-
-                // Right side - Game status
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Status: ${room.gameState.name.toUpperCase()}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: palette.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (room.resetActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
+          Expanded(
+            flex: 2,
+            child: Container(
+              height: 160,
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                children: [
+                  // Left side - Game info
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Deck: ${room.deck.length}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: palette.ink,
                           ),
-                          child: const Text(
-                            'RESET ACTIVE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange,
+                        ),
+                        // const SizedBox(height: 8),
+                        Text(
+                          'Turn: ${room.currentPlayer == humanPlayer.id ? "Your Turn" : "AI Turn"}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: room.currentPlayer == humanPlayer.id
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Center - Play Pile
+                  Expanded(
+                    flex: 2,
+                    child: KarmaPalacePlayPileWidget(
+                      playPile: room.playPile,
+                      topCard: room.playPile.isNotEmpty ? room.playPile.last : null,
+                    ),
+                  ),
+
+                  // Right side - Game status
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Status: ${room.gameState.name.toUpperCase()}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: palette.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (room.resetActive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'RESET ACTIVE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
