@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:karma_palace/src/main_menu/main_menu_screen.dart';
 import 'package:karma_palace/src/play_session/karma_palace_live_screen.dart';
 import 'package:karma_palace/src/play_session/room_management_screen.dart';
+import 'package:karma_palace/src/play_session/single_player_setup_screen.dart';
+import 'package:karma_palace/src/play_session/single_player_game_screen.dart';
 import 'package:karma_palace/src/settings/settings_screen.dart';
 
 /// The router describes the game's navigational hierarchy, from the main
@@ -31,6 +33,16 @@ final router = GoRouter(
           path: 'karma-palace-live',
           builder: (context, state) =>
               const KarmaPalaceLiveScreen(key: Key('karma palace live')),
+        ),
+        GoRoute(
+          path: 'single-player-setup',
+          builder: (context, state) =>
+              const SinglePlayerSetupScreen(key: Key('single player setup')),
+        ),
+        GoRoute(
+          path: 'single-player-game',
+          builder: (context, state) =>
+              const SinglePlayerGameScreen(key: Key('single player game')),
         ),
       ],
     ),

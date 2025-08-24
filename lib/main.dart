@@ -16,6 +16,7 @@ import 'src/app_lifecycle/app_lifecycle.dart';
 import 'src/audio/audio_controller.dart';
 import 'src/game_internals/karma_palace_game_state.dart';
 import 'src/games_services/firebase_game_service.dart';
+import 'src/games_services/local_game_service.dart';
 import 'src/player_progress/player_progress.dart';
 import 'router.dart';
 import 'src/settings/settings.dart';
@@ -72,6 +73,8 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (context) => KarmaPalaceGameState()),
           // Firebase game service
           ChangeNotifierProvider(create: (context) => FirebaseGameService()),
+          // Local game service for single player
+          ChangeNotifierProvider(create: (context) => LocalGameService()),
           // Set up audio.
           ProxyProvider2<AppLifecycleStateNotifier, SettingsController,
               AudioController>(
