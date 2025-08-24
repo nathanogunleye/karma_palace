@@ -169,17 +169,33 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Zone label
-        Text(
-          isHand
-              ? 'Hand'
-              : isFaceDown
-                  ? 'Down'
-                  : 'Up',
-          style: const TextStyle(
-            fontSize: 8,
-            color: Colors.blue,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              isHand
+                  ? 'Hand'
+                  : isFaceDown
+                      ? 'Down'
+                      : 'Up',
+              style: const TextStyle(
+                fontSize: 8,
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (isHand && cards.length > 3) ...[
+              const SizedBox(width: 4),
+              Text(
+                '(${cards.length})',
+                style: const TextStyle(
+                  fontSize: 7,
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ],
         ),
 
         const SizedBox(height: 4),
@@ -187,52 +203,89 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
         // Cards
         SizedBox(
           height: playerCardHeight,
-          width: 3 * playerCardWidth,
-          child: Stack(
-            children: [
-              for (int i = 0; i < 3; i++)
-                Positioned(
-                  left: i * playerCardWidth,
-                  child: i < cards.length
-                      ? Builder(
-                          builder: (context) {
-                            final isPlayable = isHand && isCurrentTurn;
-                            if (isHand) {
-                              dev.log(
-                                  'DEBUG: Card ${cards[i].displayString} - isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
-                            }
-                            return KarmaPalaceCardWidget(
-                              card: cards[i],
-                              isFaceDown: isFaceDown,
-                              isPlayable: isPlayable,
-                              size:
-                                  const Size(playerCardWidth, playerCardHeight),
-                              onTap: onCardTap != null
-                                  ? () => onCardTap!(
-                                      cards[i],
-                                      isHand
-                                          ? 'hand'
-                                          : isFaceDown
-                                              ? 'faceDown'
-                                              : 'faceUp')
-                                  : null,
-                            );
-                          },
-                        )
-                      : Container(
-                          width: playerCardWidth,
-                          height: playerCardHeight,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(2),
-                            border: Border.all(
-                              color: Colors.grey.withValues(alpha: 0.5),
-                            ),
+          child: isHand && cards.length > 3
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < cards.length; i++)
+                        Padding(
+                          padding: EdgeInsets.only(right: i < cards.length - 1 ? 2.0 : 0),
+                          child: Builder(
+                            builder: (context) {
+                              final isPlayable = isHand && isCurrentTurn;
+                              if (isHand) {
+                                dev.log(
+                                    'DEBUG: Card ${cards[i].displayString} - isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
+                              }
+                              return KarmaPalaceCardWidget(
+                                card: cards[i],
+                                isFaceDown: isFaceDown,
+                                isPlayable: isPlayable,
+                                size: const Size(playerCardWidth, playerCardHeight),
+                                onTap: onCardTap != null
+                                    ? () => onCardTap!(
+                                        cards[i],
+                                        isHand
+                                            ? 'hand'
+                                            : isFaceDown
+                                                ? 'faceDown'
+                                                : 'faceUp')
+                                    : null,
+                              );
+                            },
                           ),
                         ),
+                    ],
+                  ),
+                )
+              : SizedBox(
+                  width: 3 * playerCardWidth,
+                  child: Stack(
+                    children: [
+                      for (int i = 0; i < 3; i++)
+                        Positioned(
+                          left: i * playerCardWidth,
+                          child: i < cards.length
+                              ? Builder(
+                                  builder: (context) {
+                                    final isPlayable = isHand && isCurrentTurn;
+                                    if (isHand) {
+                                      dev.log(
+                                          'DEBUG: Card ${cards[i].displayString} - isHand: $isHand, isCurrentTurn: $isCurrentTurn, isPlayable: $isPlayable');
+                                    }
+                                    return KarmaPalaceCardWidget(
+                                      card: cards[i],
+                                      isFaceDown: isFaceDown,
+                                      isPlayable: isPlayable,
+                                      size: const Size(playerCardWidth, playerCardHeight),
+                                      onTap: onCardTap != null
+                                          ? () => onCardTap!(
+                                              cards[i],
+                                              isHand
+                                                  ? 'hand'
+                                                  : isFaceDown
+                                                      ? 'faceDown'
+                                                      : 'faceUp')
+                                          : null,
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  width: playerCardWidth,
+                                  height: playerCardHeight,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(2),
+                                    border: Border.all(
+                                      color: Colors.grey.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                    ],
+                  ),
                 ),
-            ],
-          ),
         ),
       ],
     );

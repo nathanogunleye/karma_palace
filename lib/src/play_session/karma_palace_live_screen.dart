@@ -349,8 +349,11 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Select Card to Play'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 400),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
           children: [
             if (currentPlayer.hand.isNotEmpty) ...[
               const Text('Hand:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -422,6 +425,8 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
             ],
           ],
         ),
+      ),
+    ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
