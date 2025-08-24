@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
+import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
 import 'package:karma_palace/src/style/palette.dart';
 import '../style/my_button.dart';
@@ -216,6 +217,96 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     _playCard(card, sourceZone);
   }
 
+  /// Check if the current player can play any cards
+  bool _canCurrentPlayerPlayAnyCard() {
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room == null || gameService.currentPlayerId == null) return false;
+    
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    
+    // Check hand cards
+    for (final card in currentPlayer.hand) {
+      if (_canPlayCard(card, currentPlayer, 'hand')) {
+        return true;
+      }
+    }
+    
+    // Check face-up cards if hand is empty
+    if (currentPlayer.hand.isEmpty) {
+      for (final card in currentPlayer.faceUp) {
+        if (_canPlayCard(card, currentPlayer, 'faceUp')) {
+          return true;
+        }
+      }
+    }
+    
+    // Check face-down cards if hand and face-up are empty
+    if (currentPlayer.hand.isEmpty && currentPlayer.faceUp.isEmpty) {
+      for (final card in currentPlayer.faceDown) {
+        if (_canPlayCard(card, currentPlayer, 'faceDown')) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /// Check if a specific card can be played by the current player
+  bool _canPlayCard(game_card.Card card, Player player, String sourceZone) {
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room == null) return false;
+    
+    // Check zone restrictions
+    if (sourceZone == 'faceUp' && player.hand.isNotEmpty) {
+      return false; // Can't play face-up cards if hand has cards
+    }
+    if (sourceZone == 'faceDown' && (player.hand.isNotEmpty || player.faceUp.isNotEmpty)) {
+      return false; // Can't play face-down cards if hand or face-up has cards
+    }
+    
+    final topCard = room.playPile.isNotEmpty ? room.playPile.last : null;
+    
+    if (topCard == null) {
+      return true; // First card of the game
+    }
+
+    // Check if reset effect is active (2 was played)
+    if (room.resetActive == true) {
+      return true; // Any card can be played after a 2
+    }
+
+    // Check if current player is forced to play low (from card 7 effect)
+    if (player.forcedToPlayLow == true) {
+      return card.numericValue <= 7;
+    }
+
+    // Check if card can be played on high cards (J, Q, K)
+    if (['J', 'Q', 'K'].contains(topCard.value)) {
+      return card.canPlayOnHighCard(topCard);
+    }
+
+    // Check if top card is 7 - forces next player to play 7 or lower
+    if (topCard.value == '7') {
+      return card.numericValue <= 7;
+    }
+
+    // Check if playing a special card on a non-royal card
+    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(topCard.value)) {
+      return true; // Special cards can be played on any non-royal card
+    }
+
+    // Normal card comparison
+    return card.numericValue >= topCard.numericValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
@@ -346,17 +437,21 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        MyButton(
-                          onPressed: () {
-                            // Show card selection dialog
-                            _showCardSelectionDialog();
-                          },
-                          child: const Text('Play Card'),
-                        ),
-                        MyButton(
-                          onPressed: _pickUpPile,
-                          child: const Text('Pick Up Pile'),
-                        ),
+                        // Show "Play Card" button if player has valid moves
+                        if (_canCurrentPlayerPlayAnyCard())
+                          MyButton(
+                            onPressed: () {
+                              // Show card selection dialog
+                              _showCardSelectionDialog();
+                            },
+                            child: const Text('Play Card'),
+                          ),
+                        // Show "Pick Up Pile" button if player has no valid moves
+                        if (!_canCurrentPlayerPlayAnyCard())
+                          MyButton(
+                            onPressed: _pickUpPile,
+                            child: const Text('Pick Up Pile'),
+                          ),
                       ],
                     ),
                   ],
