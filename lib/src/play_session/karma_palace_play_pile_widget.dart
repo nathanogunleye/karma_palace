@@ -19,7 +19,6 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
     final palette = context.watch<Palette>();
 
     return Container(
-      width: 200,
       decoration: BoxDecoration(
         color: palette.backgroundPlaySession.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
