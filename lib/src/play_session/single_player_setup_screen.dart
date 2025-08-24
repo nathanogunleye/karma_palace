@@ -183,7 +183,9 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
                           ),
                         ),
                         value: difficulty,
+                        // ignore: deprecated_member_use
                         groupValue: _selectedDifficulty,
+                        // ignore: deprecated_member_use
                         onChanged: (value) {
                           setState(() {
                             _selectedDifficulty = value!;

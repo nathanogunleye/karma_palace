@@ -655,37 +655,7 @@ class LocalGameService extends ChangeNotifier {
     return deck;
   }
 
-  /// Check if a player can play any cards
-  bool _canPlayerPlayAnyCard(Player player) {
-    if (_currentRoom == null) return false;
-    
-    // Check hand cards
-    for (final card in player.hand) {
-      if (_canPlayCard(card, player, 'hand')) {
-        return true;
-      }
-    }
-    
-    // Check face-up cards if hand is empty
-    if (player.hand.isEmpty) {
-      for (final card in player.faceUp) {
-        if (_canPlayCard(card, player, 'faceUp')) {
-          return true;
-        }
-      }
-    }
-    
-    // Check face-down cards if hand and face-up are empty
-    if (player.hand.isEmpty && player.faceUp.isEmpty) {
-      for (final card in player.faceDown) {
-        if (_canPlayCard(card, player, 'faceDown')) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
-  }
+
 
   /// Check if a card can be played according to game rules
   bool _canPlayCard(game_card.Card card, Player player, [String? sourceZone]) {
