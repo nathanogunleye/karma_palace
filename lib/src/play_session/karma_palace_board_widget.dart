@@ -39,6 +39,9 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
       );
     }
 
+    // Don't show burn notification for empty pile - let the callback system handle it
+    const bool showBurnNotification = false;
+
     return Container(
       decoration: BoxDecoration(
         color: palette.backgroundMain,
@@ -56,6 +59,7 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
               child: KarmaPalacePlayPileWidget(
                 playPile: room.playPile,
                 topCard: room.playPile.isNotEmpty ? room.playPile.last : null,
+                showBurnNotification: showBurnNotification,
               ),
             ),
             

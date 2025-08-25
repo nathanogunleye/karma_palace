@@ -23,19 +23,31 @@ class KarmaPalaceLiveScreen extends StatefulWidget {
 class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with WidgetsBindingObserver {
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
+  int _previousPlayPileLength = 0;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    // Defer initialization to avoid build-time notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeGameState();
+    });
+    
+    // Listen for pick-up effects
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gameService = context.read<FirebaseGameService>();
+      gameService.setPickUpEffectCallback(_onPickUpEffect);
+      gameService.setBurnEffectCallback(_onBurnEffect);
+      gameService.addListener(_onGameStateChanged);
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    final gameService = context.read<FirebaseGameService>();
+    gameService.clearPickUpEffectCallback();
+    gameService.clearBurnEffectCallback();
+    gameService.removeListener(_onGameStateChanged);
     super.dispose();
   }
 
@@ -324,6 +336,104 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
 
     // Normal card comparison
     return card.numericValue >= effectiveTopCard.numericValue;
+  }
+
+  void _onPickUpEffect() {
+    if (mounted) {
+      _showPickUpNotification();
+    }
+  }
+
+  void _onBurnEffect() {
+    if (mounted) {
+      _showBurnNotification();
+    }
+  }
+
+  void _showPickUpNotification() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.handshake,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '📦 Player picked up the pile!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showBurnNotification() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.local_fire_department,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '🔥 Play pile burned! Same player goes again.',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.deepOrange,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _onGameStateChanged() {
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room != null && mounted) {
+      final currentPileLength = room.playPile.length;
+      
+      // Detect if pile was emptied (either by burn or pick-up)
+      if (_previousPlayPileLength > 0 && currentPileLength == 0) {
+        // Pile was emptied - determine if it was a pick-up or burn
+        // We'll use a simple heuristic: if it's not our turn, it's likely a pick-up
+        final isMyTurn = room.currentPlayer == gameService.currentPlayerId;
+        
+        if (!isMyTurn) {
+          // Opponent likely picked up the pile
+          _onPickUpEffect();
+        }
+        // If it is our turn, the callbacks will handle burn/pick-up detection
+      }
+      
+      _previousPlayPileLength = currentPileLength;
+    }
   }
 
   @override

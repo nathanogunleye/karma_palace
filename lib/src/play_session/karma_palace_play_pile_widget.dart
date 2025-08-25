@@ -7,11 +7,13 @@ import 'karma_palace_card_widget.dart';
 class KarmaPalacePlayPileWidget extends StatelessWidget {
   final List<game_card.Card> playPile;
   final game_card.Card? topCard;
+  final bool showBurnNotification;
 
   const KarmaPalacePlayPileWidget({
     super.key,
     required this.playPile,
     required this.topCard,
+    this.showBurnNotification = false,
   });
 
   @override
@@ -162,38 +164,79 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                 ),
               ],
             ] else
-              Container(
-                width: 80,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.grey.withValues(alpha: 0.5),
-                    width: 2,
-                  ),
-                ),
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.inbox_outlined,
-                        size: 32,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Empty',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
+              // Empty pile with optional burn notification
+              Column(
+                children: [
+                  // Burn notification if applicable
+                  if (showBurnNotification) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.deepOrange.withValues(alpha: 0.6),
+                          width: 2,
                         ),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.local_fire_department,
+                            size: 16,
+                            color: Colors.deepOrange,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'PILE BURNED!',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  
+                  // Empty pile indicator
+                  Container(
+                    width: 80,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.grey.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 32,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Empty',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
 
             const SizedBox(height: 12),

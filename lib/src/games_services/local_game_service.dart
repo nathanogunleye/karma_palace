@@ -25,6 +25,12 @@ class LocalGameService extends ChangeNotifier {
   AIDifficulty _aiDifficulty = AIDifficulty.medium;
   Timer? _aiTurnTimer;
 
+  // Callback for pick-up notifications
+  VoidCallback? _onPickUpEffect;
+
+  // Callback for burn effects
+  VoidCallback? _onBurnEffect;
+
   // Getters
   Room? get currentRoom => _currentRoom;
   String? get currentPlayerId => _currentPlayerId;
@@ -33,6 +39,26 @@ class LocalGameService extends ChangeNotifier {
   bool get isInGame => _currentRoom != null;
   bool get gameInProgress => _gameInProgress;
   AIDifficulty get aiDifficulty => _aiDifficulty;
+
+  /// Set callback for pick-up notifications
+  void setPickUpEffectCallback(VoidCallback callback) {
+    _onPickUpEffect = callback;
+  }
+
+  /// Clear pick-up effect callback
+  void clearPickUpEffectCallback() {
+    _onPickUpEffect = null;
+  }
+
+  /// Set callback for burn effects
+  void setBurnEffectCallback(VoidCallback callback) {
+    _onBurnEffect = callback;
+  }
+
+  /// Clear burn effect callback
+  void clearBurnEffectCallback() {
+    _onBurnEffect = null;
+  }
 
   /// Create a new single player game
   Future<void> createSinglePlayerGame(String playerName, AIDifficulty difficulty) async {
@@ -296,6 +322,9 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _log.info('Human picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
+      
+      // Notify UI about pick-up effect
+      _onPickUpEffect?.call();
       
       // Check if AI should play next
       if (nextPlayerId != _currentPlayerId) {
@@ -630,9 +659,38 @@ class LocalGameService extends ChangeNotifier {
       finalPlayPile = [];
       // Keep the same player's turn (don't change finalNextPlayerId)
       finalNextPlayerId = _currentPlayerId!;
+      // Notify UI about burn effect
+      _onBurnEffect?.call();
+    }
+
+    // Check for 4-of-a-kind burn effect (4 cards of the same value)
+    if (_shouldBurnForFourOfAKind(finalPlayPile)) {
+      finalPlayPile = [];
+      finalNextPlayerId = _currentPlayerId!; // Same player plays again
+      _log.info('4-of-a-kind detected - play pile burned, same player plays again');
+      // Notify UI about burn effect
+      _onBurnEffect?.call();
     }
 
     return (finalPlayPile, finalPlayers, finalNextPlayerId);
+  }
+
+  /// Check if the play pile should be burned due to 4 cards of the same value
+  bool _shouldBurnForFourOfAKind(List<game_card.Card> playPile) {
+    if (playPile.length < 4) return false;
+    
+    // Get the last 4 cards
+    final lastFourCards = playPile.sublist(playPile.length - 4);
+    
+    // Check if all 4 cards have the same value
+    final firstValue = lastFourCards[0].value;
+    final allSameValue = lastFourCards.every((card) => card.value == firstValue);
+    
+    if (allSameValue) {
+      _log.info('4-of-a-kind detected: ${lastFourCards.map((c) => c.displayString).join(', ')}');
+    }
+    
+    return allSameValue;
   }
 
   /// Create a shuffled deck of cards

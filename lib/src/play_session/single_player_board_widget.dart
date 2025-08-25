@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
-import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
+
 import 'package:karma_palace/src/style/palette.dart';
 import 'karma_palace_player_widget.dart';
 import 'karma_palace_play_pile_widget.dart';
+import 'package:karma_palace/src/games_services/local_game_service.dart';
 
 class SinglePlayerBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String)? onCardTap;
@@ -16,26 +17,29 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gameService = context.watch<LocalGameService>();
     final palette = context.watch<Palette>();
-    final gameState = context.watch<KarmaPalaceGameState>();
-    final room = gameState.room;
 
+    final room = gameService.currentRoom;
+    
     if (room == null) {
       return const Center(
-        child: Text('No game data available'),
+        child: CircularProgressIndicator(),
       );
     }
 
-    // Find human and AI players
     final humanPlayer = room.players.firstWhere(
-      (p) => p.id == gameState.currentPlayerId,
-      orElse: () => room.players.first,
-    );
-    
-    final aiPlayer = room.players.firstWhere(
-      (p) => p.id != gameState.currentPlayerId,
+      (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
+
+    final aiPlayer = room.players.firstWhere(
+      (p) => p.id != gameService.currentPlayerId,
+      orElse: () => room.players.last,
+    );
+
+    // Don't show burn notification for empty pile - let the callback system handle it
+    const bool showBurnNotification = false;
 
     return Container(
       color: palette.backgroundMain,
@@ -97,6 +101,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
                     child: KarmaPalacePlayPileWidget(
                       playPile: room.playPile,
                       topCard: room.playPile.isNotEmpty ? room.playPile.last : null,
+                      showBurnNotification: showBurnNotification,
                     ),
                   ),
 
