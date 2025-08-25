@@ -9,6 +9,11 @@ class KarmaPalaceCardWidget extends StatelessWidget {
   final bool isPlayable;
   final Size size;
   final VoidCallback? onTap;
+  
+  // Multi-card selection support
+  final bool isSelected;
+  final bool isMultiSelectMode;
+  final bool isMultiSelectEligible;
 
   const KarmaPalaceCardWidget({
     super.key,
@@ -17,11 +22,29 @@ class KarmaPalaceCardWidget extends StatelessWidget {
     this.isPlayable = false,
     this.size = const Size(40, 60),
     this.onTap,
+    this.isSelected = false,
+    this.isMultiSelectMode = false,
+    this.isMultiSelectEligible = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
+
+    // Determine border color based on state
+    Color borderColor = palette.ink;
+    double borderWidth = 1;
+    
+    if (isSelected) {
+      borderColor = Colors.green;
+      borderWidth = 3;
+    } else if (isMultiSelectMode && isMultiSelectEligible) {
+      borderColor = Colors.blue;
+      borderWidth = 2;
+    } else if (isPlayable) {
+      borderColor = Colors.blue;
+      borderWidth = 2;
+    }
 
     return GestureDetector(
       onTap: isPlayable ? onTap : null,
@@ -31,21 +54,55 @@ class KarmaPalaceCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: isFaceDown ? palette.ink : palette.trueWhite,
           border: Border.all(
-            color: isPlayable ? Colors.blue : palette.ink,
-            width: isPlayable ? 2 : 1,
+            color: borderColor,
+            width: borderWidth,
           ),
           borderRadius: BorderRadius.circular(4),
-          boxShadow: isPlayable ? [
-            BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.3),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ] : null,
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: Colors.green.withValues(alpha: 0.5),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              )
+            else if (isPlayable || (isMultiSelectMode && isMultiSelectEligible))
+              BoxShadow(
+                color: Colors.blue.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+          ],
         ),
-        child: isFaceDown
-            ? _buildFaceDownCard(palette)
-            : _buildFaceUpCard(context, palette),
+        child: Stack(
+          children: [
+            // Card content - centered
+            Center(
+              child: isFaceDown
+                  ? _buildFaceDownCard(palette)
+                  : _buildFaceUpCard(context, palette),
+            ),
+            
+            // Selection indicator
+            if (isSelected)
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 8,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -72,6 +129,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Card value
         Text(
@@ -81,6 +139,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
+          textAlign: TextAlign.center,
         ),
         
         // Card suit
@@ -90,6 +149,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
             color: textColor,
             fontSize: fontSize * 0.8,
           ),
+          textAlign: TextAlign.center,
         ),
         
         // Special effect indicator

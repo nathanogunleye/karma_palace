@@ -625,5 +625,329 @@ void main() {
         expect(playerWithMixedCards.hasWon, isFalse);
       });
     });
+
+    group('Multi-Card Selection Tests', () {
+      test('should identify same value cards in hand', () {
+        // Create a player with multiple Qs in hand
+        final playerWithMultipleQs = Player(
+          id: 'player1',
+          name: 'Multi Q Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'Q', id: '1'),
+            game_card.Card(suit: '♥', value: 'Q', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
+        );
+        
+        // Should have 3 Qs in hand
+        final qCards = playerWithMultipleQs.hand.where((card) => card.value == 'Q').toList();
+        expect(qCards.length, equals(3));
+        expect(qCards.every((card) => card.value == 'Q'), isTrue);
+      });
+
+      test('should identify same value cards across different zones', () {
+        // Create a player with Ks in different zones
+        final playerWithKs = Player(
+          id: 'player2',
+          name: 'K Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'K', id: '1'),
+          ],
+          faceUp: [
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceDown: [
+            game_card.Card(suit: '♦', value: 'K', id: '3'),
+          ],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        );
+        
+        // Should have 3 Ks total
+        final allCards = [...playerWithKs.hand, ...playerWithKs.faceUp, ...playerWithKs.faceDown];
+        final kCards = allCards.where((card) => card.value == 'K').toList();
+        expect(kCards.length, equals(3));
+        expect(kCards.every((card) => card.value == 'K'), isTrue);
+      });
+
+      test('should not identify different value cards as same', () {
+        // Create a player with different cards
+        final playerWithDifferentCards = Player(
+          id: 'player3',
+          name: 'Different Cards',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 2,
+        );
+        
+        // Should not have multiple cards of the same value
+        final aCards = playerWithDifferentCards.hand.where((card) => card.value == 'A').toList();
+        final kCards = playerWithDifferentCards.hand.where((card) => card.value == 'K').toList();
+        final qCards = playerWithDifferentCards.hand.where((card) => card.value == 'Q').toList();
+        
+        expect(aCards.length, equals(1));
+        expect(kCards.length, equals(1));
+        expect(qCards.length, equals(1));
+      });
+    });
+
+    group('Multi-Card Selection Tests', () {
+      test('should identify same value cards in hand', () {
+        // Create a player with multiple Qs in hand
+        final playerWithMultipleQs = Player(
+          id: 'player1',
+          name: 'Multi Q Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'Q', id: '1'),
+            game_card.Card(suit: '♥', value: 'Q', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
+        );
+        
+        // Should have 3 Qs in hand
+        final qCards = playerWithMultipleQs.hand.where((card) => card.value == 'Q').toList();
+        expect(qCards.length, equals(3));
+        expect(qCards.every((card) => card.value == 'Q'), isTrue);
+      });
+
+      test('should identify same value cards across different zones', () {
+        // Create a player with Ks in different zones
+        final playerWithKs = Player(
+          id: 'player2',
+          name: 'K Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'K', id: '1'),
+          ],
+          faceUp: [
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceDown: [
+            game_card.Card(suit: '♦', value: 'K', id: '3'),
+          ],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        );
+        
+        // Should have 3 Ks total
+        final allCards = [...playerWithKs.hand, ...playerWithKs.faceUp, ...playerWithKs.faceDown];
+        final kCards = allCards.where((card) => card.value == 'K').toList();
+        expect(kCards.length, equals(3));
+        expect(kCards.every((card) => card.value == 'K'), isTrue);
+      });
+
+      test('should not identify different value cards as same', () {
+        // Create a player with different cards
+        final playerWithDifferentCards = Player(
+          id: 'player3',
+          name: 'Different Cards',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 2,
+        );
+        
+        // Should not have multiple cards of the same value
+        final aCards = playerWithDifferentCards.hand.where((card) => card.value == 'A').toList();
+        final kCards = playerWithDifferentCards.hand.where((card) => card.value == 'K').toList();
+        final qCards = playerWithDifferentCards.hand.where((card) => card.value == 'Q').toList();
+        
+        expect(aCards.length, equals(1));
+        expect(kCards.length, equals(1));
+        expect(qCards.length, equals(1));
+      });
+    });
+
+    group('Multi-Card Selection Tests', () {
+      test('should identify same value cards in hand', () {
+        // Create a player with multiple Qs in hand
+        final playerWithMultipleQs = Player(
+          id: 'player1',
+          name: 'Multi Q Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'Q', id: '1'),
+            game_card.Card(suit: '♥', value: 'Q', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
+        );
+        
+        // Should have 3 Qs in hand
+        final qCards = playerWithMultipleQs.hand.where((card) => card.value == 'Q').toList();
+        expect(qCards.length, equals(3));
+        expect(qCards.every((card) => card.value == 'Q'), isTrue);
+      });
+
+      test('should identify same value cards across different zones', () {
+        // Create a player with Ks in different zones
+        final playerWithKs = Player(
+          id: 'player2',
+          name: 'K Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'K', id: '1'),
+          ],
+          faceUp: [
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceDown: [
+            game_card.Card(suit: '♦', value: 'K', id: '3'),
+          ],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        );
+        
+        // Should have 3 Ks total
+        final allCards = [...playerWithKs.hand, ...playerWithKs.faceUp, ...playerWithKs.faceDown];
+        final kCards = allCards.where((card) => card.value == 'K').toList();
+        expect(kCards.length, equals(3));
+        expect(kCards.every((card) => card.value == 'K'), isTrue);
+      });
+
+      test('should not identify different value cards as same', () {
+        // Create a player with different cards
+        final playerWithDifferentCards = Player(
+          id: 'player3',
+          name: 'Different Cards',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 2,
+        );
+        
+        // Should not have multiple cards of the same value
+        final aCards = playerWithDifferentCards.hand.where((card) => card.value == 'A').toList();
+        final kCards = playerWithDifferentCards.hand.where((card) => card.value == 'K').toList();
+        final qCards = playerWithDifferentCards.hand.where((card) => card.value == 'Q').toList();
+        
+        expect(aCards.length, equals(1));
+        expect(kCards.length, equals(1));
+        expect(qCards.length, equals(1));
+      });
+    });
+
+    group('Multi-Card Selection Tests', () {
+      test('should identify same value cards in hand', () {
+        // Create a player with multiple Qs in hand
+        final playerWithMultipleQs = Player(
+          id: 'player1',
+          name: 'Multi Q Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'Q', id: '1'),
+            game_card.Card(suit: '♥', value: 'Q', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
+        );
+        
+        // Should have 3 Qs in hand
+        final qCards = playerWithMultipleQs.hand.where((card) => card.value == 'Q').toList();
+        expect(qCards.length, equals(3));
+        expect(qCards.every((card) => card.value == 'Q'), isTrue);
+      });
+
+      test('should identify same value cards across different zones', () {
+        // Create a player with Ks in different zones
+        final playerWithKs = Player(
+          id: 'player2',
+          name: 'K Player',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'K', id: '1'),
+          ],
+          faceUp: [
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceDown: [
+            game_card.Card(suit: '♦', value: 'K', id: '3'),
+          ],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        );
+        
+        // Should have 3 Ks total
+        final allCards = [...playerWithKs.hand, ...playerWithKs.faceUp, ...playerWithKs.faceDown];
+        final kCards = allCards.where((card) => card.value == 'K').toList();
+        expect(kCards.length, equals(3));
+        expect(kCards.every((card) => card.value == 'K'), isTrue);
+      });
+
+      test('should not identify different value cards as same', () {
+        // Create a player with different cards
+        final playerWithDifferentCards = Player(
+          id: 'player3',
+          name: 'Different Cards',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 2,
+        );
+        
+        // Should not have multiple cards of the same value
+        final aCards = playerWithDifferentCards.hand.where((card) => card.value == 'A').toList();
+        final kCards = playerWithDifferentCards.hand.where((card) => card.value == 'K').toList();
+        final qCards = playerWithDifferentCards.hand.where((card) => card.value == 'Q').toList();
+        
+        expect(aCards.length, equals(1));
+        expect(kCards.length, equals(1));
+        expect(qCards.length, equals(1));
+      });
+    });
   });
 }

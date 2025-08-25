@@ -14,6 +14,12 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
   final bool isCurrentTurn;
   final bool isMyPlayer;
   final Function(game_card.Card, String)? onCardTap;
+  
+  // Multi-card selection support
+  final Set<String>? selectedCardIds;
+  final bool isMultiSelectMode;
+  final String? multiSelectValue;
+  final String? multiSelectSourceZone;
 
   const KarmaPalacePlayerWidget({
     super.key,
@@ -22,6 +28,10 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
     required this.isCurrentTurn,
     required this.isMyPlayer,
     this.onCardTap,
+    this.selectedCardIds,
+    this.isMultiSelectMode = false,
+    this.multiSelectValue,
+    this.multiSelectSourceZone,
   });
 
   @override
@@ -233,6 +243,11 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                                                 ? 'faceDown'
                                                 : 'faceUp')
                                     : null,
+                                isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                                isMultiSelectMode: isMultiSelectMode,
+                                isMultiSelectEligible: isMultiSelectMode && 
+                                    multiSelectValue == cards[i].value && 
+                                    multiSelectSourceZone == (isHand ? 'hand' : isFaceDown ? 'faceDown' : 'faceUp'),
                               );
                             },
                           ),
@@ -269,6 +284,11 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                                                       ? 'faceDown'
                                                       : 'faceUp')
                                           : null,
+                                      isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                                      isMultiSelectMode: isMultiSelectMode,
+                                      isMultiSelectEligible: isMultiSelectMode && 
+                                          multiSelectValue == cards[i].value && 
+                                          multiSelectSourceZone == (isHand ? 'hand' : isFaceDown ? 'faceDown' : 'faceUp'),
                                     );
                                   },
                                 )
@@ -349,6 +369,11 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           onTap: onCardTap != null
                               ? () => onCardTap!(faceDownCards[i], 'faceDown')
                               : null,
+                          isSelected: selectedCardIds?.contains(faceDownCards[i].id) ?? false,
+                          isMultiSelectMode: isMultiSelectMode,
+                          isMultiSelectEligible: isMultiSelectMode && 
+                              multiSelectValue == faceDownCards[i].value && 
+                              multiSelectSourceZone == 'faceDown',
                         )
                       : Container(
                           width: playerCardWidth,
@@ -376,6 +401,11 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
                           onTap: onCardTap != null
                               ? () => onCardTap!(faceUpCards[i], 'faceUp')
                               : null,
+                          isSelected: selectedCardIds?.contains(faceUpCards[i].id) ?? false,
+                          isMultiSelectMode: isMultiSelectMode,
+                          isMultiSelectEligible: isMultiSelectMode && 
+                              multiSelectValue == faceUpCards[i].value && 
+                              multiSelectSourceZone == 'faceUp',
                         )
                       : Container(
                           width: playerCardWidth,

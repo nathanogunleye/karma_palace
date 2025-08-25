@@ -260,6 +260,123 @@ class LocalGameService extends ChangeNotifier {
     }
   }
 
+  /// Play multiple cards at once (human player)
+  Future<void> playMultipleCards(List<game_card.Card> cards, String sourceZone) async {
+    if (_currentRoom == null || _currentPlayerId == null) {
+      throw Exception('Not in a game');
+    }
+
+    if (cards.isEmpty) {
+      throw Exception('No cards to play');
+    }
+
+    try {
+      final currentPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+      
+      if (!currentPlayer.isPlaying) {
+        throw Exception('Not your turn');
+      }
+
+      // Validate that all cards can be played according to game rules
+      for (final card in cards) {
+        if (!_canPlayCard(card, currentPlayer, sourceZone)) {
+          throw Exception('Cannot play ${card.displayString} - invalid move');
+        }
+      }
+
+      // Remove all cards from player's zone
+      var updatedPlayer = currentPlayer;
+      final updatedPlayPile = <game_card.Card>[..._currentRoom!.playPile];
+      
+      for (final card in cards) {
+        updatedPlayer = _removeCardFromPlayer(updatedPlayer, card, sourceZone);
+        updatedPlayPile.add(card);
+      }
+      
+      // Draw cards from deck until player has 3 cards in hand (if deck has cards)
+      final cardsToDraw = 3 - updatedPlayer.hand.length;
+      final cardsDrawn = <game_card.Card>[];
+      final remainingDeck = <game_card.Card>[];
+      
+      if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
+        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
+        remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
+      } else {
+        remainingDeck.addAll(_currentRoom!.deck);
+      }
+      
+      // Update player with drawn cards
+      final finalPlayer = Player(
+        id: updatedPlayer.id,
+        name: updatedPlayer.name,
+        isPlaying: updatedPlayer.isPlaying,
+        hand: [...updatedPlayer.hand, ...cardsDrawn],
+        faceUp: updatedPlayer.faceUp,
+        faceDown: updatedPlayer.faceDown,
+        isConnected: updatedPlayer.isConnected,
+        lastSeen: updatedPlayer.lastSeen,
+        turnOrder: updatedPlayer.turnOrder,
+      );
+      
+      // Move to next player
+      final nextPlayerId = _getNextPlayerId();
+      
+      // Update isPlaying status for all players
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == _currentPlayerId) {
+          return finalPlayer;
+        } else {
+          return Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+            forcedToPlayLow: p.id == nextPlayerId ? p.forcedToPlayLow : false,
+          );
+        }
+      }).toList();
+
+      // Handle special card effects for the last card played
+      final lastCard = cards.last;
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
+        lastCard, 
+        updatedPlayPile, 
+        nextPlayerId, 
+        updatedPlayers
+      );
+
+      final updatedRoom = Room(
+        id: _currentRoom!.id,
+        players: finalCurrentPlayer,
+        currentPlayer: finalNextPlayerId,
+        gameState: _currentRoom!.gameState,
+        deck: remainingDeck,
+        playPile: finalPlayPile,
+        createdAt: _currentRoom!.createdAt,
+        lastActivity: DateTime.now(),
+        resetActive: lastCard.specialEffect == game_card.SpecialEffect.reset,
+      );
+
+      _currentRoom = updatedRoom;
+      _log.info('Human played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')}, drew ${cardsDrawn.length} cards');
+      notifyListeners();
+      
+      // Check if AI should play next
+      if (finalNextPlayerId != _currentPlayerId) {
+        _scheduleAITurn();
+      }
+    } catch (e) {
+      _log.severe('Failed to play multiple cards: $e');
+      rethrow;
+    }
+  }
+
   /// Pick up the play pile (human player)
   Future<void> pickUpPile() async {
     if (_currentRoom == null || _currentPlayerId == null) {

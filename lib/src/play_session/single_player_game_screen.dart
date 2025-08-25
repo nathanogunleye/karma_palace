@@ -20,10 +20,16 @@ class SinglePlayerGameScreen extends StatefulWidget {
   State<SinglePlayerGameScreen> createState() => _SinglePlayerGameScreenState();
 }
 
-class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
+class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with TickerProviderStateMixin {
   static final Logger _log = Logger('SinglePlayerGameScreen');
 
   int _previousPlayPileLength = 0;
+  
+  // Multi-card selection state
+  final Set<String> _selectedCardIds = <String>{};
+  bool _isMultiSelectMode = false;
+  String? _multiSelectSourceZone;
+  String? _multiSelectValue;
 
   @override
   void initState() {
@@ -168,7 +174,145 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
 
   void _onCardTap(game_card.Card card, String sourceZone) {
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
+    
+    // Check if we should start multi-select mode
+    if (!_isMultiSelectMode) {
+      final sameValueCards = _getSameValueCards(card.value, sourceZone);
+      if (sameValueCards.length > 1) {
+        _startMultiSelectMode(card.value, sourceZone);
+        _toggleCardSelection(card.id);
+        return;
+      }
+    }
+    
+    // If in multi-select mode, toggle selection
+    if (_isMultiSelectMode && _multiSelectValue == card.value && _multiSelectSourceZone == sourceZone) {
+      _toggleCardSelection(card.id);
+      return;
+    }
+    
+    // Normal single card play
     _playCard(card, sourceZone);
+  }
+
+  List<game_card.Card> _getSameValueCards(String value, String sourceZone) {
+    final gameService = context.read<LocalGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room == null || gameService.currentPlayerId == null) return [];
+    
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    
+    List<game_card.Card> cards;
+    switch (sourceZone) {
+      case 'hand':
+        cards = currentPlayer.hand;
+        break;
+      case 'faceUp':
+        cards = currentPlayer.faceUp;
+        break;
+      case 'faceDown':
+        cards = currentPlayer.faceDown;
+        break;
+      default:
+        return [];
+    }
+    
+    return cards.where((card) => card.value == value).toList();
+  }
+
+  void _startMultiSelectMode(String value, String sourceZone) {
+    setState(() {
+      _isMultiSelectMode = true;
+      _multiSelectValue = value;
+      _multiSelectSourceZone = sourceZone;
+      _selectedCardIds.clear();
+    });
+  }
+
+  void _toggleCardSelection(String cardId) {
+    setState(() {
+      if (_selectedCardIds.contains(cardId)) {
+        _selectedCardIds.remove(cardId);
+      } else {
+        _selectedCardIds.add(cardId);
+      }
+    });
+  }
+
+  void _cancelMultiSelect() {
+    setState(() {
+      _isMultiSelectMode = false;
+      _multiSelectValue = null;
+      _multiSelectSourceZone = null;
+      _selectedCardIds.clear();
+    });
+  }
+
+  void _playSelectedCards() {
+    if (_selectedCardIds.isEmpty || _multiSelectSourceZone == null) return;
+    
+    final gameService = context.read<LocalGameService>();
+    final room = gameService.currentRoom;
+    
+    if (room == null || gameService.currentPlayerId == null) return;
+    
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    
+    List<game_card.Card> sourceCards;
+    switch (_multiSelectSourceZone!) {
+      case 'hand':
+        sourceCards = currentPlayer.hand;
+        break;
+      case 'faceUp':
+        sourceCards = currentPlayer.faceUp;
+        break;
+      case 'faceDown':
+        sourceCards = currentPlayer.faceDown;
+        break;
+      default:
+        return;
+    }
+    
+    final selectedCards = sourceCards.where((card) => _selectedCardIds.contains(card.id)).toList();
+    
+    if (selectedCards.isNotEmpty) {
+      _playMultipleCards(selectedCards, _multiSelectSourceZone!);
+    }
+    
+    _cancelMultiSelect();
+  }
+
+  Future<void> _playMultipleCards(List<game_card.Card> cards, String sourceZone) async {
+    try {
+      final gameService = context.read<LocalGameService>();
+      
+      // Play all cards at once using the new method
+      await gameService.playMultipleCards(cards, sourceZone);
+      _log.info('Played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')} from $sourceZone');
+      
+      // Check for win condition after playing all cards
+      final room = gameService.currentRoom;
+      if (room != null) {
+        _checkWinCondition(room);
+      }
+    } catch (e) {
+      _log.severe('Failed to play multiple cards: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to play cards: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// Check if the current player can play any cards
@@ -488,6 +632,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
           Expanded(
             child: SinglePlayerBoardWidget(
               onCardTap: _onCardTap,
+              selectedCardIds: _selectedCardIds,
+              isMultiSelectMode: _isMultiSelectMode,
+              multiSelectValue: _multiSelectValue,
+              multiSelectSourceZone: _multiSelectSourceZone,
             ),
           ),
 
@@ -495,10 +643,41 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> {
           if (room.gameState == GameState.playing)
             Container(
               padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
                 children: [
-                  // Only show "Pick Up Pile" button if player has no valid moves
+                  // Multi-select action buttons
+                  if (_isMultiSelectMode) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MyButton(
+                            onPressed: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
+                            child: Text('Play ${_selectedCardIds.length} Cards'),
+                          ),
+                          const SizedBox(width: 16),
+                          MyButton(
+                            onPressed: _cancelMultiSelect,
+                            child: const Text('Cancel'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        'Select ${_multiSelectValue}s to play together',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: palette.ink.withValues(alpha: 0.7),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                  
+                  // Pick up pile button
                   if (gameService.currentPlayerId == room.currentPlayer && !_canCurrentPlayerPlayAnyCard())
                     MyButton(
                       onPressed: _pickUpPile,

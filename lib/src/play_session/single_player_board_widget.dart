@@ -9,10 +9,20 @@ import 'package:karma_palace/src/games_services/local_game_service.dart';
 
 class SinglePlayerBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String)? onCardTap;
+  
+  // Multi-card selection support
+  final Set<String>? selectedCardIds;
+  final bool isMultiSelectMode;
+  final String? multiSelectValue;
+  final String? multiSelectSourceZone;
 
   const SinglePlayerBoardWidget({
     super.key,
     this.onCardTap,
+    this.selectedCardIds,
+    this.isMultiSelectMode = false,
+    this.multiSelectValue,
+    this.multiSelectSourceZone,
   });
 
   @override
@@ -154,6 +164,10 @@ class SinglePlayerBoardWidget extends StatelessWidget {
                 isCurrentTurn: room.currentPlayer == humanPlayer.id,
                 isMyPlayer: true,
                 onCardTap: onCardTap,
+                selectedCardIds: selectedCardIds,
+                isMultiSelectMode: isMultiSelectMode,
+                multiSelectValue: multiSelectValue,
+                multiSelectSourceZone: multiSelectSourceZone,
               ),
             ),
           ),
