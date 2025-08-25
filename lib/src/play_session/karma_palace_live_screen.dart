@@ -437,6 +437,61 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       }
       
       _previousPlayPileLength = currentPileLength;
+      
+      // Check for win condition
+      _checkWinCondition(room);
+    }
+  }
+
+  void _checkWinCondition(Room room) {
+    final gameService = context.read<FirebaseGameService>();
+    final humanPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.last,
+    );
+    
+    // Check if human player has won (no cards left)
+    if (humanPlayer.hasWon) {
+      _showWinNotification();
+    }
+  }
+
+  void _showWinNotification() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(
+                Icons.emoji_events,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                '🎉 You won! All cards played!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          action: SnackBarAction(
+            label: 'Play Again',
+            textColor: Colors.white,
+            onPressed: () {
+              // Navigate to win screen or restart game
+              context.go('/win');
+            },
+          ),
+        ),
+      );
     }
   }
 

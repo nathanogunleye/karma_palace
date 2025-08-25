@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
+import 'package:karma_palace/src/model/firebase/player.dart';
 
 void main() {
   group('Card Playing Logic Tests', () {
@@ -554,6 +555,74 @@ void main() {
         // A should be playable on 5 when effective top card is J
         // A (14) > J (11), so it should be valid
         expect(aCard.canPlayOnHighCard(jCard), isTrue);
+      });
+    });
+
+    group('Win Condition Tests', () {
+      test('should detect win when player has no cards left', () {
+        // Create a player with no cards
+        final winningPlayer = Player(
+          id: 'player1',
+          name: 'Winner',
+          isPlaying: true,
+          hand: <game_card.Card>[],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 0,
+        );
+        
+        // Player should have won
+        expect(winningPlayer.totalCards, equals(0));
+        expect(winningPlayer.hasWon, isTrue);
+      });
+
+      test('should not detect win when player still has cards', () {
+        // Create a player with cards
+        final playerWithCards = Player(
+          id: 'player2',
+          name: 'Still Playing',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceUp: <game_card.Card>[],
+          faceDown: <game_card.Card>[],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 1,
+        );
+        
+        // Player should not have won
+        expect(playerWithCards.totalCards, equals(2));
+        expect(playerWithCards.hasWon, isFalse);
+      });
+
+      test('should count all card zones for win condition', () {
+        // Create a player with cards in different zones
+        final playerWithMixedCards = Player(
+          id: 'player3',
+          name: 'Mixed Cards',
+          isPlaying: true,
+          hand: [
+            game_card.Card(suit: '♠', value: 'A', id: '1'),
+          ],
+          faceUp: [
+            game_card.Card(suit: '♥', value: 'K', id: '2'),
+          ],
+          faceDown: [
+            game_card.Card(suit: '♦', value: 'Q', id: '3'),
+          ],
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: 2,
+        );
+        
+        // Player should have 3 total cards
+        expect(playerWithMixedCards.totalCards, equals(3));
+        expect(playerWithMixedCards.hasWon, isFalse);
       });
     });
   });
