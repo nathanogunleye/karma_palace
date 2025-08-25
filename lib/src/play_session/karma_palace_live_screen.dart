@@ -354,15 +354,15 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
+          content: const Row(
             children: [
               Icon(
                 Icons.handshake,
                 color: Colors.white,
                 size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 '📦 Player picked up the pile!',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -385,15 +385,15 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
+          content: const Row(
             children: [
               Icon(
                 Icons.local_fire_department,
                 color: Colors.white,
                 size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 '🔥 Play pile burned! Same player goes again.',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,

@@ -71,7 +71,7 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.visibility,
                         size: 16,
                         color: Colors.cyan,
@@ -179,7 +179,7 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                           width: 2,
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -187,10 +187,10 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                             size: 16,
                             color: Colors.deepOrange,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             'PILE BURNED!',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.deepOrange,
