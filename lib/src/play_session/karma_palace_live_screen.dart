@@ -278,14 +278,18 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       return null;
     }
     
-    final topCard = room.playPile.last;
-    
-    // If the top card is glass (5), look at the card below it
-    if (topCard.value == '5' && room.playPile.length > 1) {
-      return room.playPile[room.playPile.length - 2];
+    // Start from the top and work backwards through 5s
+    for (int i = room.playPile.length - 1; i >= 0; i--) {
+      final card = room.playPile[i];
+      
+      // If we find a non-5 card, that's our effective top card
+      if (card.value != '5') {
+        return card;
+      }
     }
     
-    return topCard;
+    // If we get here, all cards are 5s, so return the bottom 5
+    return room.playPile.first;
   }
 
   /// Check if a specific card can be played by the current player

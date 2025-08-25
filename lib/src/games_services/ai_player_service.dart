@@ -140,14 +140,18 @@ class AIPlayerService {
       return null;
     }
     
-    final topCard = playPile.last;
-    
-    // If the top card is glass (5), look at the card below it
-    if (topCard.value == '5' && playPile.length > 1) {
-      return playPile[playPile.length - 2];
+    // Start from the top and work backwards through 5s
+    for (int i = playPile.length - 1; i >= 0; i--) {
+      final card = playPile[i];
+      
+      // If we find a non-5 card, that's our effective top card
+      if (card.value != '5') {
+        return card;
+      }
     }
     
-    return topCard;
+    // If we get here, all cards are 5s, so return the bottom 5
+    return playPile.first;
   }
 
   /// Check if a card can be played (same logic as game state)

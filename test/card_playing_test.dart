@@ -491,5 +491,70 @@ void main() {
         expect(pileBeforePickUp.length, equals(3));
       });
     });
+
+    group('Multiple 5s Glass Effect Tests', () {
+      test('should handle multiple consecutive 5s correctly', () {
+        // Test scenario: A → 5 → 5 → K (K should be invalid)
+        final aCard = game_card.Card(suit: '♠', value: 'A', id: '1');
+        final fiveCard1 = game_card.Card(suit: '♥', value: '5', id: '2');
+        final fiveCard2 = game_card.Card(suit: '♦', value: '5', id: '3');
+        final kCard = game_card.Card(suit: '♣', value: 'K', id: '4');
+        
+        // A can be played first
+        expect(aCard.numericValue, equals(14));
+        
+        // 5 can be played on A (glass effect)
+        expect(fiveCard1.canPlayOnHighCard(aCard), isTrue);
+        
+        // 5 can be played on another 5 (glass effect)
+        expect(fiveCard2.canPlayOnHighCard(fiveCard1), isTrue);
+        
+        // K should NOT be playable on 5 when effective top card is A
+        // K (13) < A (14), so it should be invalid
+        expect(kCard.canPlayOnHighCard(aCard), isFalse);
+      });
+
+      test('should handle multiple 5s with different base cards', () {
+        // Test scenario: K → 5 → 5 → Q (Q should be invalid)
+        final kCard = game_card.Card(suit: '♠', value: 'K', id: '1');
+        final fiveCard1 = game_card.Card(suit: '♥', value: '5', id: '2');
+        final fiveCard2 = game_card.Card(suit: '♦', value: '5', id: '3');
+        final qCard = game_card.Card(suit: '♣', value: 'Q', id: '4');
+        
+        // K can be played first
+        expect(kCard.numericValue, equals(13));
+        
+        // 5 can be played on K (glass effect)
+        expect(fiveCard1.canPlayOnHighCard(kCard), isTrue);
+        
+        // 5 can be played on another 5 (glass effect)
+        expect(fiveCard2.canPlayOnHighCard(fiveCard1), isTrue);
+        
+        // Q should NOT be playable on 5 when effective top card is K
+        // Q (12) < K (13), so it should be invalid
+        expect(qCard.canPlayOnHighCard(kCard), isFalse);
+      });
+
+      test('should allow valid cards on multiple 5s', () {
+        // Test scenario: J → 5 → 5 → A (A should be valid)
+        final jCard = game_card.Card(suit: '♠', value: 'J', id: '1');
+        final fiveCard1 = game_card.Card(suit: '♥', value: '5', id: '2');
+        final fiveCard2 = game_card.Card(suit: '♦', value: '5', id: '3');
+        final aCard = game_card.Card(suit: '♣', value: 'A', id: '4');
+        
+        // J can be played first
+        expect(jCard.numericValue, equals(11));
+        
+        // 5 can be played on J (glass effect)
+        expect(fiveCard1.canPlayOnHighCard(jCard), isTrue);
+        
+        // 5 can be played on another 5 (glass effect)
+        expect(fiveCard2.canPlayOnHighCard(fiveCard1), isTrue);
+        
+        // A should be playable on 5 when effective top card is J
+        // A (14) > J (11), so it should be valid
+        expect(aCard.canPlayOnHighCard(jCard), isTrue);
+      });
+    });
   });
 }
