@@ -36,8 +36,10 @@ final router = GoRouter(
         ),
         GoRoute(
           path: 'single-player-setup',
-          builder: (context, state) =>
-              const SinglePlayerSetupScreen(key: Key('single player setup')),
+          builder: (context, state) => SinglePlayerSetupScreen(
+            key: const Key('single player setup'),
+            playerCount: state.extra as int? ?? 2,
+          ),
         ),
         GoRoute(
           path: 'single-player-game',

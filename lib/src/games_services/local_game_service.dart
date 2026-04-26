@@ -61,15 +61,19 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Create a new single player game
-  Future<void> createSinglePlayerGame(String playerName, AIDifficulty difficulty) async {
+  Future<void> createSinglePlayerGame(String playerName, AIDifficulty difficulty, {int aiPlayerCount = 1}) async {
     try {
       _aiDifficulty = difficulty;
       final playerId = _uuid.v4();
-      final aiPlayerId = _uuid.v4();
-      
-      // Create initial deck
-      final deck = _createShuffledDeck();
-      
+      final totalPlayers = aiPlayerCount + 1;
+      final cardsNeeded = totalPlayers * 9;
+
+      // Use a double deck if needed (>52 cards)
+      List<game_card.Card> deck = _createShuffledDeck();
+      if (cardsNeeded > deck.length) {
+        deck = [...deck, ..._createShuffledDeck()]..shuffle();
+      }
+
       // Create human player
       final humanPlayer = Player(
         id: playerId,
@@ -83,26 +87,30 @@ class LocalGameService extends ChangeNotifier {
         turnOrder: 0,
       );
 
-      // Create AI player
-      final aiPlayer = Player(
-        id: aiPlayerId,
-        name: AIPlayerService.generateAIName(),
-        isPlaying: false,
-        hand: deck.skip(9).take(3).toList(),
-        faceUp: deck.skip(12).take(3).toList(),
-        faceDown: deck.skip(15).take(3).toList(),
-        isConnected: true,
-        lastSeen: DateTime.now(),
-        turnOrder: 1,
-      );
+      // Create AI players
+      final players = <Player>[humanPlayer];
+      for (int i = 0; i < aiPlayerCount; i++) {
+        final offset = 9 + i * 9;
+        players.add(Player(
+          id: _uuid.v4(),
+          name: AIPlayerService.generateAIName(),
+          isPlaying: false,
+          hand: deck.skip(offset).take(3).toList(),
+          faceUp: deck.skip(offset + 3).take(3).toList(),
+          faceDown: deck.skip(offset + 6).take(3).toList(),
+          isConnected: true,
+          lastSeen: DateTime.now(),
+          turnOrder: i + 1,
+        ));
+      }
 
       // Create room
       final room = Room(
         id: 'single-player-${_uuid.v4().substring(0, 8)}',
-        players: [humanPlayer, aiPlayer],
+        players: players,
         currentPlayer: playerId,
         gameState: GameState.waiting,
-        deck: deck.skip(18).toList(),
+        deck: deck.skip(cardsNeeded).toList(),
         playPile: [],
         createdAt: DateTime.now(),
         lastActivity: DateTime.now(),
@@ -479,12 +487,15 @@ class LocalGameService extends ChangeNotifier {
   /// Play AI turn
   void _playAITurn() {
     if (_currentRoom == null) return;
-    
+
+    final currentId = _currentRoom!.currentPlayer;
+    if (currentId == _currentPlayerId) return; // Human's turn, shouldn't be here
+
     final aiPlayer = _currentRoom!.players.firstWhere(
-      (p) => p.id != _currentPlayerId,
+      (p) => p.id == currentId,
       orElse: () => throw Exception('AI player not found'),
     );
-    
+
     if (!aiPlayer.isPlaying) return;
     
     final choice = AIPlayerService.chooseCardToPlay(aiPlayer, _currentRoom!, _aiDifficulty);
@@ -501,9 +512,9 @@ class LocalGameService extends ChangeNotifier {
   /// Play a card for the AI
   void _playAICard(game_card.Card card, String sourceZone) {
     if (_currentRoom == null) return;
-    
+
     try {
-      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id != _currentPlayerId);
+      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentRoom!.currentPlayer);
       
       // Remove card from AI's zone
       final updatedPlayer = _removeCardFromPlayer(aiPlayer, card, sourceZone);
@@ -597,9 +608,9 @@ class LocalGameService extends ChangeNotifier {
   /// Pick up pile for AI
   void _pickUpAIPile() {
     if (_currentRoom == null) return;
-    
+
     try {
-      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id != _currentPlayerId);
+      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentRoom!.currentPlayer);
       
       // Add all cards from play pile to AI's hand
       final updatedHand = [...aiPlayer.hand, ..._currentRoom!.playPile];

@@ -16,6 +16,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   String? _selectedMode; // 'single' or 'online'
+  int _playerCount = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -108,16 +109,66 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Conditional CTA
-                      if (_selectedMode == 'single')
+                      // Single player: player count picker + Start Game
+                      if (_selectedMode == 'single') ...[
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0x1AFFFFFF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0x33FFFFFF)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Number of Players',
+                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [2, 3, 4, 5, 6].map((n) {
+                                  final selected = _playerCount == n;
+                                  return GestureDetector(
+                                    onTap: () => setState(() => _playerCount = n),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: selected ? Colors.white : const Color(0x1AFFFFFF),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: selected ? Colors.white : const Color(0x66FFFFFF),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '$n',
+                                          style: TextStyle(
+                                            color: selected ? const Color(0xFF581C87) : Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         _GradientButton(
-                          label: 'Set Up Game',
+                          label: 'Start Game',
                           onTap: () {
                             audioController.playSfx(SfxType.buttonTap);
-                            GoRouter.of(context).go('/single-player-setup');
+                            GoRouter.of(context).go('/single-player-setup', extra: _playerCount);
                           },
-                        )
-                      else if (_selectedMode == 'online')
+                        ),
+                      ] else if (_selectedMode == 'online')
                         _GradientButton(
                           label: 'Continue',
                           onTap: () {

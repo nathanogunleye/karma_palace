@@ -8,7 +8,8 @@ import 'package:karma_palace/src/games_services/ai_player_service.dart' show AID
 import 'package:karma_palace/src/style/palette.dart';
 
 class SinglePlayerSetupScreen extends StatefulWidget {
-  const SinglePlayerSetupScreen({super.key});
+  final int playerCount;
+  const SinglePlayerSetupScreen({super.key, this.playerCount = 2});
 
   @override
   State<SinglePlayerSetupScreen> createState() => _SinglePlayerSetupScreenState();
@@ -51,6 +52,7 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
       await gameService.createSinglePlayerGame(
         _playerNameController.text.trim(),
         _selectedDifficulty,
+        aiPlayerCount: widget.playerCount - 1,
       );
       _log.info('Created single player game with difficulty: $_selectedDifficulty');
       if (mounted) context.go('/single-player-game');
