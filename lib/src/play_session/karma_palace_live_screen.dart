@@ -9,7 +9,7 @@ import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
-import 'karma_palace_board_widget.dart';
+import 'live_board_widget.dart';
 
 class KarmaPalaceLiveScreen extends StatefulWidget {
   const KarmaPalaceLiveScreen({super.key});
@@ -528,10 +528,6 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     }
 
     final room = gameService.currentRoom!;
-    final currentPlayer = room.players.firstWhere(
-      (p) => p.id == gameService.currentPlayerId,
-      orElse: () => room.players.first,
-    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -615,39 +611,36 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
 
               // Game board
               Expanded(
-                child: KarmaPalaceBoardWidget(onCardTap: _onCardTap),
+                child: LiveBoardWidget(onCardTap: _onCardTap),
               ),
 
               // Action buttons
               if (room.gameState == GameState.playing)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
                     children: [
-                      Text(
-                        currentPlayer.isPlaying ? 'Your Turn' : 'Waiting...',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: currentPlayer.isPlaying ? const Color(0xFF4ADE80) : Colors.white54,
+                      Expanded(
+                        child: _LiveGameButton(
+                          label: 'Play Cards',
+                          color: Colors.grey.shade700,
+                          onTap: null,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      if (currentPlayer.isPlaying) ...[
-                        if (_canCurrentPlayerPlayAnyCard())
-                          _LiveGameButton(
-                            label: 'Play Card',
-                            color: const Color(0xFF22C55E),
-                            onTap: _showCardSelectionDialog,
-                          ),
-                        if (!_canCurrentPlayerPlayAnyCard())
-                          _LiveGameButton(
-                            label: 'Pick Up Pile',
-                            color: const Color(0xFFEF4444),
-                            onTap: _pickUpPile,
-                          ),
-                      ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _LiveGameButton(
+                          label: 'Pick Up Pile',
+                          color: gameService.currentPlayerId == room.currentPlayer &&
+                                  !_canCurrentPlayerPlayAnyCard()
+                              ? const Color(0xFFF97316)
+                              : Colors.grey.shade700,
+                          onTap: gameService.currentPlayerId == room.currentPlayer &&
+                                  !_canCurrentPlayerPlayAnyCard()
+                              ? _pickUpPile
+                              : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -658,104 +651,6 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     );
   }
 
-  void _showCardSelectionDialog() {
-    final gameService = context.read<FirebaseGameService>();
-    final room = gameService.currentRoom!;
-    final currentPlayer = room.players.firstWhere(
-      (p) => p.id == gameService.currentPlayerId,
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Card to Play'),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentPlayer.hand.isNotEmpty) ...[
-              const Text('Hand:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 8,
-                                 children: currentPlayer.hand.map((card) {
-                   return InkWell(
-                     onTap: () {
-                       Navigator.of(context).pop();
-                       _playCard(card, 'hand');
-                     },
-                     child: Container(
-                       padding: const EdgeInsets.all(8),
-                       decoration: BoxDecoration(
-                         border: Border.all(color: Colors.grey),
-                         borderRadius: BorderRadius.circular(4),
-                       ),
-                       child: Text(card.displayString),
-                     ),
-                   );
-                 }).toList(),
-              ),
-            ],
-            if (currentPlayer.hand.isEmpty && currentPlayer.faceUp.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text('Face Up:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 8,
-                                 children: currentPlayer.faceUp.map((card) {
-                   return InkWell(
-                     onTap: () {
-                       Navigator.of(context).pop();
-                       _playCard(card, 'faceUp');
-                     },
-                     child: Container(
-                       padding: const EdgeInsets.all(8),
-                       decoration: BoxDecoration(
-                         border: Border.all(color: Colors.grey),
-                         borderRadius: BorderRadius.circular(4),
-                       ),
-                       child: Text(card.displayString),
-                     ),
-                   );
-                 }).toList(),
-              ),
-            ],
-            if (currentPlayer.hand.isEmpty && currentPlayer.faceUp.isEmpty && currentPlayer.faceDown.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text('Face Down:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 8,
-                                 children: currentPlayer.faceDown.map((card) {
-                   return InkWell(
-                     onTap: () {
-                       Navigator.of(context).pop();
-                       _playCard(card, 'faceDown');
-                     },
-                     child: Container(
-                       padding: const EdgeInsets.all(8),
-                       decoration: BoxDecoration(
-                         border: Border.all(color: Colors.grey),
-                         borderRadius: BorderRadius.circular(4),
-                       ),
-                       child: const Text('???'),
-                     ),
-                   );
-                 }).toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
-    ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ── Helper widgets ──────────────────────────────────────────────────────────
