@@ -428,10 +428,34 @@ class LocalGameService extends ChangeNotifier {
 
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      
-      final updatedPlayers = _currentRoom!.players.map((p) => 
-        p.id == _currentPlayerId ? updatedPlayer : p
-      ).toList();
+
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == _currentPlayerId) {
+          return Player(
+            id: updatedPlayer.id,
+            name: updatedPlayer.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: updatedPlayer.hand,
+            faceUp: updatedPlayer.faceUp,
+            faceDown: updatedPlayer.faceDown,
+            isConnected: updatedPlayer.isConnected,
+            lastSeen: updatedPlayer.lastSeen,
+            turnOrder: updatedPlayer.turnOrder,
+          );
+        } else {
+          return Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+          );
+        }
+      }).toList();
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -642,10 +666,34 @@ class LocalGameService extends ChangeNotifier {
 
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      
-      final updatedPlayers = _currentRoom!.players.map((p) => 
-        p.id == aiPlayer.id ? updatedPlayer : p
-      ).toList();
+
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == aiPlayer.id) {
+          return Player(
+            id: updatedPlayer.id,
+            name: updatedPlayer.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: updatedPlayer.hand,
+            faceUp: updatedPlayer.faceUp,
+            faceDown: updatedPlayer.faceDown,
+            isConnected: updatedPlayer.isConnected,
+            lastSeen: updatedPlayer.lastSeen,
+            turnOrder: updatedPlayer.turnOrder,
+          );
+        } else {
+          return Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+          );
+        }
+      }).toList();
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
