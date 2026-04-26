@@ -75,10 +75,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           children: [
             _DeckTile(deckCount: room.deck.length),
             const SizedBox(width: 32),
-            _PileTile(
-              playPile: room.playPile,
-              topCard: room.playPile.isNotEmpty ? room.playPile.last : null,
-            ),
+            _PileTile(playPile: room.playPile),
           ],
         ),
 
@@ -293,17 +290,25 @@ class _DeckTile extends StatelessWidget {
 
 class _PileTile extends StatelessWidget {
   final List<game_card.Card> playPile;
-  final game_card.Card? topCard;
 
-  const _PileTile({required this.playPile, this.topCard});
+  const _PileTile({required this.playPile});
 
   @override
   Widget build(BuildContext context) {
+    const cardW = 62.0;
+    const cardH = 88.0;
+    const stackOffset = 20.0;
+
+    final visible = playPile.length > 3
+        ? playPile.sublist(playPile.length - 3)
+        : List<game_card.Card>.from(playPile);
+    final n = visible.length;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          topCard != null ? 'PILE (${playPile.length})' : 'PILE',
+          playPile.isNotEmpty ? 'PILE (${playPile.length})' : 'PILE',
           style: const TextStyle(
             fontSize: 10,
             color: Colors.white60,
@@ -312,30 +317,44 @@ class _PileTile extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        topCard != null
-            ? KarmaPalaceCardWidget(
-                card: topCard!,
-                isFaceDown: false,
-                isPlayable: false,
-                size: const Size(62, 88),
-              )
-            : Container(
-                width: 62,
-                height: 88,
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.inbox_outlined, size: 24, color: Colors.white38),
-                    SizedBox(height: 4),
-                    Text('Empty', style: TextStyle(fontSize: 11, color: Colors.white38)),
-                  ],
-                ),
-              ),
+        if (playPile.isNotEmpty)
+          SizedBox(
+            width: cardW + stackOffset * 2,
+            height: cardH,
+            child: Stack(
+              children: [
+                for (int i = 0; i < n; i++)
+                  Positioned(
+                    left: i * stackOffset,
+                    top: 0,
+                    child: KarmaPalaceCardWidget(
+                      card: visible[i],
+                      isFaceDown: false,
+                      isPlayable: false,
+                      size: const Size(cardW, cardH),
+                    ),
+                  ),
+              ],
+            ),
+          )
+        else
+          Container(
+            width: cardW,
+            height: cardH,
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox_outlined, size: 24, color: Colors.white38),
+                SizedBox(height: 4),
+                Text('Empty', style: TextStyle(fontSize: 11, color: Colors.white38)),
+              ],
+            ),
+          ),
       ],
     );
   }
