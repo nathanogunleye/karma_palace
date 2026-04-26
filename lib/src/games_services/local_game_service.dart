@@ -785,20 +785,32 @@ class LocalGameService extends ChangeNotifier {
     // Handle card 10 effect (burn - clear play pile and same player goes again)
     if (card.value == '10') {
       finalPlayPile = [];
-      // Keep the same player's turn (don't change finalNextPlayerId)
-      finalNextPlayerId = _currentPlayerId!;
-      // Notify UI about burn effect
+      // Keep whoever just played (not always the human)
+      finalNextPlayerId = _currentRoom!.currentPlayer;
       _onBurnEffect?.call();
     }
 
     // Check for 4-of-a-kind burn effect (4 cards of the same value)
     if (_shouldBurnForFourOfAKind(finalPlayPile)) {
       finalPlayPile = [];
-      finalNextPlayerId = _currentPlayerId!; // Same player plays again
+      finalNextPlayerId = _currentRoom!.currentPlayer;
       _log.info('4-of-a-kind detected - play pile burned, same player plays again');
-      // Notify UI about burn effect
       _onBurnEffect?.call();
     }
+
+    // Re-sync isPlaying flags to match finalNextPlayerId (effects may have changed it)
+    finalPlayers = finalPlayers.map((p) => Player(
+      id: p.id,
+      name: p.name,
+      isPlaying: p.id == finalNextPlayerId,
+      hand: p.hand,
+      faceUp: p.faceUp,
+      faceDown: p.faceDown,
+      isConnected: p.isConnected,
+      lastSeen: p.lastSeen,
+      turnOrder: p.turnOrder,
+      forcedToPlayLow: p.forcedToPlayLow,
+    )).toList();
 
     return (finalPlayPile, finalPlayers, finalNextPlayerId);
   }
