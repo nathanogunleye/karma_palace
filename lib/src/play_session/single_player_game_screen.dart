@@ -159,12 +159,22 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   }
 
   Future<void> _leaveGame() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => const _ConfirmLeaveDialog(
+        title: 'Leave Game?',
+        body: 'Your progress will be lost.',
+        confirmLabel: 'Leave',
+      ),
+    );
+    if (confirmed != true) return;
+    if (!mounted) return;
+
     try {
       final gameService = context.read<LocalGameService>();
       await gameService.leaveGame();
-      if (mounted) {
-        context.go('/');
-      }
+      if (mounted) context.go('/');
     } catch (e) {
       _log.severe('Failed to leave game: $e');
     }
@@ -632,7 +642,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     );
 
     if (!gameService.isConnected || gameService.currentRoom == null) {
-      return Scaffold(
+      return PopScope(
+        canPop: false,
+        child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Container(
           decoration: gradientDecoration,
@@ -656,12 +668,15 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
             ),
           ),
         ),
+      ),
       );
     }
 
     final room = gameService.currentRoom!;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: gradientDecoration,
@@ -801,6 +816,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
           ),
         ),
       ),
+      ),
     );
   }
 }
@@ -872,6 +888,97 @@ class _GameButton extends StatelessWidget {
             fontSize: 16,
           ),
           textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+class _ConfirmLeaveDialog extends StatelessWidget {
+  final String title;
+  final String body;
+  final String confirmLabel;
+
+  const _ConfirmLeaveDialog({
+    required this.title,
+    required this.body,
+    required this.confirmLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3B1461),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0x66FFFFFF)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              body,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0x1AFFFFFF),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0x33FFFFFF)),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0x33EF4444),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0x80EF4444)),
+                      ),
+                      child: Text(
+                        confirmLabel,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFFC8181),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
