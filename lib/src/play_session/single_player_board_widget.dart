@@ -79,7 +79,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 12),
+        const Spacer(),
 
         // Current player zones
         Padding(
