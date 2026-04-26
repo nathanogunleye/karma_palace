@@ -171,6 +171,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   }
 
   void _onCardTap(game_card.Card card, String sourceZone) {
+    final gameService = context.read<LocalGameService>();
+    if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
     
     // Check if we should start multi-select mode
