@@ -408,23 +408,23 @@ class _CurrentPlayerZones extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _CardZoneColumn(
-                  label: 'Face Up',
-                  cards: player.faceUp,
-                  isFaceDown: false,
-                  isPlayable: isCurrentTurn && player.hand.isEmpty,
-                  zone: 'faceUp',
-                  onCardTap: onCardTap,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _CardZoneColumn(
                   label: 'Hand',
                   cards: player.hand,
                   isFaceDown: false,
                   isPlayable: isCurrentTurn,
                   zone: 'hand',
                   isHand: true,
+                  onCardTap: onCardTap,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CardZoneColumn(
+                  label: 'Face Up',
+                  cards: player.faceUp,
+                  isFaceDown: false,
+                  isPlayable: isCurrentTurn && player.hand.isEmpty,
+                  zone: 'faceUp',
                   onCardTap: onCardTap,
                 ),
               ),
