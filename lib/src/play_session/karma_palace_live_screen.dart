@@ -442,13 +442,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   void _checkWinCondition(Room room) {
+    if (room.gameState != GameState.playing) return;
     final gameService = context.read<FirebaseGameService>();
     final humanPlayer = room.players.firstWhere(
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
-    
-    // Check if human player has won (no cards left)
     if (humanPlayer.hasWon) {
       _showWinNotification();
     }
