@@ -593,38 +593,75 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   void _showRulesDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('How to Play Karma'),
-        content: const SingleChildScrollView(
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x66FFFFFF)),
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Goal: Get rid of all your cards. The last player with cards loses!'),
-              SizedBox(height: 8),
-              Text('Setup: Each player gets 3 face-down, 3 face-up and 3 hand cards.'),
-              SizedBox(height: 8),
-              Text('Playing:'),
-              Text('• Play cards equal to or higher than the top card'),
-              Text('• Play multiple cards of the same rank together'),
-              Text("• If you can't play, pick up the entire pile"),
-              SizedBox(height: 8),
-              Text('Special Cards:'),
-              Text('• 2 — Reset, can be played on anything'),
-              Text('• 7 — Next card must be 7 or lower'),
-              Text('• 10 — Burns the pile, play again'),
-              Text('• Four of a kind also burns the pile'),
-              SizedBox(height: 8),
-              Text('Card Order: Hand first, then face-up, then face-down (blind!).'),
+              const Text(
+                'How to Play Karma Palace',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _RuleSection('Goal'),
+                    _RuleText('Get rid of all your cards. The last player with cards loses!'),
+                    SizedBox(height: 12),
+                    _RuleSection('Setup'),
+                    _RuleText('Each player gets 3 face-down, 3 face-up, and 3 hand cards.'),
+                    SizedBox(height: 12),
+                    _RuleSection('Playing'),
+                    _RuleBullet('Play cards equal to or higher than the top card'),
+                    _RuleBullet('Play multiple cards of the same rank together'),
+                    _RuleBullet("If you can't play, pick up the entire pile"),
+                    SizedBox(height: 12),
+                    _RuleSection('Special Cards'),
+                    _RuleBullet('2 — Reset, can be played on anything'),
+                    _RuleBullet('5 — Glass (transparent), see through to card below'),
+                    _RuleBullet('7 — Next player must play 7 or lower'),
+                    _RuleBullet('9 — Skip the next player\'s turn'),
+                    _RuleBullet('10 — Burns the pile, same player goes again'),
+                    _RuleBullet('Four of a kind also burns the pile'),
+                    SizedBox(height: 12),
+                    _RuleSection('Card Order'),
+                    _RuleText('Hand first, then face-up, then face-down (blind!).'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1AFFFFFF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0x33FFFFFF)),
+                  ),
+                  child: const Text(
+                    'Got it!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Got it!'),
-          ),
-        ],
       ),
     );
   }
@@ -892,6 +929,45 @@ class _GameButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _RuleSection extends StatelessWidget {
+  final String text;
+  const _RuleSection(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+      );
+}
+
+class _RuleText extends StatelessWidget {
+  final String text;
+  const _RuleText(this.text);
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(color: Colors.white70, fontSize: 13),
+      );
+}
+
+class _RuleBullet extends StatelessWidget {
+  final String text;
+  const _RuleBullet(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 2),
+        child: Text(
+          '• $text',
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+      );
 }
 
 class _ConfirmLeaveDialog extends StatelessWidget {
