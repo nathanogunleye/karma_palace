@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
-import 'package:karma_palace/src/style/palette.dart';
-import 'package:provider/provider.dart';
 import 'karma_palace_card_widget.dart';
 
 class KarmaPalacePlayPileWidget extends StatelessWidget {
@@ -18,80 +16,54 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.watch<Palette>();
-
     return Container(
       decoration: BoxDecoration(
-        color: palette.backgroundPlaySession.withValues(alpha: 0.9),
+        color: const Color(0x1AFFFFFF), // glass white/10
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: palette.ink.withValues(alpha: 0.4),
-          width: 3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Play pile label
-            Text(
+            const Text(
               'PLAY PILE',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: palette.ink,
+                color: Colors.white,
                 letterSpacing: 1.2,
               ),
             ),
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 12),
-
-            // Top card and info
             if (topCard != null) ...[
-              // Glass effect indicator
+              // Glass effect indicator (5 card)
               if (topCard!.value == '5' && playPile.length > 1) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.cyan.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.cyan.withValues(alpha: 0.6),
-                      width: 2,
-                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.cyan.withValues(alpha: 0.6)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.visibility,
-                        size: 16,
-                        color: Colors.cyan,
-                      ),
+                      const Icon(Icons.visibility, size: 14, color: Colors.cyan),
                       const SizedBox(width: 4),
                       Text(
                         'GLASS: See ${playPile[playPile.length - 2].displayString}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.cyan,
-                        ),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.cyan),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
               ],
 
-              // Top card (main card) - larger size
+              // Top card
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
@@ -108,245 +80,99 @@ class KarmaPalacePlayPileWidget extends StatelessWidget {
                   size: const Size(80, 120),
                 ),
               ),
-              
-              const SizedBox(height: 12),
 
-              // Recent cards in a clean row layout
-              if (playPile.length > 1) ...[
-                Text(
-                  'Recent Cards:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: palette.ink.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 45,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: playPile.length - 1,
-                    itemBuilder: (context, index) {
-                      final card = playPile[playPile.length - 2 - index];
-                      return Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        width: 55,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: Colors.grey.withValues(alpha: 0.9),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            card.displayString,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ] else
-              // Empty pile with optional burn notification
-              Column(
+              const SizedBox(height: 8),
+
+              // Pile count + special effect badge
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Burn notification if applicable
-                  if (showBurnNotification) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.deepOrange.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.deepOrange.withValues(alpha: 0.6),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.local_fire_department,
-                            size: 16,
-                            color: Colors.deepOrange,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'PILE BURNED!',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  
-                  // Empty pile indicator
                   Container(
-                    width: 80,
-                    height: 120,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: Colors.white10,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.5),
-                        width: 2,
-                      ),
                     ),
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.inbox_outlined,
-                            size: 32,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Empty',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: Text(
+                      '${playPile.length} cards',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70),
                     ),
                   ),
+                  if (topCard?.hasSpecialEffect == true) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _effectColor(topCard!.specialEffect!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _effectLabel(topCard!.specialEffect!),
+                        style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ],
               ),
-
-            const SizedBox(height: 12),
-
-            // Pile count and info
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Pile count
+            ] else ...[
+              // Empty pile
+              if (showBurnNotification) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: palette.ink.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.deepOrange.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.deepOrange.withValues(alpha: 0.6)),
                   ),
-                  child: Text(
-                    '${playPile.length} cards',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: palette.ink,
-                    ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.local_fire_department, size: 14, color: Colors.deepOrange),
+                      SizedBox(width: 4),
+                      Text('PILE BURNED!', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
+                    ],
                   ),
                 ),
-
-                // Special effect indicator for top card
-                if (topCard?.hasSpecialEffect == true)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _getSpecialEffectColor(topCard!.specialEffect!),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _getSpecialEffectColor(topCard!.specialEffect!).withValues(alpha: 0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getSpecialEffectIcon(topCard!.specialEffect!),
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _getSpecialEffectDescription(topCard!.specialEffect!),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                const SizedBox(height: 6),
               ],
-            ),
+              Container(
+                width: 80,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white10,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox_outlined, size: 28, color: Colors.white38),
+                    SizedBox(height: 4),
+                    Text('Empty', style: TextStyle(fontSize: 13, color: Colors.white38, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Color _getSpecialEffectColor(game_card.SpecialEffect effect) {
-    switch (effect) {
-      case game_card.SpecialEffect.reset:
-        return Colors.orange;
-      case game_card.SpecialEffect.glass:
-        return Colors.cyan;
-      case game_card.SpecialEffect.forceLow:
-        return Colors.purple;
-      case game_card.SpecialEffect.skip:
-        return Colors.red;
-      case game_card.SpecialEffect.burn:
-        return Colors.deepOrange;
-    }
-  }
+  Color _effectColor(game_card.SpecialEffect e) => switch (e) {
+        game_card.SpecialEffect.reset => Colors.orange,
+        game_card.SpecialEffect.glass => Colors.cyan,
+        game_card.SpecialEffect.forceLow => Colors.purple,
+        game_card.SpecialEffect.skip => Colors.red,
+        game_card.SpecialEffect.burn => Colors.deepOrange,
+      };
 
-  IconData _getSpecialEffectIcon(game_card.SpecialEffect effect) {
-    switch (effect) {
-      case game_card.SpecialEffect.reset:
-        return Icons.refresh;
-      case game_card.SpecialEffect.glass:
-        return Icons.visibility;
-      case game_card.SpecialEffect.forceLow:
-        return Icons.keyboard_arrow_down;
-      case game_card.SpecialEffect.skip:
-        return Icons.skip_next;
-      case game_card.SpecialEffect.burn:
-        return Icons.local_fire_department;
-    }
-  }
-
-  String _getSpecialEffectDescription(game_card.SpecialEffect effect) {
-    switch (effect) {
-      case game_card.SpecialEffect.reset:
-        return 'RESET';
-      case game_card.SpecialEffect.glass:
-        return 'GLASS';
-      case game_card.SpecialEffect.forceLow:
-        return 'FORCE LOW';
-      case game_card.SpecialEffect.skip:
-        return 'SKIP';
-      case game_card.SpecialEffect.burn:
-        return 'BURN';
-    }
-  }
+  String _effectLabel(game_card.SpecialEffect e) => switch (e) {
+        game_card.SpecialEffect.reset => 'RESET',
+        game_card.SpecialEffect.glass => 'GLASS',
+        game_card.SpecialEffect.forceLow => 'FORCE LOW',
+        game_card.SpecialEffect.skip => 'SKIP',
+        game_card.SpecialEffect.burn => 'BURN',
+      };
 }

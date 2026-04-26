@@ -49,4 +49,19 @@ class Palette {
   
   // Pure white for cards and highlights
   Color get trueWhite => const Color(0xFFFFFFFF);
+
+  // Purple/pink gradient (matching Figma design)
+  Color get bgGradientStart => const Color(0xFF581C87); // purple-900
+  Color get bgGradientMid   => const Color(0xFF6B21A8); // purple-800
+  Color get bgGradientEnd   => const Color(0xFF831843); // pink-900
+
+  // Game action button colors
+  Color get playButton   => const Color(0xFF22C55E); // green-500
+  Color get pickupButton => const Color(0xFFEF4444); // red-500
+  Color get ctaStart     => const Color(0xFFFACC15); // yellow-400
+  Color get ctaEnd       => const Color(0xFFF97316); // orange-500
+
+  // Glass / frosted overlay
+  Color get glassWhite  => const Color(0x1AFFFFFF); // white 10 %
+  Color get glassBorder => const Color(0x66FFFFFF); // white 40 %
 }

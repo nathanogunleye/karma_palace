@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 
-import 'package:karma_palace/src/style/palette.dart';
 import 'karma_palace_player_widget.dart';
 import 'karma_palace_play_pile_widget.dart';
 import 'package:karma_palace/src/games_services/local_game_service.dart';
@@ -28,7 +27,6 @@ class SinglePlayerBoardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gameService = context.watch<LocalGameService>();
-    final palette = context.watch<Palette>();
 
     final room = gameService.currentRoom;
     
@@ -51,9 +49,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
     // Don't show burn notification for empty pile - let the callback system handle it
     const bool showBurnNotification = false;
 
-    return Container(
-      color: palette.backgroundMain,
-      child: Column(
+    return Column(
         children: [
           // AI Player (top)
           Expanded(
@@ -83,21 +79,46 @@ class SinglePlayerBoardWidget extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Deck: ${room.deck.length}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: palette.ink,
+                        // Deck display
+                        Container(
+                          width: 44,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            gradient: room.deck.isNotEmpty
+                                ? const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+                                  )
+                                : null,
+                            color: room.deck.isEmpty ? Colors.white10 : null,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0x66FFFFFF), width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(
+                              room.deck.isNotEmpty ? '${room.deck.length}' : '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
-                        // const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
-                          'Turn: ${room.currentPlayer == humanPlayer.id ? "Your Turn" : "AI Turn"}',
+                          'Deck',
+                          style: const TextStyle(fontSize: 10, color: Colors.white60),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          room.currentPlayer == humanPlayer.id ? 'Your Turn' : 'AI Turn',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: room.currentPlayer == humanPlayer.id
-                                ? Colors.green
+                                ? const Color(0xFF4ADE80) // green-400
                                 : Colors.orange,
                           ),
                         ),
@@ -122,11 +143,8 @@ class SinglePlayerBoardWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Status: ${room.gameState.name.toUpperCase()}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: palette.ink,
-                          ),
+                          room.gameState.name.toUpperCase(),
+                          style: const TextStyle(fontSize: 11, color: Colors.white60),
                         ),
                         const SizedBox(height: 8),
                         if (room.resetActive)
@@ -172,7 +190,6 @@ class SinglePlayerBoardWidget extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

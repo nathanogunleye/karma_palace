@@ -9,8 +9,6 @@ import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
-import 'package:karma_palace/src/style/palette.dart';
-import 'package:karma_palace/src/style/my_button.dart';
 import 'single_player_board_widget.dart';
 
 class SinglePlayerGameScreen extends StatefulWidget {
@@ -581,28 +579,80 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     }
   }
 
+  void _showRulesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('How to Play Karma'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Goal: Get rid of all your cards. The last player with cards loses!'),
+              SizedBox(height: 8),
+              Text('Setup: Each player gets 3 face-down, 3 face-up and 3 hand cards.'),
+              SizedBox(height: 8),
+              Text('Playing:'),
+              Text('• Play cards equal to or higher than the top card'),
+              Text('• Play multiple cards of the same rank together'),
+              Text("• If you can't play, pick up the entire pile"),
+              SizedBox(height: 8),
+              Text('Special Cards:'),
+              Text('• 2 — Reset, can be played on anything'),
+              Text('• 7 — Next card must be 7 or lower'),
+              Text('• 10 — Burns the pile, play again'),
+              Text('• Four of a kind also burns the pile'),
+              SizedBox(height: 8),
+              Text('Card Order: Hand first, then face-up, then face-down (blind!).'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Got it!'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final palette = context.watch<Palette>();
     final gameService = context.watch<LocalGameService>();
+
+    const gradientDecoration = BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF581C87), Color(0xFF6B21A8), Color(0xFF831843)],
+      ),
+    );
 
     if (!gameService.isConnected || gameService.currentRoom == null) {
       return Scaffold(
-        backgroundColor: palette.backgroundMain,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Not connected to a game',
-                style: TextStyle(fontSize: 24),
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: gradientDecoration,
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Not connected to a game',
+                    style: TextStyle(fontSize: 24, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  _GameButton(
+                    label: 'Back to Main Menu',
+                    color: Colors.white24,
+                    onTap: () => context.go('/'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              MyButton(
-                onPressed: () => context.go('/'),
-                child: const Text('Back to Main Menu'),
-              ),
-            ],
+            ),
           ),
         ),
       );
@@ -610,91 +660,202 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
 
     final room = gameService.currentRoom!;
 
-
     return Scaffold(
-      backgroundColor: palette.backgroundPlaySession,
-      appBar: AppBar(
-        title: Text('Single Player - ${room.players[1].name}'),
-        backgroundColor: palette.backgroundPlaySession,
-        foregroundColor: palette.ink,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            onPressed: _leaveGame,
-            icon: const Icon(Icons.exit_to_app),
-            tooltip: 'Leave Game',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Game Board
-          Expanded(
-            child: SinglePlayerBoardWidget(
-              onCardTap: _onCardTap,
-              selectedCardIds: _selectedCardIds,
-              isMultiSelectMode: _isMultiSelectMode,
-              multiSelectValue: _multiSelectValue,
-              multiSelectSourceZone: _multiSelectSourceZone,
-            ),
-          ),
-
-          // Player Controls
-          if (room.gameState == GameState.playing)
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Multi-select action buttons
-                  if (_isMultiSelectMode) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          MyButton(
-                            onPressed: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
-                            child: Text('Play ${_selectedCardIds.length} Cards'),
-                          ),
-                          const SizedBox(width: 16),
-                          MyButton(
-                            onPressed: _cancelMultiSelect,
-                            child: const Text('Cancel'),
-                          ),
-                        ],
-                      ),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: gradientDecoration,
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom header — Exit | Title/Turn | Rules
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _GlassButton(
+                      label: 'Exit',
+                      icon: Icons.arrow_back,
+                      onTap: _leaveGame,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        'Select ${_multiSelectValue}s to play together',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: palette.ink.withValues(alpha: 0.7),
-                          fontStyle: FontStyle.italic,
+                    Column(
+                      children: [
+                        const Text(
+                          'Karma Palace',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
+                        Consumer<LocalGameService>(
+                          builder: (context, svc, _) {
+                            final r = svc.currentRoom;
+                            if (r == null) return const SizedBox.shrink();
+                            final isMyTurn = r.currentPlayer == svc.currentPlayerId;
+                            final turnName = isMyTurn
+                                ? "Your Turn"
+                                : "${r.players.firstWhere((p) => p.id == r.currentPlayer, orElse: () => r.players.first).name}'s Turn";
+                            return Text(
+                              turnName,
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    _GlassButton(
+                      label: 'Rules',
+                      onTap: () => _showRulesDialog(context),
                     ),
                   ],
-                  
-                  // Pick up pile button
-                  if (gameService.currentPlayerId == room.currentPlayer && !_canCurrentPlayerPlayAnyCard())
-                    MyButton(
-                      onPressed: _pickUpPile,
-                      child: const Text('Pick Up Pile'),
-                    ),
-                ],
+                ),
               ),
-            )
-          else if (room.gameState == GameState.waiting)
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: MyButton(
-                onPressed: gameService.isHost ? _startGame : null,
-                child: const Text('Start Game'),
+
+              // Game board
+              Expanded(
+                child: SinglePlayerBoardWidget(
+                  onCardTap: _onCardTap,
+                  selectedCardIds: _selectedCardIds,
+                  isMultiSelectMode: _isMultiSelectMode,
+                  multiSelectValue: _multiSelectValue,
+                  multiSelectSourceZone: _multiSelectSourceZone,
+                ),
+              ),
+
+              // Action buttons
+              if (room.gameState == GameState.playing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isMultiSelectMode) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _GameButton(
+                                label: 'Play ${_selectedCardIds.length} Cards',
+                                color: const Color(0xFF22C55E),
+                                onTap: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _GameButton(
+                                label: 'Cancel',
+                                color: Colors.grey.shade700,
+                                onTap: _cancelMultiSelect,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Select ${_multiSelectValue}s to play together',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      if (gameService.currentPlayerId == room.currentPlayer &&
+                          !_canCurrentPlayerPlayAnyCard())
+                        _GameButton(
+                          label: 'Pick Up Pile',
+                          color: const Color(0xFFEF4444),
+                          onTap: _pickUpPile,
+                        ),
+                    ],
+                  ),
+                )
+              else if (room.gameState == GameState.waiting)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: _GameButton(
+                    label: 'Start Game',
+                    color: const Color(0xFF22C55E),
+                    onTap: gameService.isHost ? _startGame : null,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Helper widgets ──────────────────────────────────────────────────────────
+
+class _GlassButton extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback? onTap;
+
+  const _GlassButton({required this.label, this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0x1AFFFFFF),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
               ),
             ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GameButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _GameButton({required this.label, required this.color, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: onTap != null ? color : Colors.grey.shade600,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }

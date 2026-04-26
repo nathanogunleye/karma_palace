@@ -110,14 +110,24 @@ class KarmaPalaceCardWidget extends StatelessWidget {
   Widget _buildFaceDownCard(Palette palette) {
     return Container(
       decoration: BoxDecoration(
-        color: palette.ink,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2563EB), Color(0xFF7C3AED)], // blue-600 → purple-600
+        ),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Center(
-        child: Icon(
-          Icons.style,
-          color: palette.trueWhite,
-          size: size.width * 0.4,
+        child: Container(
+          width: size.width * 0.5,
+          height: size.height * 0.5,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(3),
+          ),
         ),
       ),
     );
@@ -125,13 +135,81 @@ class KarmaPalaceCardWidget extends StatelessWidget {
 
   Widget _buildFaceUpCard(BuildContext context, Palette palette) {
     final textColor = _getCardColor(palette);
-    final fontSize = size.width * 0.4;
 
+    // Large card layout (pile display): proper playing card corners + center
+    if (size.width >= 50) {
+      final cornerFontSize = size.width * 0.2;
+      final centerFontSize = size.width * 0.42;
+      return Stack(
+        children: [
+          // Top-left corner
+          Positioned(
+            top: size.width * 0.06,
+            left: size.width * 0.07,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  card.value,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: cornerFontSize,
+                    fontWeight: FontWeight.bold,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  card.suit,
+                  style: TextStyle(color: textColor, fontSize: cornerFontSize * 0.95, height: 1.0),
+                ),
+              ],
+            ),
+          ),
+          // Center suit symbol
+          Center(
+            child: Text(
+              card.suit,
+              style: TextStyle(color: textColor, fontSize: centerFontSize),
+            ),
+          ),
+          // Bottom-right corner (rotated)
+          Positioned(
+            bottom: size.width * 0.06,
+            right: size.width * 0.07,
+            child: RotatedBox(
+              quarterTurns: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    card.value,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: cornerFontSize,
+                      fontWeight: FontWeight.bold,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    card.suit,
+                    style: TextStyle(color: textColor, fontSize: cornerFontSize * 0.95, height: 1.0),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Small card layout: centered rank + suit
+    final fontSize = size.width * 0.38;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Card value
         Text(
           card.value,
           style: TextStyle(
@@ -141,13 +219,11 @@ class KarmaPalaceCardWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        
-        // Card suit
         Text(
           card.suit,
           style: TextStyle(
             color: textColor,
-            fontSize: fontSize * 0.8,
+            fontSize: fontSize * 0.85,
           ),
           textAlign: TextAlign.center,
         ),

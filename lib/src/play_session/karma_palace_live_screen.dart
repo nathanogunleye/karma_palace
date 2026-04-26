@@ -9,8 +9,6 @@ import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
-import 'package:karma_palace/src/style/palette.dart';
-import '../style/my_button.dart';
 import 'karma_palace_board_widget.dart';
 
 class KarmaPalaceLiveScreen extends StatefulWidget {
@@ -497,28 +495,33 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.watch<Palette>();
     final gameService = context.watch<FirebaseGameService>();
 
-    // Update game state when room changes - moved to didChangeDependencies
+    const gradientDecoration = BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF581C87), Color(0xFF6B21A8), Color(0xFF831843)],
+      ),
+    );
 
     if (!gameService.isConnected || gameService.currentRoom == null) {
       return Scaffold(
-        backgroundColor: palette.backgroundPlaySession,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Not connected to a room',
-                style: TextStyle(fontSize: 24),
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: gradientDecoration,
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Not connected to a room',
+                      style: TextStyle(fontSize: 24, color: Colors.white)),
+                  const SizedBox(height: 16),
+                  _LiveGlassButton(label: 'Back to Main Menu', onTap: () => context.go('/')),
+                ],
               ),
-              const SizedBox(height: 16),
-              MyButton(
-                onPressed: () => context.go('/'),
-                child: const Text('Back to Main Menu'),
-              ),
-            ],
+            ),
           ),
         ),
       );
@@ -531,122 +534,126 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     );
 
     return Scaffold(
-      backgroundColor: palette.backgroundPlaySession,
-      appBar: AppBar(
-        title: Text('Room: ${room.id}'),
-        backgroundColor: palette.backgroundPlaySession,
-        foregroundColor: palette.ink,
-        automaticallyImplyLeading: false,
-        actions: [
-          // Copy Room ID button
-          IconButton(
-            onPressed: () async {
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              await Clipboard.setData(ClipboardData(text: room.id));
-              if (mounted) {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Room ID copied to clipboard!'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-            icon: const Icon(Icons.copy),
-            tooltip: 'Copy Room ID',
-          ),
-          if (gameService.isHost && room.gameState == GameState.waiting)
-            IconButton(
-              onPressed: _startGame,
-              icon: const Icon(Icons.play_arrow),
-              tooltip: 'Start Game',
-            ),
-          IconButton(
-            onPressed: _leaveRoom,
-            icon: const Icon(Icons.exit_to_app),
-            tooltip: 'Leave Room',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Room Status
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Players: ${room.players.length}/6',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: palette.ink,
-                  ),
-                ),
-                Text(
-                  'Status: ${room.gameState.name.toUpperCase()}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: palette.ink,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Game Board
-          Expanded(
-            child: KarmaPalaceBoardWidget(
-              onCardTap: _onCardTap,
-            ),
-          ),
-
-          // Player Controls
-          if (room.gameState == GameState.playing)
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Current Player Info
-                  Text(
-                    'Your Turn: ${currentPlayer.isPlaying ? "YES" : "NO"}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: currentPlayer.isPlaying ? Colors.green : Colors.red,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Action Buttons
-                  if (currentPlayer.isPlaying) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: gradientDecoration,
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _LiveGlassButton(label: 'Leave', icon: Icons.exit_to_app, onTap: _leaveRoom),
+                    Column(
                       children: [
-                        // Show "Play Card" button if player has valid moves
-                        if (_canCurrentPlayerPlayAnyCard())
-                          MyButton(
-                            onPressed: () {
-                              // Show card selection dialog
-                              _showCardSelectionDialog();
-                            },
-                            child: const Text('Play Card'),
+                        const Text('Karma Palace',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('Room: ${room.id}',
+                            style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            final sm = ScaffoldMessenger.of(context);
+                            await Clipboard.setData(ClipboardData(text: room.id));
+                            if (mounted) {
+                              sm.showSnackBar(const SnackBar(
+                                content: Text('Room ID copied!'),
+                                backgroundColor: Colors.green,
+                                duration: Duration(seconds: 2),
+                              ));
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0x1AFFFFFF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.copy, color: Colors.white, size: 16),
                           ),
-                        // Show "Pick Up Pile" button if player has no valid moves
-                        if (!_canCurrentPlayerPlayAnyCard())
-                          MyButton(
-                            onPressed: _pickUpPile,
-                            child: const Text('Pick Up Pile'),
+                        ),
+                        if (gameService.isHost && room.gameState == GameState.waiting) ...[
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: _startGame,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.play_arrow, color: Colors.white, size: 16),
+                            ),
                           ),
+                        ],
                       ],
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-        ],
+
+              // Room status strip
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Players: ${room.players.length}/6',
+                        style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                    Text(room.gameState.name.toUpperCase(),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70)),
+                  ],
+                ),
+              ),
+
+              // Game board
+              Expanded(
+                child: KarmaPalaceBoardWidget(onCardTap: _onCardTap),
+              ),
+
+              // Action buttons
+              if (room.gameState == GameState.playing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        currentPlayer.isPlaying ? 'Your Turn' : 'Waiting...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: currentPlayer.isPlaying ? const Color(0xFF4ADE80) : Colors.white54,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (currentPlayer.isPlaying) ...[
+                        if (_canCurrentPlayerPlayAnyCard())
+                          _LiveGameButton(
+                            label: 'Play Card',
+                            color: const Color(0xFF22C55E),
+                            onTap: _showCardSelectionDialog,
+                          ),
+                        if (!_canCurrentPlayerPlayAnyCard())
+                          _LiveGameButton(
+                            label: 'Pick Up Pile',
+                            color: const Color(0xFFEF4444),
+                            onTap: _pickUpPile,
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -746,6 +753,68 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
             child: const Text('Cancel'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Helper widgets ──────────────────────────────────────────────────────────
+
+class _LiveGlassButton extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback? onTap;
+
+  const _LiveGlassButton({required this.label, this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0x1AFFFFFF),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 4),
+            ],
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveGameButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _LiveGameButton({required this.label, required this.color, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: onTap != null ? color : Colors.grey.shade600,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(label,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            textAlign: TextAlign.center),
       ),
     );
   }

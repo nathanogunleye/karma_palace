@@ -6,7 +6,6 @@ import 'package:logging/logging.dart';
 import 'package:karma_palace/src/games_services/local_game_service.dart';
 import 'package:karma_palace/src/games_services/ai_player_service.dart' show AIDifficulty;
 import 'package:karma_palace/src/style/palette.dart';
-import 'package:karma_palace/src/style/my_button.dart';
 
 class SinglePlayerSetupScreen extends StatefulWidget {
   const SinglePlayerSetupScreen({super.key});
@@ -17,17 +16,16 @@ class SinglePlayerSetupScreen extends StatefulWidget {
 
 class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
   static final Logger _log = Logger('SinglePlayerSetupScreen');
-  
+
   final TextEditingController _playerNameController = TextEditingController();
   AIDifficulty _selectedDifficulty = AIDifficulty.medium;
-  
+
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Set default player name
     _playerNameController.text = 'Player${DateTime.now().millisecondsSinceEpoch % 1000}';
   }
 
@@ -39,9 +37,7 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
 
   Future<void> _startSinglePlayerGame() async {
     if (_playerNameController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter a player name';
-      });
+      setState(() => _errorMessage = 'Please enter a player name');
       return;
     }
 
@@ -56,185 +52,302 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
         _playerNameController.text.trim(),
         _selectedDifficulty,
       );
-      
       _log.info('Created single player game with difficulty: $_selectedDifficulty');
-      
-      // Navigate to the live game screen
-      if (mounted) {
-        context.go('/single-player-game');
-      }
-      
+      if (mounted) context.go('/single-player-game');
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to create game: $e';
-      });
+      setState(() => _errorMessage = 'Failed to create game: $e');
       _log.severe('Failed to create single player game: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
-  String _getDifficultyDescription(AIDifficulty difficulty) {
-    switch (difficulty) {
-      case AIDifficulty.easy:
-        return 'Easy - Random card selection';
-      case AIDifficulty.medium:
-        return 'Medium - Strategic card saving';
-      case AIDifficulty.hard:
-        return 'Hard - Advanced strategy with special cards';
-    }
-  }
+  String _difficultyLabel(AIDifficulty d) => switch (d) {
+        AIDifficulty.easy => 'Easy',
+        AIDifficulty.medium => 'Medium',
+        AIDifficulty.hard => 'Hard',
+      };
 
-  Color _getDifficultyColor(AIDifficulty difficulty) {
-    switch (difficulty) {
-      case AIDifficulty.easy:
-        return Colors.green;
-      case AIDifficulty.medium:
-        return Colors.orange;
-      case AIDifficulty.hard:
-        return Colors.red;
-    }
-  }
+  String _difficultyDesc(AIDifficulty d) => switch (d) {
+        AIDifficulty.easy => 'Random card selection',
+        AIDifficulty.medium => 'Strategic card saving',
+        AIDifficulty.hard => 'Advanced strategy',
+      };
+
+  Color _difficultyColor(AIDifficulty d) => switch (d) {
+        AIDifficulty.easy => Colors.green,
+        AIDifficulty.medium => Colors.orange,
+        AIDifficulty.hard => Colors.red,
+      };
 
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
 
     return Scaffold(
-      backgroundColor: palette.backgroundMain,
-      appBar: AppBar(
-        title: const Text('Single Player Setup'),
-        backgroundColor: palette.backgroundMain,
-        foregroundColor: palette.ink,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Player Name Input
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              palette.bgGradientStart,
+              palette.bgGradientMid,
+              palette.bgGradientEnd,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
                   children: [
-                    Text(
-                      'Your Name',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: palette.cardInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _playerNameController,
-                      style: TextStyle(
-                        color: palette.inputText,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter your player name',
-                        hintStyle: TextStyle(
-                          color: palette.inputText.withValues(alpha: 0.6),
+                    GestureDetector(
+                      onTap: () => context.go('/'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1AFFFFFF),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        border: const OutlineInputBorder(),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_back, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
                       ),
                     ),
+                    const Expanded(
+                      child: Text(
+                        'Single Player Setup',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 68), // balance the back button
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Difficulty Selection
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'AI Difficulty',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: palette.cardInk,
+
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8),
+
+                      // Player Name
+                      _GlassPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Your Name',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextField(
+                              controller: _playerNameController,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              cursorColor: Colors.white,
+                              decoration: InputDecoration(
+                                hintText: 'Enter your player name',
+                                hintStyle: const TextStyle(color: Colors.white38),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Color(0x66FFFFFF)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor: const Color(0x0FFFFFFF),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                                        ...AIDifficulty.values.map((difficulty) {
-                      return RadioListTile<AIDifficulty>(
-                        title: Text(
-                          difficulty.name.toUpperCase(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _getDifficultyColor(difficulty),
+
+                      const SizedBox(height: 16),
+
+                      // Difficulty Selection
+                      _GlassPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'AI Difficulty',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ...AIDifficulty.values.map((d) {
+                              final isSelected = _selectedDifficulty == d;
+                              return GestureDetector(
+                                onTap: () => setState(() => _selectedDifficulty = d),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? _difficultyColor(d).withValues(alpha: 0.25)
+                                        : const Color(0x0FFFFFFF),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? _difficultyColor(d)
+                                          : const Color(0x33FFFFFF),
+                                      width: isSelected ? 1.5 : 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: isSelected
+                                              ? _difficultyColor(d)
+                                              : const Color(0x33FFFFFF),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _difficultyLabel(d).toUpperCase(),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? _difficultyColor(d)
+                                                    : Colors.white70,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            Text(
+                                              _difficultyDesc(d),
+                                              style: const TextStyle(
+                                                color: Colors.white54,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Error
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
-                        subtitle: Text(
-                          _getDifficultyDescription(difficulty),
-                          style: TextStyle(
-                            color: palette.cardInk.withValues(alpha: 0.7),
+
+                      const SizedBox(height: 24),
+
+                      // Start button
+                      GestureDetector(
+                        onTap: _isLoading ? null : _startSinglePlayerGame,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: _isLoading
+                                ? null
+                                : const LinearGradient(
+                                    colors: [Color(0xFFFACC15), Color(0xFFF97316)],
+                                  ),
+                            color: _isLoading ? Colors.grey.shade700 : null,
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: _isLoading
+                              ? const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Start Game',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                         ),
-                        value: difficulty,
-                        // ignore: deprecated_member_use
-                        groupValue: _selectedDifficulty,
-                        // ignore: deprecated_member_use
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDifficulty = value!;
-                          });
-                        },
-                        activeColor: _getDifficultyColor(difficulty),
-                      );
-                    }),
-                  ],
+                      ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Error Message
-            if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            
-            const Spacer(),
-            
-            // Start Game Button
-            MyButton(
-              onPressed: _isLoading ? null : _startSinglePlayerGame,
-              child: _isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Start Single Player Game'),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Back Button
-            MyButton(
-              onPressed: () => context.go('/'),
-              child: const Text('Back to Main Menu'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _GlassPanel extends StatelessWidget {
+  final Widget child;
+  const _GlassPanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0x1AFFFFFF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x33FFFFFF)),
+      ),
+      child: child,
     );
   }
 }

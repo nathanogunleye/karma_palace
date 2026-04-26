@@ -7,8 +7,6 @@ import 'package:logging/logging.dart';
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'package:karma_palace/src/style/palette.dart';
 
-import '../style/my_button.dart';
-
 class RoomManagementScreen extends StatefulWidget {
   const RoomManagementScreen({super.key});
 
@@ -18,11 +16,11 @@ class RoomManagementScreen extends StatefulWidget {
 
 class _RoomManagementScreenState extends State<RoomManagementScreen> {
   static final Logger _log = Logger('RoomManagementScreen');
-  
+
   final TextEditingController _playerNameController = TextEditingController();
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _joinRoomIdController = TextEditingController();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
   String? _successMessage;
@@ -30,7 +28,6 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
   @override
   void initState() {
     super.initState();
-    // Set default player name
     _playerNameController.text = 'Player${DateTime.now().millisecondsSinceEpoch % 1000}';
   }
 
@@ -44,94 +41,59 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
 
   Future<void> _createRoom() async {
     if (_playerNameController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter a player name';
-      });
+      setState(() => _errorMessage = 'Please enter a player name');
       return;
     }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
       _successMessage = null;
     });
-
     try {
       final gameService = context.read<FirebaseGameService>();
       final roomId = await gameService.createRoom(_playerNameController.text.trim());
-      
       setState(() {
         _roomIdController.text = roomId;
-        _successMessage = 'Room created successfully! Share this room ID with friends: $roomId';
+        _successMessage = 'Room created! Share ID: $roomId';
       });
-      
       _log.info('Created room: $roomId');
-      
-      // Navigate to the live game screen
-      if (mounted) {
-        context.go('/karma-palace-live');
-      }
-      
+      if (mounted) context.go('/karma-palace-live');
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to create room: $e';
-      });
+      setState(() => _errorMessage = 'Failed to create room: $e');
       _log.severe('Failed to create room: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _joinRoom() async {
     if (_playerNameController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter a player name';
-      });
+      setState(() => _errorMessage = 'Please enter a player name');
       return;
     }
-
     if (_joinRoomIdController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter a room ID';
-      });
+      setState(() => _errorMessage = 'Please enter a room ID');
       return;
     }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
       _successMessage = null;
     });
-
     try {
       final gameService = context.read<FirebaseGameService>();
       await gameService.joinRoom(
         _joinRoomIdController.text.trim(),
         _playerNameController.text.trim(),
       );
-      
-      setState(() {
-        _successMessage = 'Successfully joined room!';
-      });
-      
+      setState(() => _successMessage = 'Successfully joined room!');
       _log.info('Joined room: ${_joinRoomIdController.text.trim()}');
-      
-      // Navigate to the live game screen
-      if (mounted) {
-        context.go('/karma-palace-live');
-      }
-      
+      if (mounted) context.go('/karma-palace-live');
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to join room: $e';
-      });
+      setState(() => _errorMessage = 'Failed to join room: $e');
       _log.severe('Failed to join room: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -140,218 +102,289 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
     final palette = context.watch<Palette>();
 
     return Scaffold(
-      backgroundColor: palette.backgroundPlaySession,
-      appBar: AppBar(
-        title: const Text('Karma Palace - Room Management'),
-        backgroundColor: palette.backgroundPlaySession,
-        foregroundColor: palette.ink,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Player Name Input
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              palette.bgGradientStart,
+              palette.bgGradientMid,
+              palette.bgGradientEnd,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
                   children: [
-                    Text(
-                      'Your Name',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: palette.cardInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _playerNameController,
-                      style: TextStyle(
-                        color: palette.inputText,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter your player name',
-                        hintStyle: TextStyle(
-                          color: palette.inputText.withValues(alpha: 0.6),
+                    GestureDetector(
+                      onTap: () => context.go('/'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1AFFFFFF),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        border: const OutlineInputBorder(),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_back, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text('Back', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
                       ),
                     ),
+                    const Expanded(
+                      child: Text(
+                        'Multiplayer',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 68),
                   ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8),
 
-            // Create Room Section
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Create New Room',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: palette.cardInk,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    MyButton(
-                      onPressed: _isLoading ? null : _createRoom,
-                      child: _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Create Room'),
-                    ),
-                    if (_roomIdController.text.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: palette.ink.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      // Player Name
+                      _GlassPanel(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Room ID:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: palette.ink,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _roomIdController.text,
-                                    style: TextStyle(
-                                      fontFamily: 'monospace',
-                                      fontSize: 16,
-                                      color: palette.ink,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                    await Clipboard.setData(ClipboardData(text: _roomIdController.text));
-                                    if (mounted) {
-                                      scaffoldMessenger.showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Room ID copied to clipboard!'),
-                                          backgroundColor: Colors.green,
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  icon: Icon(Icons.copy, color: palette.ink),
-                                  tooltip: 'Copy Room ID',
-                                ),
-                              ],
+                            const Text('Your Name',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                            const SizedBox(height: 10),
+                            _StyledTextField(
+                              controller: _playerNameController,
+                              hint: 'Enter your player name',
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
 
-            const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-            // Join Room Section
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Join Existing Room',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: palette.cardInk,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _joinRoomIdController,
-                      style: TextStyle(
-                        color: palette.inputText,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter room ID',
-                        hintStyle: TextStyle(
-                          color: palette.inputText.withValues(alpha: 0.6),
+                      // Create Room
+                      _GlassPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Create New Room',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                            const SizedBox(height: 16),
+                            _ActionButton(
+                              label: 'Create Room',
+                              isLoading: _isLoading,
+                              onTap: _isLoading ? null : _createRoom,
+                              color: const Color(0xFF22C55E),
+                            ),
+                            if (_roomIdController.text.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white10,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0x33FFFFFF)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('Room ID',
+                                              style: TextStyle(color: Colors.white60, fontSize: 12)),
+                                          const SizedBox(height: 2),
+                                          Text(_roomIdController.text,
+                                              style: const TextStyle(
+                                                  fontFamily: 'monospace', fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () async {
+                                        final sm = ScaffoldMessenger.of(context);
+                                        await Clipboard.setData(ClipboardData(text: _roomIdController.text));
+                                        if (mounted) {
+                                          sm.showSnackBar(const SnackBar(
+                                            content: Text('Room ID copied!'),
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 2),
+                                          ));
+                                        }
+                                      },
+                                      icon: const Icon(Icons.copy, color: Colors.white70),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        border: const OutlineInputBorder(),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    MyButton(
-                      onPressed: _isLoading ? null : _joinRoom,
-                      child: _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Join Room'),
-                    ),
-                  ],
+
+                      const SizedBox(height: 16),
+
+                      // Join Room
+                      _GlassPanel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Join Existing Room',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                            const SizedBox(height: 10),
+                            _StyledTextField(
+                              controller: _joinRoomIdController,
+                              hint: 'Enter room ID',
+                            ),
+                            const SizedBox(height: 12),
+                            _ActionButton(
+                              label: 'Join Room',
+                              isLoading: _isLoading,
+                              onTap: _isLoading ? null : _joinRoom,
+                              color: const Color(0xFF8B5CF6),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Messages
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                          ),
+                          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                        ),
+
+                      if (_successMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+                          ),
+                          child: Text(_successMessage!, style: const TextStyle(color: Colors.green)),
+                        ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Status Messages
-            if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            
-            if (_successMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _successMessage!,
-                  style: const TextStyle(color: Colors.green),
-                ),
-              ),
-            
-            const Spacer(),
-            
-            // Back Button
-            MyButton(
-              onPressed: () => context.go('/'),
-              child: const Text('Back to Main Menu'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-} 
+}
+
+// ── Helper widgets ──────────────────────────────────────────────────────────
+
+class _GlassPanel extends StatelessWidget {
+  final Widget child;
+  const _GlassPanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0x1AFFFFFF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x33FFFFFF)),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _StyledTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+
+  const _StyledTextField({required this.controller, required this.hint});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white, fontSize: 16),
+      cursorColor: Colors.white,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white38),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color(0x66FFFFFF)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        filled: true,
+        fillColor: const Color(0x0FFFFFFF),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onTap;
+  final Color color;
+
+  const _ActionButton({required this.label, required this.isLoading, this.onTap, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: onTap != null ? color : Colors.grey.shade700,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: isLoading
+            ? const Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                ),
+              )
+            : Text(label,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                textAlign: TextAlign.center),
+      ),
+    );
+  }
+}
