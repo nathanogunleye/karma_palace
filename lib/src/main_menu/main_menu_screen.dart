@@ -128,7 +128,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [2, 3, 4, 5, 6].map((n) {
+                                children: [2, 3, 4, 5].map((n) {
                                   final selected = _playerCount == n;
                                   return GestureDetector(
                                     onTap: () => setState(() => _playerCount = n),

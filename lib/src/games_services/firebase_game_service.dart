@@ -137,8 +137,8 @@ class FirebaseGameService extends ChangeNotifier {
         throw Exception('Game already in progress');
       }
 
-      if (room.players.length >= 6) {
-        throw Exception('Room is full (maximum 6 players)');
+      if (room.players.length >= 5) {
+        throw Exception('Room is full (maximum 5 players)');
       }
 
       // Create new player
