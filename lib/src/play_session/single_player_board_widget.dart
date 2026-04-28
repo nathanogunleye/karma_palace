@@ -82,14 +82,17 @@ class SinglePlayerBoardWidget extends StatelessWidget {
         const Spacer(),
 
         // Current player zones
-        _CurrentPlayerZones(
-          player: humanPlayer,
-          isCurrentTurn: room.currentPlayer == humanPlayer.id,
-          onCardTap: onCardTap,
-          selectedCardIds: selectedCardIds,
-          isMultiSelectMode: isMultiSelectMode,
-          multiSelectValue: multiSelectValue,
-          multiSelectSourceZone: multiSelectSourceZone,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: _CurrentPlayerZones(
+            player: humanPlayer,
+            isCurrentTurn: room.currentPlayer == humanPlayer.id,
+            onCardTap: onCardTap,
+            selectedCardIds: selectedCardIds,
+            isMultiSelectMode: isMultiSelectMode,
+            multiSelectValue: multiSelectValue,
+            multiSelectSourceZone: multiSelectSourceZone,
+          ),
         ),
 
         const SizedBox(height: 8),
