@@ -120,10 +120,10 @@ class _OtherPlayerTile extends StatelessWidget {
       width: tileWidth,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isCurrentTurn ? const Color(0x33FFFFFF) : const Color(0x0DFFFFFF),
+        color: isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isCurrentTurn ? const Color(0x99FFFFFF) : const Color(0x33FFFFFF),
+          color: isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
           width: isCurrentTurn ? 1.5 : 1,
         ),
       ),
@@ -386,10 +386,10 @@ class _CurrentPlayerZones extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isCurrentTurn ? const Color(0x33FFFFFF) : const Color(0x0DFFFFFF),
+        color: isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrentTurn ? const Color(0x99FFFFFF) : const Color(0x33FFFFFF),
+          color: isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
           width: isCurrentTurn ? 1.5 : 1,
         ),
       ),
