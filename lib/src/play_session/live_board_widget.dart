@@ -525,6 +525,9 @@ class _CardZoneColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayCards = isHand
+        ? ([...cards]..sort((a, b) => a.numericValue.compareTo(b.numericValue)))
+        : cards;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -538,7 +541,7 @@ class _CardZoneColumn extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        isHand && cards.length > 3
+        isHand && displayCards.length > 3
             ? SizedBox(
                 width: cardW * 3,
                 height: cardH,
@@ -546,18 +549,18 @@ class _CardZoneColumn extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      for (int i = 0; i < cards.length; i++)
+                      for (int i = 0; i < displayCards.length; i++)
                         Padding(
-                          padding: EdgeInsets.only(right: i < cards.length - 1 ? 2.0 : 0),
+                          padding: EdgeInsets.only(right: i < displayCards.length - 1 ? 2.0 : 0),
                           child: KarmaPalaceCardWidget(
-                            card: cards[i],
+                            card: displayCards[i],
                             isFaceDown: isFaceDown,
                             isPlayable: isPlayable,
                             size: Size(cardW, cardH),
-                            onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
-                            isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                            onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
+                            isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
                             isMultiSelectMode: isMultiSelectMode,
-                            isMultiSelectEligible: _isEligible(cards[i]),
+                            isMultiSelectEligible: _isEligible(displayCards[i]),
                           ),
                         ),
                     ],
@@ -572,16 +575,16 @@ class _CardZoneColumn extends StatelessWidget {
                     for (int i = 0; i < 3; i++)
                       Positioned(
                         left: i * cardW,
-                        child: i < cards.length
+                        child: i < displayCards.length
                             ? KarmaPalaceCardWidget(
-                                card: cards[i],
+                                card: displayCards[i],
                                 isFaceDown: isFaceDown,
                                 isPlayable: isPlayable,
                                 size: Size(cardW, cardH),
-                                onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
-                                isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                                onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
+                                isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
                                 isMultiSelectMode: isMultiSelectMode,
-                                isMultiSelectEligible: _isEligible(cards[i]),
+                                isMultiSelectEligible: _isEligible(displayCards[i]),
                               )
                             : Container(
                                 width: cardW,
