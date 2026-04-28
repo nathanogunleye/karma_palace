@@ -580,32 +580,38 @@ class _CardZoneColumn extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         isHand && displayCards.length > 3
-            ? SizedBox(
-                width: double.infinity,
-                height: cardH,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (int i = 0; i < displayCards.length; i++)
-                        Padding(
-                          padding: EdgeInsets.only(right: i < displayCards.length - 1 ? 2.0 : 0),
-                          child: KarmaPalaceCardWidget(
-                            card: displayCards[i],
-                            isFaceDown: isFaceDown,
-                            isPlayable: isPlayable,
-                            size: Size(cardW, cardH),
-                            onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
-                            isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
-                            isMultiSelectMode: isMultiSelectMode,
-                            isMultiSelectEligible: _isEligible(displayCards[i]),
-                          ),
-                        ),
-                    ],
+            ? LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = displayCards.length * cardW + (displayCards.length - 1) * 2.0;
+            final cardWidgets = [
+              for (int i = 0; i < displayCards.length; i++)
+                Padding(
+                  padding: EdgeInsets.only(right: i < displayCards.length - 1 ? 2.0 : 0),
+                  child: KarmaPalaceCardWidget(
+                    card: displayCards[i],
+                    isFaceDown: isFaceDown,
+                    isPlayable: isPlayable,
+                    size: Size(cardW, cardH),
+                    onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
+                    isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
+                    isMultiSelectMode: isMultiSelectMode,
+                    isMultiSelectEligible: _isEligible(displayCards[i]),
                   ),
                 ),
+            ];
+            return SizedBox(
+              height: cardH,
+              child: contentWidth <= constraints.maxWidth
+                  ? Center(
+                child: Row(mainAxisSize: MainAxisSize.min, children: cardWidgets),
               )
-            : SizedBox(
+                  : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: cardWidgets),
+              ),
+            );
+          },
+        ) : SizedBox(
                 width: cardW * 3,
                 height: cardH,
                 child: Stack(
