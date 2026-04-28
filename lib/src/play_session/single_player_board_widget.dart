@@ -466,21 +466,23 @@ class _CurrentPlayerZones extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              // Hand below — full width
-              _CardZoneColumn(
-                label: 'Hand',
-                cards: player.hand,
-                isFaceDown: false,
-                isPlayable: isCurrentTurn,
-                zone: 'hand',
-                isHand: true,
-                cardW: cardW,
-                cardH: cardH,
-                onCardTap: onCardTap,
-                selectedCardIds: selectedCardIds,
-                isMultiSelectMode: isMultiSelectMode,
-                multiSelectValue: multiSelectValue,
-                multiSelectSourceZone: multiSelectSourceZone,
+              // Hand below — full width, centred
+              Center(
+                child: _CardZoneColumn(
+                  label: 'Hand',
+                  cards: player.hand,
+                  isFaceDown: false,
+                  isPlayable: isCurrentTurn,
+                  zone: 'hand',
+                  isHand: true,
+                  cardW: cardW,
+                  cardH: cardH,
+                  onCardTap: onCardTap,
+                  selectedCardIds: selectedCardIds,
+                  isMultiSelectMode: isMultiSelectMode,
+                  multiSelectValue: multiSelectValue,
+                  multiSelectSourceZone: multiSelectSourceZone,
+                ),
               ),
             ],
           );
