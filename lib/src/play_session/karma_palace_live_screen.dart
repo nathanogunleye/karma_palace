@@ -730,31 +730,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
                     isMultiSelectMode: _isMultiSelectMode,
                     multiSelectValue: _multiSelectValue,
                     multiSelectSourceZone: _multiSelectSourceZone,
+                    inlineMessage: _inlineMessage,
+                    inlineMessageColor: _inlineMessageColor,
                   ),
                 ),
-
-                // Inline message
-                if (_inlineMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _inlineMessageColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        _inlineMessage!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
 
                 // Action buttons
                 if (room.gameState == GameState.playing)

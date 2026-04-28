@@ -12,6 +12,8 @@ class LiveBoardWidget extends StatelessWidget {
   final bool isMultiSelectMode;
   final String? multiSelectValue;
   final String? multiSelectSourceZone;
+  final String? inlineMessage;
+  final Color inlineMessageColor;
 
   const LiveBoardWidget({
     super.key,
@@ -20,6 +22,8 @@ class LiveBoardWidget extends StatelessWidget {
     this.isMultiSelectMode = false,
     this.multiSelectValue,
     this.multiSelectSourceZone,
+    this.inlineMessage,
+    this.inlineMessageColor = Colors.grey,
   });
 
   @override
@@ -79,6 +83,29 @@ class LiveBoardWidget extends StatelessWidget {
         ),
 
         const Spacer(),
+
+        // Inline message above player card area
+        if (inlineMessage != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: inlineMessageColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                inlineMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
 
         // Current player zones
         Padding(
