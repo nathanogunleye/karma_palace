@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
+import 'package:karma_palace/src/settings/settings.dart';
 import 'package:karma_palace/src/style/palette.dart';
 
 enum _Step { name, mode, create, join }
@@ -33,6 +34,18 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
     super.initState();
     _joinIdController.addListener(() => setState(() {}));
     _nameController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadNameFromSettings());
+  }
+
+  void _loadNameFromSettings() {
+    if (!mounted) return;
+    final settings = context.read<SettingsController>();
+    final savedName = settings.playerName.value;
+    _nameController.text = savedName;
+    // Skip name step if the player already has a custom name
+    if (savedName != 'Player') {
+      setState(() => _step = _Step.mode);
+    }
   }
 
   @override
@@ -62,8 +75,9 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
   Future<void> _createRoom() async {
     setState(() { _isLoading = true; _errorMessage = null; });
     try {
-      final roomId = await context.read<FirebaseGameService>()
-          .createRoom(_nameController.text.trim());
+      final name = _nameController.text.trim();
+      context.read<SettingsController>().setPlayerName(name);
+      final roomId = await context.read<FirebaseGameService>().createRoom(name);
       setState(() { _createdRoomId = roomId; _step = _Step.create; });
     } catch (e) {
       setState(() => _errorMessage = 'Failed to create room: $e');
@@ -76,9 +90,11 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
   Future<void> _joinRoom() async {
     setState(() { _isLoading = true; _errorMessage = null; });
     try {
+      final name = _nameController.text.trim();
+      context.read<SettingsController>().setPlayerName(name);
       await context.read<FirebaseGameService>().joinRoom(
         _joinIdController.text.trim(),
-        _nameController.text.trim(),
+        name,
       );
       if (mounted) context.go('/karma-palace-live');
     } catch (e) {

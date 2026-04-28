@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 
 import 'package:karma_palace/src/games_services/local_game_service.dart';
 import 'package:karma_palace/src/games_services/ai_player_service.dart' show AIDifficulty;
+import 'package:karma_palace/src/settings/settings.dart';
 import 'package:karma_palace/src/style/palette.dart';
 
 class SinglePlayerSetupScreen extends StatefulWidget {
@@ -27,7 +28,97 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _playerNameController.text = 'Player${DateTime.now().millisecondsSinceEpoch % 1000}';
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadNameFromSettings());
+  }
+
+  void _loadNameFromSettings() {
+    if (!mounted) return;
+    final settings = context.read<SettingsController>();
+    final savedName = settings.playerName.value;
+    _playerNameController.text = savedName;
+    if (savedName == 'Player') {
+      _promptToChangeName();
+    }
+  }
+
+  void _promptToChangeName() {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x66FFFFFF)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Set Your Name',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Your name is still the default. Would you like to set a custom name?',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1AFFFFFF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0x33FFFFFF)),
+                        ),
+                        child: const Text(
+                          'Keep Default',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _playerNameController.clear();
+                        _playerNameController.selection = const TextSelection.collapsed(offset: 0);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFACC15), Color(0xFFF97316)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Change',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -48,9 +139,11 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
     });
 
     try {
+      final name = _playerNameController.text.trim();
+      context.read<SettingsController>().setPlayerName(name);
       final gameService = context.read<LocalGameService>();
       await gameService.createSinglePlayerGame(
-        _playerNameController.text.trim(),
+        name,
         _selectedDifficulty,
         aiPlayerCount: widget.playerCount - 1,
       );
