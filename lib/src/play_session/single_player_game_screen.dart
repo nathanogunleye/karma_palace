@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
@@ -30,6 +31,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   String? _multiSelectSourceZone;
   String? _multiSelectValue;
 
+  String? _inlineMessage;
+  Color _inlineMessageColor = Colors.grey;
+  Timer? _messageTimer;
+
   @override
   void initState() {
     super.initState();
@@ -46,11 +51,24 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
 
   @override
   void dispose() {
+    _messageTimer?.cancel();
     final gameService = context.read<LocalGameService>();
     gameService.clearPickUpEffectCallback();
     gameService.clearBurnEffectCallback();
     gameService.removeListener(_onGameStateChanged);
     super.dispose();
+  }
+
+  void _showMessage(String text, {Color color = Colors.grey, Duration duration = const Duration(seconds: 3)}) {
+    _messageTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _inlineMessage = text;
+      _inlineMessageColor = color;
+    });
+    _messageTimer = Timer(duration, () {
+      if (mounted) setState(() => _inlineMessage = null);
+    });
   }
 
   @override
@@ -109,14 +127,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       _log.info('Started single player game');
     } catch (e) {
       _log.severe('Failed to start game: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to start game: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showMessage('Failed to start game: $e', color: Colors.red);
     }
   }
 
@@ -133,14 +144,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       }
     } catch (e) {
       _log.severe('Failed to play card: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), color: Colors.red);
     }
   }
 
@@ -151,11 +155,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       _log.info('Picked up play pile');
     } catch (e) {
       _log.severe('Failed to pick up pile: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick up pile: $e')),
-        );
-      }
+      _showMessage('Failed to pick up pile: $e', color: Colors.red);
     }
   }
 
@@ -315,14 +315,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       }
     } catch (e) {
       _log.severe('Failed to play multiple cards: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), color: Colors.red);
     }
   }
 
@@ -452,65 +445,11 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   }
 
   void _showPickUpNotification() {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.handshake,
-                color: Colors.white,
-                size: 20,
-              ),
-              SizedBox(width: 8),
-              Text(
-                '📦 Player picked up the pile!',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
-    }
+    _showMessage('📦 Player picked up the pile!', color: Colors.blue);
   }
 
   void _showBurnNotification() {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.local_fire_department,
-                color: Colors.white,
-                size: 20,
-              ),
-              SizedBox(width: 8),
-              Text(
-                '🔥 Play pile burned! Same player goes again.',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.deepOrange,
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
-    }
+    _showMessage('🔥 Play pile burned! Same player goes again.', color: Colors.deepOrange);
   }
 
   void _onGameStateChanged() {
@@ -564,42 +503,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   }
 
   void _showWinNotification() {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.emoji_events,
-                color: Colors.white,
-                size: 20,
-              ),
-              SizedBox(width: 8),
-              Text(
-                '🎉 You won! All cards played!',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          action: SnackBarAction(
-            label: 'Play Again',
-            textColor: Colors.white,
-            onPressed: () {
-              // Navigate to win screen or restart game
-              context.go('/win');
-            },
-          ),
-        ),
-      );
-    }
+    _showMessage('🎉 You won! All cards played!', color: Colors.green, duration: const Duration(seconds: 5));
   }
 
   void _showLoserNotification(String name) {
@@ -852,6 +756,29 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
                   multiSelectSourceZone: _multiSelectSourceZone,
                 ),
               ),
+
+              // Inline message
+              if (_inlineMessage != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _inlineMessageColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      _inlineMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
 
               // Action buttons
               if (room.gameState == GameState.playing)
