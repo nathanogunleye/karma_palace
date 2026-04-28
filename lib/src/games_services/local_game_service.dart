@@ -919,8 +919,8 @@ class LocalGameService extends ChangeNotifier {
       }
     }
     
-    // If we get here, all cards are 5s, so return the bottom 5
-    return _currentRoom!.playPile.first;
+    // All cards are 5s — treat as empty pile, any card can be played
+    return null;
   }
 
   /// Check if a card can be played according to game rules

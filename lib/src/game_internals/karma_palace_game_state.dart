@@ -114,15 +114,15 @@ class KarmaPalaceGameState extends ChangeNotifier {
     if (_room == null || _room!.playPile.isEmpty) {
       return null;
     }
-    
-    final topCard = _room!.playPile.last;
-    
-    // If the top card is glass (5), look at the card below it
-    if (topCard.value == '5' && _room!.playPile.length > 1) {
-      return _room!.playPile[_room!.playPile.length - 2];
+
+    for (int i = _room!.playPile.length - 1; i >= 0; i--) {
+      if (_room!.playPile[i].value != '5') {
+        return _room!.playPile[i];
+      }
     }
-    
-    return topCard;
+
+    // All cards are 5s — treat as empty pile, any card can be played
+    return null;
   }
 
   // Check if a card can be played
