@@ -85,28 +85,32 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
         const Spacer(),
 
-        // Inline message above player card area
-        if (inlineMessage != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: inlineMessageColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                inlineMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
+        // Fixed-height slot above player card area — always reserves space so layout never shifts
+        SizedBox(
+          height: 44,
+          child: inlineMessage != null
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: inlineMessageColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      inlineMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+        ),
 
         // Current player zones
         Padding(
