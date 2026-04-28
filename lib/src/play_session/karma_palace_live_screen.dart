@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
@@ -22,6 +21,11 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
   int _previousPlayPileLength = 0;
+
+  final Set<String> _selectedCardIds = <String>{};
+  bool _isMultiSelectMode = false;
+  String? _multiSelectSourceZone;
+  String? _multiSelectValue;
 
   @override
   void initState() {
@@ -204,8 +208,109 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   void _onCardTap(game_card.Card card, String sourceZone) {
+    final gameService = context.read<FirebaseGameService>();
+    if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
+
+    if (!_isMultiSelectMode) {
+      final sameValueCards = _getSameValueCards(card.value, sourceZone);
+      if (sameValueCards.length > 1) {
+        _startMultiSelectMode(card.value, sourceZone);
+        _toggleCardSelection(card.id);
+        return;
+      }
+    }
+
+    if (_isMultiSelectMode && _multiSelectValue == card.value && _multiSelectSourceZone == sourceZone) {
+      _toggleCardSelection(card.id);
+      return;
+    }
+
     _playCard(card, sourceZone);
+  }
+
+  List<game_card.Card> _getSameValueCards(String value, String sourceZone) {
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    if (room == null || gameService.currentPlayerId == null) return [];
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    List<game_card.Card> cards;
+    switch (sourceZone) {
+      case 'hand': cards = currentPlayer.hand; break;
+      case 'faceUp': cards = currentPlayer.faceUp; break;
+      case 'faceDown': cards = currentPlayer.faceDown; break;
+      default: return [];
+    }
+    return cards.where((c) => c.value == value).toList();
+  }
+
+  void _startMultiSelectMode(String value, String sourceZone) {
+    setState(() {
+      _isMultiSelectMode = true;
+      _multiSelectValue = value;
+      _multiSelectSourceZone = sourceZone;
+      _selectedCardIds.clear();
+    });
+  }
+
+  void _toggleCardSelection(String cardId) {
+    setState(() {
+      if (_selectedCardIds.contains(cardId)) {
+        _selectedCardIds.remove(cardId);
+      } else {
+        _selectedCardIds.add(cardId);
+      }
+    });
+  }
+
+  void _cancelMultiSelect() {
+    setState(() {
+      _isMultiSelectMode = false;
+      _multiSelectValue = null;
+      _multiSelectSourceZone = null;
+      _selectedCardIds.clear();
+    });
+  }
+
+  void _playSelectedCards() {
+    if (_selectedCardIds.isEmpty || _multiSelectSourceZone == null) return;
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    if (room == null || gameService.currentPlayerId == null) return;
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    List<game_card.Card> sourceCards;
+    switch (_multiSelectSourceZone!) {
+      case 'hand': sourceCards = currentPlayer.hand; break;
+      case 'faceUp': sourceCards = currentPlayer.faceUp; break;
+      case 'faceDown': sourceCards = currentPlayer.faceDown; break;
+      default: return;
+    }
+    final selectedCards = sourceCards.where((c) => _selectedCardIds.contains(c.id)).toList();
+    if (selectedCards.isNotEmpty) {
+      _playMultipleCards(selectedCards, _multiSelectSourceZone!);
+    }
+    _cancelMultiSelect();
+  }
+
+  Future<void> _playMultipleCards(List<game_card.Card> cards, String sourceZone) async {
+    try {
+      final gameService = context.read<FirebaseGameService>();
+      await gameService.playMultipleCards(cards, sourceZone);
+      _log.info('Played ${cards.length} cards from $sourceZone');
+    } catch (e) {
+      _log.severe('Failed to play multiple cards: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to play cards: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   /// Check if the current player can play any cards
@@ -473,6 +578,82 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     }
   }
 
+  void _showRulesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x66FFFFFF)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'How to Play Karma Palace',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _RuleSection('Goal'),
+                    _RuleText('Get rid of all your cards. The last player with cards loses!'),
+                    SizedBox(height: 12),
+                    _RuleSection('Setup'),
+                    _RuleText('Each player gets 3 face-down, 3 face-up, and 3 hand cards.'),
+                    SizedBox(height: 12),
+                    _RuleSection('Playing'),
+                    _RuleBullet('Play cards equal to or higher than the top card'),
+                    _RuleBullet('Play multiple cards of the same rank together'),
+                    _RuleBullet("If you can't play, pick up the entire pile"),
+                    SizedBox(height: 12),
+                    _RuleSection('Special Cards'),
+                    _RuleBullet('2 — Reset, can be played on anything'),
+                    _RuleBullet('5 — Glass (transparent), see through to card below'),
+                    _RuleBullet('7 — Next player must play 7 or lower'),
+                    _RuleBullet('9 — Skip the next player\'s turn'),
+                    _RuleBullet('10 — Burns the pile, same player goes again'),
+                    _RuleBullet('Four of a kind also burns the pile'),
+                    SizedBox(height: 12),
+                    _RuleSection('Card Order'),
+                    _RuleText('Hand first, then face-up, then face-down (blind!).'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1AFFFFFF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0x33FFFFFF)),
+                  ),
+                  child: const Text(
+                    'Got it!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameService = context.watch<FirebaseGameService>();
@@ -489,24 +670,26 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       return PopScope(
         canPop: false,
         child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
-          decoration: gradientDecoration,
-          child: SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Not connected to a room',
-                      style: TextStyle(fontSize: 24, color: Colors.white)),
-                  const SizedBox(height: 16),
-                  _LiveGlassButton(label: 'Back to Main Menu', onTap: () => context.go('/')),
-                ],
+          backgroundColor: Colors.transparent,
+          body: Container(
+            decoration: gradientDecoration,
+            child: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Not connected to a room',
+                      style: TextStyle(fontSize: 24, color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    _LiveGlassButton(label: 'Back to Main Menu', onTap: () => context.go('/')),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
       );
     }
 
@@ -515,124 +698,145 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     return PopScope(
       canPop: false,
       child: Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: gradientDecoration,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _LiveGlassButton(label: 'Leave', icon: Icons.exit_to_app, onTap: _leaveRoom),
-                    Column(
-                      children: [
-                        const Text('Karma Palace',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text('Room: ${room.id}',
-                            style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: () async {
-                            final sm = ScaffoldMessenger.of(context);
-                            await Clipboard.setData(ClipboardData(text: room.id));
-                            if (mounted) {
-                              sm.showSnackBar(const SnackBar(
-                                content: Text('Room ID copied!'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 2),
-                              ));
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0x1AFFFFFF),
-                              borderRadius: BorderRadius.circular(8),
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: gradientDecoration,
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header — Exit | Title/Turn | Rules
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _LiveGlassButton(
+                        label: 'Exit',
+                        icon: Icons.arrow_back,
+                        onTap: _leaveRoom,
+                      ),
+                      Column(
+                        children: [
+                          const Text(
+                            'Karma Palace',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
-                            child: const Icon(Icons.copy, color: Colors.white, size: 16),
                           ),
-                        ),
-                        if (gameService.isHost && room.gameState == GameState.waiting) ...[
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: _startGame,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.play_arrow, color: Colors.white, size: 16),
-                            ),
+                          Consumer<FirebaseGameService>(
+                            builder: (context, svc, _) {
+                              final r = svc.currentRoom;
+                              if (r == null) return const SizedBox.shrink();
+                              final isMyTurn = r.currentPlayer == svc.currentPlayerId;
+                              final turnName = isMyTurn
+                                  ? 'Your Turn'
+                                  : "${r.players.firstWhere((p) => p.id == r.currentPlayer, orElse: () => r.players.first).name}'s Turn";
+                              return Text(
+                                turnName,
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              );
+                            },
                           ),
                         ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Room status strip
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Players: ${room.players.length}/6',
-                        style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                    Text(room.gameState.name.toUpperCase(),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70)),
-                  ],
-                ),
-              ),
-
-              // Game board
-              Expanded(
-                child: LiveBoardWidget(onCardTap: _onCardTap),
-              ),
-
-              // Action buttons
-              if (room.gameState == GameState.playing)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _LiveGameButton(
-                          label: 'Play Cards',
-                          color: Colors.grey.shade700,
-                          onTap: null,
-                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _LiveGameButton(
-                          label: 'Pick Up Pile',
-                          color: gameService.currentPlayerId == room.currentPlayer &&
-                                  !_canCurrentPlayerPlayAnyCard()
-                              ? const Color(0xFFF97316)
-                              : Colors.grey.shade700,
-                          onTap: gameService.currentPlayerId == room.currentPlayer &&
-                                  !_canCurrentPlayerPlayAnyCard()
-                              ? _pickUpPile
-                              : null,
-                        ),
+                      _LiveGlassButton(
+                        label: 'Rules',
+                        onTap: () => _showRulesDialog(context),
                       ),
                     ],
                   ),
                 ),
-            ],
+
+                // Game board
+                Expanded(
+                  child: LiveBoardWidget(
+                    onCardTap: _onCardTap,
+                    selectedCardIds: _selectedCardIds,
+                    isMultiSelectMode: _isMultiSelectMode,
+                    multiSelectValue: _multiSelectValue,
+                    multiSelectSourceZone: _multiSelectSourceZone,
+                  ),
+                ),
+
+                // Action buttons
+                if (room.gameState == GameState.playing)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: _isMultiSelectMode
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _LiveGameButton(
+                                      label: 'Play ${_selectedCardIds.length} Cards',
+                                      color: const Color(0xFF22C55E),
+                                      onTap: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _LiveGameButton(
+                                      label: 'Cancel',
+                                      color: Colors.grey.shade700,
+                                      onTap: _cancelMultiSelect,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Select ${_multiSelectValue}s to play together',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: _LiveGameButton(
+                                  label: 'Play Cards',
+                                  color: Colors.grey.shade700,
+                                  onTap: null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _LiveGameButton(
+                                  label: 'Pick Up Pile',
+                                  color: gameService.currentPlayerId == room.currentPlayer &&
+                                          !_canCurrentPlayerPlayAnyCard()
+                                      ? const Color(0xFFF97316)
+                                      : Colors.grey.shade700,
+                                  onTap: gameService.currentPlayerId == room.currentPlayer &&
+                                          !_canCurrentPlayerPlayAnyCard()
+                                      ? _pickUpPile
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                  )
+                else if (room.gameState == GameState.waiting)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: _LiveGameButton(
+                      label: 'Start Game',
+                      color: const Color(0xFF22C55E),
+                      onTap: gameService.isHost ? _startGame : null,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -699,6 +903,45 @@ class _LiveGameButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _RuleSection extends StatelessWidget {
+  final String text;
+  const _RuleSection(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+      );
+}
+
+class _RuleText extends StatelessWidget {
+  final String text;
+  const _RuleText(this.text);
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(color: Colors.white70, fontSize: 13),
+      );
+}
+
+class _RuleBullet extends StatelessWidget {
+  final String text;
+  const _RuleBullet(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 2),
+        child: Text(
+          '• $text',
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+      );
 }
 
 class _ConfirmLeaveDialog extends StatelessWidget {

@@ -8,8 +8,19 @@ import 'karma_palace_card_widget.dart';
 
 class LiveBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String)? onCardTap;
+  final Set<String>? selectedCardIds;
+  final bool isMultiSelectMode;
+  final String? multiSelectValue;
+  final String? multiSelectSourceZone;
 
-  const LiveBoardWidget({super.key, this.onCardTap});
+  const LiveBoardWidget({
+    super.key,
+    this.onCardTap,
+    this.selectedCardIds,
+    this.isMultiSelectMode = false,
+    this.multiSelectValue,
+    this.multiSelectSourceZone,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +87,10 @@ class LiveBoardWidget extends StatelessWidget {
             player: humanPlayer,
             isCurrentTurn: room.currentPlayer == humanPlayer.id,
             onCardTap: onCardTap,
+            selectedCardIds: selectedCardIds,
+            isMultiSelectMode: isMultiSelectMode,
+            multiSelectValue: multiSelectValue,
+            multiSelectSourceZone: multiSelectSourceZone,
           ),
         ),
 
@@ -346,11 +361,19 @@ class _CurrentPlayerZones extends StatelessWidget {
   final Player player;
   final bool isCurrentTurn;
   final Function(game_card.Card, String)? onCardTap;
+  final Set<String>? selectedCardIds;
+  final bool isMultiSelectMode;
+  final String? multiSelectValue;
+  final String? multiSelectSourceZone;
 
   const _CurrentPlayerZones({
     required this.player,
     required this.isCurrentTurn,
     this.onCardTap,
+    this.selectedCardIds,
+    this.isMultiSelectMode = false,
+    this.multiSelectValue,
+    this.multiSelectSourceZone,
   });
 
   @override
@@ -403,6 +426,10 @@ class _CurrentPlayerZones extends StatelessWidget {
                   isPlayable: isCurrentTurn && player.hand.isEmpty && player.faceUp.isEmpty,
                   zone: 'faceDown',
                   onCardTap: onCardTap,
+                  selectedCardIds: selectedCardIds,
+                  isMultiSelectMode: isMultiSelectMode,
+                  multiSelectValue: multiSelectValue,
+                  multiSelectSourceZone: multiSelectSourceZone,
                 ),
               ),
               const SizedBox(width: 8),
@@ -415,6 +442,10 @@ class _CurrentPlayerZones extends StatelessWidget {
                   zone: 'hand',
                   isHand: true,
                   onCardTap: onCardTap,
+                  selectedCardIds: selectedCardIds,
+                  isMultiSelectMode: isMultiSelectMode,
+                  multiSelectValue: multiSelectValue,
+                  multiSelectSourceZone: multiSelectSourceZone,
                 ),
               ),
               const SizedBox(width: 8),
@@ -426,6 +457,10 @@ class _CurrentPlayerZones extends StatelessWidget {
                   isPlayable: isCurrentTurn && player.hand.isEmpty,
                   zone: 'faceUp',
                   onCardTap: onCardTap,
+                  selectedCardIds: selectedCardIds,
+                  isMultiSelectMode: isMultiSelectMode,
+                  multiSelectValue: multiSelectValue,
+                  multiSelectSourceZone: multiSelectSourceZone,
                 ),
               ),
             ],
@@ -446,6 +481,10 @@ class _CardZoneColumn extends StatelessWidget {
   final String zone;
   final bool isHand;
   final Function(game_card.Card, String)? onCardTap;
+  final Set<String>? selectedCardIds;
+  final bool isMultiSelectMode;
+  final String? multiSelectValue;
+  final String? multiSelectSourceZone;
 
   static const _cardW = 32.0;
   static const _cardH = 46.0;
@@ -458,7 +497,16 @@ class _CardZoneColumn extends StatelessWidget {
     required this.zone,
     this.isHand = false,
     this.onCardTap,
+    this.selectedCardIds,
+    this.isMultiSelectMode = false,
+    this.multiSelectValue,
+    this.multiSelectSourceZone,
   });
+
+  bool _isEligible(game_card.Card card) =>
+      isMultiSelectMode &&
+      multiSelectValue == card.value &&
+      multiSelectSourceZone == zone;
 
   @override
   Widget build(BuildContext context) {
@@ -493,6 +541,9 @@ class _CardZoneColumn extends StatelessWidget {
                               isPlayable: isPlayable,
                               size: const Size(_cardW, _cardH),
                               onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
+                              isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                              isMultiSelectMode: isMultiSelectMode,
+                              isMultiSelectEligible: _isEligible(cards[i]),
                             ),
                           ),
                       ],
@@ -514,6 +565,9 @@ class _CardZoneColumn extends StatelessWidget {
                                   isPlayable: isPlayable,
                                   size: const Size(_cardW, _cardH),
                                   onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
+                                  isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                                  isMultiSelectMode: isMultiSelectMode,
+                                  isMultiSelectEligible: _isEligible(cards[i]),
                                 )
                               : Container(
                                   width: _cardW,

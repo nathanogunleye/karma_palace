@@ -347,6 +347,96 @@ class FirebaseGameService extends ChangeNotifier {
     }
   }
 
+  /// Play multiple cards of the same value at once
+  Future<void> playMultipleCards(List<game_card.Card> cards, String sourceZone) async {
+    if (_currentRoom == null || _currentPlayerId == null) {
+      throw Exception('Not in a game');
+    }
+    if (cards.isEmpty) throw Exception('No cards to play');
+
+    try {
+      final roomRef = _database.ref('rooms/$_currentRoomId');
+      final currentPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+
+      if (!currentPlayer.isPlaying) throw Exception('Not your turn');
+
+      for (final card in cards) {
+        if (!_canPlayCard(card, currentPlayer, sourceZone)) {
+          throw Exception('Cannot play ${card.displayString} - invalid move');
+        }
+      }
+
+      var updatedPlayer = currentPlayer;
+      final updatedPlayPile = <game_card.Card>[..._currentRoom!.playPile];
+      for (final card in cards) {
+        updatedPlayer = _removeCardFromPlayer(updatedPlayer, card, sourceZone);
+        updatedPlayPile.add(card);
+      }
+
+      final cardsToDraw = 3 - updatedPlayer.hand.length;
+      final cardsDrawn = <game_card.Card>[];
+      final remainingDeck = <game_card.Card>[];
+      if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
+        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
+        remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
+      } else {
+        remainingDeck.addAll(_currentRoom!.deck);
+      }
+
+      final finalPlayer = Player(
+        id: updatedPlayer.id,
+        name: updatedPlayer.name,
+        isPlaying: updatedPlayer.isPlaying,
+        hand: [...updatedPlayer.hand, ...cardsDrawn],
+        faceUp: updatedPlayer.faceUp,
+        faceDown: updatedPlayer.faceDown,
+        isConnected: updatedPlayer.isConnected,
+        lastSeen: updatedPlayer.lastSeen,
+        turnOrder: updatedPlayer.turnOrder,
+      );
+
+      final nextPlayerId = _getNextPlayerId();
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == _currentPlayerId) return finalPlayer;
+        return Player(
+          id: p.id,
+          name: p.name,
+          isPlaying: p.id == nextPlayerId,
+          hand: p.hand,
+          faceUp: p.faceUp,
+          faceDown: p.faceDown,
+          isConnected: p.isConnected,
+          lastSeen: p.lastSeen,
+          turnOrder: p.turnOrder,
+          forcedToPlayLow: p.id == nextPlayerId ? p.forcedToPlayLow : false,
+        );
+      }).toList();
+
+      final lastCard = cards.last;
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
+        lastCard, updatedPlayPile, nextPlayerId, updatedPlayers);
+
+      final updatedRoom = Room(
+        id: _currentRoom!.id,
+        players: finalCurrentPlayer,
+        currentPlayer: finalNextPlayerId,
+        gameState: _currentRoom!.gameState,
+        deck: remainingDeck,
+        playPile: finalPlayPile,
+        createdAt: _currentRoom!.createdAt,
+        lastActivity: DateTime.now(),
+        resetActive: lastCard.specialEffect == game_card.SpecialEffect.reset,
+      );
+
+      await roomRef.set(updatedRoom.toJson());
+      _log.info('Played ${cards.length} cards, drew ${cardsDrawn.length} cards');
+    } catch (e) {
+      _log.severe('Failed to play multiple cards: $e');
+      rethrow;
+    }
+  }
+
   /// Pick up the play pile
   Future<void> pickUpPile() async {
     if (_currentRoom == null || _currentPlayerId == null) {
