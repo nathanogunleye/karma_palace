@@ -70,15 +70,15 @@ class FirebaseGameService extends ChangeNotifier {
       
       // Create initial deck
       final deck = _createShuffledDeck();
-      
-      // Create host player
+
+      // Create host player with no cards — startGame deals to everyone
       final hostPlayer = Player(
         id: playerId,
         name: playerName,
-        isPlaying: true,
-        hand: deck.take(3).toList(),
-        faceUp: deck.skip(3).take(3).toList(),
-        faceDown: deck.skip(6).take(3).toList(),
+        isPlaying: false,
+        hand: [],
+        faceUp: [],
+        faceDown: [],
         isConnected: true,
         lastSeen: DateTime.now(),
         turnOrder: 0,
@@ -90,7 +90,7 @@ class FirebaseGameService extends ChangeNotifier {
         players: [hostPlayer],
         currentPlayer: playerId,
         gameState: GameState.waiting,
-        deck: deck.skip(9).toList(),
+        deck: deck,
         playPile: [],
         createdAt: DateTime.now(),
         lastActivity: DateTime.now(),
