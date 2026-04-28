@@ -40,6 +40,7 @@ class _CustomNameDialogState extends State<CustomNameDialog> {
           TextField(
             controller: _controller,
             autofocus: true,
+            style: const TextStyle(color: Colors.black),
             maxLength: 12,
             maxLengthEnforcement: MaxLengthEnforcement.enforced,
             textAlign: TextAlign.center,
