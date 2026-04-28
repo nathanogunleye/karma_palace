@@ -385,8 +385,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       }
     }
     
-    // If we get here, all cards are 5s, so return the bottom 5
-    return room.playPile.first;
+    // All cards are 5s — treat as empty pile, any card can be played
+    return null;
   }
 
   /// Check if a specific card can be played by the current player

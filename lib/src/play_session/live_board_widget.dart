@@ -81,17 +81,14 @@ class LiveBoardWidget extends StatelessWidget {
         const Spacer(),
 
         // Current player zones
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: _CurrentPlayerZones(
-            player: humanPlayer,
-            isCurrentTurn: room.currentPlayer == humanPlayer.id,
-            onCardTap: onCardTap,
-            selectedCardIds: selectedCardIds,
-            isMultiSelectMode: isMultiSelectMode,
-            multiSelectValue: multiSelectValue,
-            multiSelectSourceZone: multiSelectSourceZone,
-          ),
+        _CurrentPlayerZones(
+          player: humanPlayer,
+          isCurrentTurn: room.currentPlayer == humanPlayer.id,
+          onCardTap: onCardTap,
+          selectedCardIds: selectedCardIds,
+          isMultiSelectMode: isMultiSelectMode,
+          multiSelectValue: multiSelectValue,
+          multiSelectSourceZone: multiSelectSourceZone,
         ),
 
         const SizedBox(height: 8),
@@ -388,52 +385,79 @@ class _CurrentPlayerZones extends StatelessWidget {
           width: isCurrentTurn ? 1.5 : 1,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'You',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              if (isCurrentTurn) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFACC15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'YOUR TURN',
-                    style: TextStyle(fontSize: 7, color: Colors.black, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cardW = ((constraints.maxWidth - 8) / 6).clamp(0.0, 58.0);
+          final cardH = cardW * (46 / 32);
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _CardZoneColumn(
-                  label: 'Face Down',
-                  cards: player.faceDown,
-                  isFaceDown: true,
-                  isPlayable: isCurrentTurn && player.hand.isEmpty && player.faceUp.isEmpty,
-                  zone: 'faceDown',
-                  onCardTap: onCardTap,
-                  selectedCardIds: selectedCardIds,
-                  isMultiSelectMode: isMultiSelectMode,
-                  multiSelectValue: multiSelectValue,
-                  multiSelectSourceZone: multiSelectSourceZone,
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'You',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  if (isCurrentTurn) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFACC15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'YOUR TURN',
+                        style: TextStyle(fontSize: 7, color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
+              const SizedBox(height: 8),
+              // Face Down + Face Up on top
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _CardZoneColumn(
+                      label: 'Face Down',
+                      cards: player.faceDown,
+                      isFaceDown: true,
+                      isPlayable: isCurrentTurn && player.hand.isEmpty && player.faceUp.isEmpty,
+                      zone: 'faceDown',
+                      cardW: cardW,
+                      cardH: cardH,
+                      onCardTap: onCardTap,
+                      selectedCardIds: selectedCardIds,
+                      isMultiSelectMode: isMultiSelectMode,
+                      multiSelectValue: multiSelectValue,
+                      multiSelectSourceZone: multiSelectSourceZone,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _CardZoneColumn(
+                      label: 'Face Up',
+                      cards: player.faceUp,
+                      isFaceDown: false,
+                      isPlayable: isCurrentTurn && player.hand.isEmpty,
+                      zone: 'faceUp',
+                      cardW: cardW,
+                      cardH: cardH,
+                      onCardTap: onCardTap,
+                      selectedCardIds: selectedCardIds,
+                      isMultiSelectMode: isMultiSelectMode,
+                      multiSelectValue: multiSelectValue,
+                      multiSelectSourceZone: multiSelectSourceZone,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Hand below — same card size, centred
+              Center(
                 child: _CardZoneColumn(
                   label: 'Hand',
                   cards: player.hand,
@@ -441,21 +465,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                   isPlayable: isCurrentTurn,
                   zone: 'hand',
                   isHand: true,
-                  onCardTap: onCardTap,
-                  selectedCardIds: selectedCardIds,
-                  isMultiSelectMode: isMultiSelectMode,
-                  multiSelectValue: multiSelectValue,
-                  multiSelectSourceZone: multiSelectSourceZone,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _CardZoneColumn(
-                  label: 'Face Up',
-                  cards: player.faceUp,
-                  isFaceDown: false,
-                  isPlayable: isCurrentTurn && player.hand.isEmpty,
-                  zone: 'faceUp',
+                  cardW: cardW,
+                  cardH: cardH,
                   onCardTap: onCardTap,
                   selectedCardIds: selectedCardIds,
                   isMultiSelectMode: isMultiSelectMode,
@@ -464,8 +475,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -480,14 +491,13 @@ class _CardZoneColumn extends StatelessWidget {
   final bool isPlayable;
   final String zone;
   final bool isHand;
+  final double cardW;
+  final double cardH;
   final Function(game_card.Card, String)? onCardTap;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
   final String? multiSelectValue;
   final String? multiSelectSourceZone;
-
-  static const _cardW = 32.0;
-  static const _cardH = 46.0;
 
   const _CardZoneColumn({
     required this.label,
@@ -495,6 +505,8 @@ class _CardZoneColumn extends StatelessWidget {
     required this.isFaceDown,
     required this.isPlayable,
     required this.zone,
+    required this.cardW,
+    required this.cardH,
     this.isHand = false,
     this.onCardTap,
     this.selectedCardIds,
@@ -523,66 +535,64 @@ class _CardZoneColumn extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Center(
-          child: isHand && cards.length > 3
-              ? SizedBox(
-                  width: _cardW * 3,
-                  height: _cardH,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (int i = 0; i < cards.length; i++)
-                          Padding(
-                            padding: EdgeInsets.only(right: i < cards.length - 1 ? 2.0 : 0),
-                            child: KarmaPalaceCardWidget(
-                              card: cards[i],
-                              isFaceDown: isFaceDown,
-                              isPlayable: isPlayable,
-                              size: const Size(_cardW, _cardH),
-                              onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
-                              isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
-                              isMultiSelectMode: isMultiSelectMode,
-                              isMultiSelectEligible: _isEligible(cards[i]),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                )
-              : SizedBox(
-                  width: _cardW * 3,
-                  height: _cardH,
-                  child: Stack(
+        isHand && cards.length > 3
+            ? SizedBox(
+                width: cardW * 3,
+                height: cardH,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
                     children: [
-                      for (int i = 0; i < 3; i++)
-                        Positioned(
-                          left: i * _cardW,
-                          child: i < cards.length
-                              ? KarmaPalaceCardWidget(
-                                  card: cards[i],
-                                  isFaceDown: isFaceDown,
-                                  isPlayable: isPlayable,
-                                  size: const Size(_cardW, _cardH),
-                                  onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
-                                  isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
-                                  isMultiSelectMode: isMultiSelectMode,
-                                  isMultiSelectEligible: _isEligible(cards[i]),
-                                )
-                              : Container(
-                                  width: _cardW,
-                                  height: _cardH,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white10,
-                                    borderRadius: BorderRadius.circular(3),
-                                    border: Border.all(color: Colors.white24),
-                                  ),
-                                ),
+                      for (int i = 0; i < cards.length; i++)
+                        Padding(
+                          padding: EdgeInsets.only(right: i < cards.length - 1 ? 2.0 : 0),
+                          child: KarmaPalaceCardWidget(
+                            card: cards[i],
+                            isFaceDown: isFaceDown,
+                            isPlayable: isPlayable,
+                            size: Size(cardW, cardH),
+                            onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
+                            isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                            isMultiSelectMode: isMultiSelectMode,
+                            isMultiSelectEligible: _isEligible(cards[i]),
+                          ),
                         ),
                     ],
                   ),
                 ),
-        ),
+              )
+            : SizedBox(
+                width: cardW * 3,
+                height: cardH,
+                child: Stack(
+                  children: [
+                    for (int i = 0; i < 3; i++)
+                      Positioned(
+                        left: i * cardW,
+                        child: i < cards.length
+                            ? KarmaPalaceCardWidget(
+                                card: cards[i],
+                                isFaceDown: isFaceDown,
+                                isPlayable: isPlayable,
+                                size: Size(cardW, cardH),
+                                onTap: onCardTap != null ? () => onCardTap!(cards[i], zone) : null,
+                                isSelected: selectedCardIds?.contains(cards[i].id) ?? false,
+                                isMultiSelectMode: isMultiSelectMode,
+                                isMultiSelectEligible: _isEligible(cards[i]),
+                              )
+                            : Container(
+                                width: cardW,
+                                height: cardH,
+                                decoration: BoxDecoration(
+                                  color: Colors.white10,
+                                  borderRadius: BorderRadius.circular(3),
+                                  border: Border.all(color: Colors.white24),
+                                ),
+                              ),
+                      ),
+                  ],
+                ),
+              ),
       ],
     );
   }
