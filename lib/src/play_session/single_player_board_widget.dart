@@ -466,23 +466,21 @@ class _CurrentPlayerZones extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              // Hand below — same card size, centred
-              Center(
-                child: _CardZoneColumn(
-                  label: 'Hand',
-                  cards: player.hand,
-                  isFaceDown: false,
-                  isPlayable: isCurrentTurn,
-                  zone: 'hand',
-                  isHand: true,
-                  cardW: cardW,
-                  cardH: cardH,
-                  onCardTap: onCardTap,
-                  selectedCardIds: selectedCardIds,
-                  isMultiSelectMode: isMultiSelectMode,
-                  multiSelectValue: multiSelectValue,
-                  multiSelectSourceZone: multiSelectSourceZone,
-                ),
+              // Hand below — full width
+              _CardZoneColumn(
+                label: 'Hand',
+                cards: player.hand,
+                isFaceDown: false,
+                isPlayable: isCurrentTurn,
+                zone: 'hand',
+                isHand: true,
+                cardW: cardW,
+                cardH: cardH,
+                onCardTap: onCardTap,
+                selectedCardIds: selectedCardIds,
+                isMultiSelectMode: isMultiSelectMode,
+                multiSelectValue: multiSelectValue,
+                multiSelectSourceZone: multiSelectSourceZone,
               ),
             ],
           );
@@ -550,7 +548,7 @@ class _CardZoneColumn extends StatelessWidget {
         const SizedBox(height: 4),
         isHand && displayCards.length > 3
             ? SizedBox(
-                width: cardW * 3,
+                width: double.infinity,
                 height: cardH,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
