@@ -136,7 +136,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to play card: $e'),
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
             backgroundColor: Colors.red,
           ),
         );
@@ -318,7 +318,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to play cards: $e'),
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
             backgroundColor: Colors.red,
           ),
         );
