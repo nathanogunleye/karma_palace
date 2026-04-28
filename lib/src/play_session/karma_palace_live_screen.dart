@@ -21,6 +21,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
   int _previousPlayPileLength = 0;
+  bool _loserAnnounced = false;
 
   final Set<String> _selectedCardIds = <String>{};
   bool _isMultiSelectMode = false;
@@ -536,6 +537,18 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     );
     if (humanPlayer.hasWon) {
       _showWinNotification();
+      return;
+    }
+
+    // Loser detection: only one player still has cards
+    if (!_loserAnnounced && room.players.length > 1) {
+      final playersWithCards = room.players.where((p) => !p.hasWon).toList();
+      if (playersWithCards.length == 1) {
+        _loserAnnounced = true;
+        final loser = playersWithCards.first;
+        final isMe = loser.id == gameService.currentPlayerId;
+        _showLoserNotification(isMe ? 'You' : loser.name);
+      }
     }
   }
 
@@ -576,6 +589,71 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
         ),
       );
     }
+  }
+
+  void _showLoserNotification(String name) {
+    if (!mounted) return;
+    final isMe = name == 'You';
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x80EF4444)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('💀', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 12),
+              Text(
+                isMe ? 'You Lost!' : '$name Lost!',
+                style: const TextStyle(
+                  color: Color(0xFFFC8181),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isMe
+                    ? 'You\'re the last one holding cards. Better luck next time!'
+                    : '$name is the last one holding cards.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.go('/');
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1AFFFFFF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0x33FFFFFF)),
+                  ),
+                  child: const Text(
+                    'Back to Menu',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showRulesDialog(BuildContext context) {
