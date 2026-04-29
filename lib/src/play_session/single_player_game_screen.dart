@@ -511,13 +511,13 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     );
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
-      _showWinDialog();
+      _showWinDialog(room.playPile.lastOrNull);
       return;
     }
 
   }
 
-  void _showWinDialog() {
+  void _showWinDialog(game_card.Card? winningCard) {
     if (!mounted) return;
     showDialog(
       context: context,
@@ -545,7 +545,11 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
+              if (winningCard != null) ...[
+                _DialogCard(card: winningCard),
+                const SizedBox(height: 12),
+              ],
               const Text(
                 'You got rid of all your cards!',
                 textAlign: TextAlign.center,
@@ -879,6 +883,66 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
 }
 
 // ── Helper widgets ──────────────────────────────────────────────────────────
+
+class _DialogCard extends StatelessWidget {
+  final game_card.Card card;
+  const _DialogCard({required this.card});
+
+  @override
+  Widget build(BuildContext context) {
+    final isRed = card.suit == '♥' || card.suit == '♦';
+    final color = isRed ? Colors.red : Colors.black;
+    return Container(
+      width: 72,
+      height: 108,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 6,
+            left: 7,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(card.value, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.bold, height: 1.1)),
+                Text(card.suit, style: TextStyle(color: color, fontSize: 13, height: 1.0)),
+              ],
+            ),
+          ),
+          Center(
+            child: Text(card.suit, style: TextStyle(color: color, fontSize: 34)),
+          ),
+          Positioned(
+            bottom: 6,
+            right: 7,
+            child: RotatedBox(
+              quarterTurns: 2,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(card.value, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.bold, height: 1.1)),
+                  Text(card.suit, style: TextStyle(color: color, fontSize: 13, height: 1.0)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _GlassButton extends StatelessWidget {
   final String label;
