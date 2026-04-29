@@ -507,10 +507,10 @@ class LocalGameService extends ChangeNotifier {
       _revealedFaceDownCard = null;
       _log.info('Human picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
-
+      
       // Notify UI about pick-up effect
       _onPickUpEffect?.call();
-
+      
       // Check if AI should play next
       if (nextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
@@ -703,10 +703,9 @@ class LocalGameService extends ChangeNotifier {
 
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      final aiPlayerId = aiPlayer.id;
 
       final updatedPlayers = _currentRoom!.players.map((p) {
-        if (p.id == aiPlayerId) {
+        if (p.id == aiPlayer.id) {
           return Player(
             id: updatedPlayer.id,
             name: updatedPlayer.name,
@@ -747,7 +746,7 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _log.info('AI picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
-
+      
       // Check if AI should continue playing
       if (nextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
