@@ -363,6 +363,20 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     return false;
   }
 
+  /// True when the player has only face-down cards left (must flip before picking up).
+  bool _isInFaceDownOnlyPhase() {
+    final gameService = context.read<LocalGameService>();
+    final room = gameService.currentRoom;
+    if (room == null || gameService.currentPlayerId == null) return false;
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    return currentPlayer.hand.isEmpty &&
+        currentPlayer.faceUp.isEmpty &&
+        currentPlayer.faceDown.isNotEmpty;
+  }
+
   /// Get the effective top card (handles glass effect)
   game_card.Card? _getEffectiveTopCard() {
     final gameService = context.read<LocalGameService>();
@@ -838,12 +852,12 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
                                 label: 'Pick Up Pile',
                                 color: gameService.currentPlayerId == room.currentPlayer &&
                                         (gameService.revealedFaceDownCard != null ||
-                                            !_canCurrentPlayerPlayAnyCard())
+                                            (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
                                     ? const Color(0xFFF97316)
                                     : Colors.grey.shade700,
                                 onTap: gameService.currentPlayerId == room.currentPlayer &&
                                         (gameService.revealedFaceDownCard != null ||
-                                            !_canCurrentPlayerPlayAnyCard())
+                                            (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
                                     ? _pickUpPile
                                     : null,
                               ),
