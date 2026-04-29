@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
@@ -165,6 +166,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   Future<void> _pickUpPile() async {
+    HapticFeedback.mediumImpact();
     try {
       final gameService = context.read<FirebaseGameService>();
       await gameService.pickUpPile();
@@ -198,6 +200,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   void _onCardTap(game_card.Card card, String sourceZone) {
+    HapticFeedback.lightImpact();
     final gameService = context.read<FirebaseGameService>();
     if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
