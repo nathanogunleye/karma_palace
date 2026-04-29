@@ -322,6 +322,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   /// Check if the current player can play any cards
   bool _canCurrentPlayerPlayAnyCard() {
     final gameService = context.read<LocalGameService>();
+
+    // A revealed face-down card means the player must pick up — no other plays allowed.
+    if (gameService.revealedFaceDownCard != null) return false;
+
     final room = gameService.currentRoom;
     
     if (room == null || gameService.currentPlayerId == null) return false;
@@ -775,6 +779,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
                   multiSelectSourceZone: _multiSelectSourceZone,
                   inlineMessage: _inlineMessage,
                   inlineMessageColor: _inlineMessageColor,
+                  revealedFaceDownCard: gameService.revealedFaceDownCard,
                 ),
               ),
 
@@ -830,11 +835,13 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
                               child: _GameButton(
                                 label: 'Pick Up Pile',
                                 color: gameService.currentPlayerId == room.currentPlayer &&
-                                        !_canCurrentPlayerPlayAnyCard()
+                                        (gameService.revealedFaceDownCard != null ||
+                                            !_canCurrentPlayerPlayAnyCard())
                                     ? const Color(0xFFF97316)
                                     : Colors.grey.shade700,
                                 onTap: gameService.currentPlayerId == room.currentPlayer &&
-                                        !_canCurrentPlayerPlayAnyCard()
+                                        (gameService.revealedFaceDownCard != null ||
+                                            !_canCurrentPlayerPlayAnyCard())
                                     ? _pickUpPile
                                     : null,
                               ),

@@ -15,6 +15,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
   final String? multiSelectSourceZone;
   final String? inlineMessage;
   final Color inlineMessageColor;
+  final game_card.Card? revealedFaceDownCard;
 
   const SinglePlayerBoardWidget({
     super.key,
@@ -25,6 +26,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
     this.multiSelectSourceZone,
     this.inlineMessage,
     this.inlineMessageColor = Colors.grey,
+    this.revealedFaceDownCard,
   });
 
   @override
@@ -73,13 +75,17 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
         const Spacer(),
 
-        // Deck + Pile
+        // Deck + Pile + revealed face-down card
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _DeckTile(deckCount: room.deck.length),
             const SizedBox(width: 32),
             _PileTile(playPile: room.playPile),
+            if (revealedFaceDownCard != null) ...[
+              const SizedBox(width: 16),
+              _RevealedCardTile(card: revealedFaceDownCard!),
+            ],
           ],
         ),
 
@@ -386,6 +392,47 @@ class _PileTile extends StatelessWidget {
               ],
             ),
           ),
+      ],
+    );
+  }
+}
+
+// ── Revealed face-down card tile ───────────────────────────────────────────
+
+class _RevealedCardTile extends StatelessWidget {
+  final game_card.Card card;
+
+  const _RevealedCardTile({required this.card});
+
+  @override
+  Widget build(BuildContext context) {
+    const cardW = 62.0;
+    const cardH = 88.0;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'FLIPPED',
+          style: TextStyle(
+            fontSize: 10,
+            color: Color(0xFFFCA5A5),
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
+          ),
+          child: KarmaPalaceCardWidget(
+            card: card,
+            isFaceDown: false,
+            isPlayable: false,
+            size: const Size(cardW, cardH),
+          ),
+        ),
       ],
     );
   }

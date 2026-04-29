@@ -31,6 +31,9 @@ class LocalGameService extends ChangeNotifier {
   // Callback for burn effects
   VoidCallback? _onBurnEffect;
 
+  // A face-down card that was flipped but couldn't be played — awaiting pick-up
+  game_card.Card? _revealedFaceDownCard;
+
   // Getters
   Room? get currentRoom => _currentRoom;
   String? get currentPlayerId => _currentPlayerId;
@@ -39,6 +42,7 @@ class LocalGameService extends ChangeNotifier {
   bool get isInGame => _currentRoom != null;
   bool get gameInProgress => _gameInProgress;
   AIDifficulty get aiDifficulty => _aiDifficulty;
+  game_card.Card? get revealedFaceDownCard => _revealedFaceDownCard;
 
   /// Set callback for pick-up notifications
   void setPickUpEffectCallback(VoidCallback callback) {
@@ -173,9 +177,35 @@ class LocalGameService extends ChangeNotifier {
         throw Exception('Not your turn');
       }
 
-      // Validate that the card can be played according to game rules
-      if (!_canPlayCard(card, currentPlayer, sourceZone)) {
-        throw Exception('Cannot play ${card.displayString} - invalid move');
+      // For face-down cards: remove first, then check validity (blind flip).
+      // If invalid, reveal the card and wait for the player to pick up.
+      if (sourceZone == 'faceDown') {
+        final flippedPlayer = _removeCardFromPlayer(currentPlayer, card, 'faceDown');
+        if (!_canPlayCard(card, currentPlayer, sourceZone)) {
+          _revealedFaceDownCard = card;
+          final updatedPlayers = _currentRoom!.players.map((p) =>
+            p.id == _currentPlayerId ? flippedPlayer : p
+          ).toList();
+          _currentRoom = Room(
+            id: _currentRoom!.id,
+            players: updatedPlayers,
+            currentPlayer: _currentRoom!.currentPlayer,
+            gameState: _currentRoom!.gameState,
+            deck: _currentRoom!.deck,
+            playPile: _currentRoom!.playPile,
+            createdAt: _currentRoom!.createdAt,
+            lastActivity: DateTime.now(),
+            resetActive: _currentRoom!.resetActive,
+          );
+          _log.info('Face-down flip revealed ${card.displayString} — invalid, awaiting pick-up');
+          notifyListeners();
+          return;
+        }
+      } else {
+        // Validate that the card can be played according to game rules
+        if (!_canPlayCard(card, currentPlayer, sourceZone)) {
+          throw Exception('Cannot play ${card.displayString} - invalid move');
+        }
       }
 
       // Remove card from player's zone
@@ -254,14 +284,15 @@ class LocalGameService extends ChangeNotifier {
       );
 
       _currentRoom = updatedRoom;
+      _revealedFaceDownCard = null;
       _log.info('Human played card: ${card.displayString}, drew ${cardsDrawn.length} cards');
       notifyListeners();
-      
+
       // Check if AI should play next
       if (finalNextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
       }
-      
+
     } catch (e) {
       _log.severe('Failed to play card: $e');
       rethrow;
@@ -398,8 +429,12 @@ class LocalGameService extends ChangeNotifier {
         throw Exception('Not your turn');
       }
 
-      // Add all cards from play pile to player's hand
-      final updatedHand = [...currentPlayer.hand, ..._currentRoom!.playPile];
+      // Add all cards from play pile (plus any revealed face-down card) to player's hand
+      final updatedHand = [
+        ...currentPlayer.hand,
+        ..._currentRoom!.playPile,
+        if (_revealedFaceDownCard != null) _revealedFaceDownCard!,
+      ];
       
       // Draw cards from deck until player has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedHand.length;
@@ -469,6 +504,7 @@ class LocalGameService extends ChangeNotifier {
       );
 
       _currentRoom = updatedRoom;
+      _revealedFaceDownCard = null;
       _log.info('Human picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
       
@@ -490,11 +526,12 @@ class LocalGameService extends ChangeNotifier {
   Future<void> leaveGame() async {
     _aiTurnTimer?.cancel();
     _aiTurnTimer = null;
-    
+
     _currentRoom = null;
     _currentPlayerId = null;
     _isConnected = false;
     _gameInProgress = false;
+    _revealedFaceDownCard = null;
     
     notifyListeners();
     _log.info('Left single player game');
