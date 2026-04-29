@@ -806,67 +806,59 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
               if (room.gameState == GameState.playing)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: _isMultiSelectMode
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _GameButton(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _isMultiSelectMode
+                                ? _GameButton(
                                     label: 'Play ${_selectedCardIds.length} Cards',
                                     color: const Color(0xFF22C55E),
                                     onTap: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
+                                  )
+                                : _GameButton(
+                                    label: 'Play Cards',
+                                    color: Colors.grey.shade700,
+                                    onTap: null,
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _GameButton(
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _isMultiSelectMode
+                                ? _GameButton(
                                     label: 'Cancel',
                                     color: Colors.grey.shade700,
                                     onTap: _cancelMultiSelect,
+                                  )
+                                : _GameButton(
+                                    label: 'Pick Up Pile',
+                                    color: gameService.currentPlayerId == room.currentPlayer &&
+                                            (gameService.revealedFaceDownCard != null ||
+                                                (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
+                                        ? const Color(0xFFF97316)
+                                        : Colors.grey.shade700,
+                                    onTap: gameService.currentPlayerId == room.currentPlayer &&
+                                            (gameService.revealedFaceDownCard != null ||
+                                                (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
+                                        ? _pickUpPile
+                                        : null,
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Select ${_multiSelectValue}s to play together',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white70,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          children: [
-                            Expanded(
-                              child: _GameButton(
-                                label: 'Play Cards',
-                                color: Colors.grey.shade700,
-                                onTap: null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _GameButton(
-                                label: 'Pick Up Pile',
-                                color: gameService.currentPlayerId == room.currentPlayer &&
-                                        (gameService.revealedFaceDownCard != null ||
-                                            (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
-                                    ? const Color(0xFFF97316)
-                                    : Colors.grey.shade700,
-                                onTap: gameService.currentPlayerId == room.currentPlayer &&
-                                        (gameService.revealedFaceDownCard != null ||
-                                            (!_canCurrentPlayerPlayAnyCard() && !_isInFaceDownOnlyPhase()))
-                                    ? _pickUpPile
-                                    : null,
-                              ),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _isMultiSelectMode ? 'Select ${_multiSelectValue}s to play together' : '',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white70,
+                          fontStyle: FontStyle.italic,
                         ),
+                      ),
+                    ],
+                  ),
                 )
               else if (room.gameState == GameState.waiting)
                 Padding(

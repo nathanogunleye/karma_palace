@@ -826,65 +826,57 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
                 if (room.gameState == GameState.playing)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: _isMultiSelectMode
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _LiveGameButton(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _isMultiSelectMode
+                                  ? _LiveGameButton(
                                       label: 'Play ${_selectedCardIds.length} Cards',
                                       color: const Color(0xFF22C55E),
                                       onTap: _selectedCardIds.isNotEmpty ? _playSelectedCards : null,
+                                    )
+                                  : _LiveGameButton(
+                                      label: 'Play Cards',
+                                      color: Colors.grey.shade700,
+                                      onTap: null,
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _LiveGameButton(
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _isMultiSelectMode
+                                  ? _LiveGameButton(
                                       label: 'Cancel',
                                       color: Colors.grey.shade700,
                                       onTap: _cancelMultiSelect,
+                                    )
+                                  : _LiveGameButton(
+                                      label: 'Pick Up Pile',
+                                      color: gameService.currentPlayerId == room.currentPlayer &&
+                                              !_canCurrentPlayerPlayAnyCard()
+                                          ? const Color(0xFFF97316)
+                                          : Colors.grey.shade700,
+                                      onTap: gameService.currentPlayerId == room.currentPlayer &&
+                                              !_canCurrentPlayerPlayAnyCard()
+                                          ? _pickUpPile
+                                          : null,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Select ${_multiSelectValue}s to play together',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white70,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: _LiveGameButton(
-                                  label: 'Play Cards',
-                                  color: Colors.grey.shade700,
-                                  onTap: null,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _LiveGameButton(
-                                  label: 'Pick Up Pile',
-                                  color: gameService.currentPlayerId == room.currentPlayer &&
-                                          !_canCurrentPlayerPlayAnyCard()
-                                      ? const Color(0xFFF97316)
-                                      : Colors.grey.shade700,
-                                  onTap: gameService.currentPlayerId == room.currentPlayer &&
-                                          !_canCurrentPlayerPlayAnyCard()
-                                      ? _pickUpPile
-                                      : null,
-                                ),
-                              ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _isMultiSelectMode ? 'Select ${_multiSelectValue}s to play together' : '',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                            fontStyle: FontStyle.italic,
                           ),
+                        ),
+                      ],
+                    ),
                   )
                 else if (room.gameState == GameState.waiting)
                   Padding(
