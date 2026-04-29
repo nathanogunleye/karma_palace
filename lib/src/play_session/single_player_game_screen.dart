@@ -486,6 +486,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   void _checkWinCondition(Room room) {
     if (room.gameState != GameState.playing) return;
     final gameService = context.read<LocalGameService>();
+    // An invalid face-down flip is pending pickup — player hasn't truly won yet.
+    if (gameService.revealedFaceDownCard != null) return;
     final humanPlayer = room.players.firstWhere(
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,

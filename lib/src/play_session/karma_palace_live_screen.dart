@@ -23,6 +23,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
   int _previousPlayPileLength = 0;
+  bool _winAnnounced = false;
   bool _loserAnnounced = false;
 
   final Set<String> _selectedCardIds = <String>{};
@@ -465,7 +466,8 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
-    if (humanPlayer.hasWon) {
+    if (humanPlayer.hasWon && !_winAnnounced) {
+      _winAnnounced = true;
       _showWinNotification();
       return;
     }
@@ -483,7 +485,89 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
   }
 
   void _showWinNotification() {
-    _showMessage('🎉 You won! All cards played!', color: Colors.green, duration: const Duration(seconds: 5));
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x8022C55E)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🎉', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 12),
+              const Text(
+                'You\'re Out!',
+                style: TextStyle(
+                  color: Color(0xFF86EFAC),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'You\'ve played all your cards! The game continues with the remaining players.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1AFFFFFF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0x33FFFFFF)),
+                        ),
+                        child: const Text(
+                          'Watch',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        context.go('/');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1A22C55E),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0x5522C55E)),
+                        ),
+                        child: const Text(
+                          'Leave',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF86EFAC), fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showLoserNotification(String name) {
