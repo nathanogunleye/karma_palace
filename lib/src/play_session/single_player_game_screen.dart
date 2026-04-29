@@ -23,7 +23,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
   static final Logger _log = Logger('SinglePlayerGameScreen');
 
   int _previousPlayPileLength = 0;
-  bool _loserAnnounced = false;
+  bool _winAnnounced = false;
 
   // Multi-card selection state
   final Set<String> _selectedCardIds = <String>{};
@@ -486,29 +486,16 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
-    if (humanPlayer.hasWon) {
-      _showWinNotification();
+    if (humanPlayer.hasWon && !_winAnnounced) {
+      _winAnnounced = true;
+      _showWinDialog();
       return;
     }
 
-    if (!_loserAnnounced && room.players.length > 1) {
-      final playersWithCards = room.players.where((p) => !p.hasWon).toList();
-      if (playersWithCards.length == 1) {
-        _loserAnnounced = true;
-        final loser = playersWithCards.first;
-        final isMe = loser.id == gameService.currentPlayerId;
-        _showLoserNotification(isMe ? 'You' : loser.name);
-      }
-    }
   }
 
-  void _showWinNotification() {
-    _showMessage('🎉 You won! All cards played!', color: Colors.green, duration: const Duration(seconds: 5));
-  }
-
-  void _showLoserNotification(String name) {
+  void _showWinDialog() {
     if (!mounted) return;
-    final isMe = name == 'You';
     showDialog(
       context: context,
       barrierColor: Colors.black54,
@@ -520,47 +507,79 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
           decoration: BoxDecoration(
             color: const Color(0xFF3B1461),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0x80EF4444)),
+            border: Border.all(color: const Color(0x8022C55E)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('💀', style: TextStyle(fontSize: 48)),
+              const Text('🎉', style: TextStyle(fontSize: 56)),
               const SizedBox(height: 12),
-              Text(
-                isMe ? 'You Lost!' : '$name Lost!',
-                style: const TextStyle(
-                  color: Color(0xFFFC8181),
-                  fontSize: 22,
+              const Text(
+                'You Won!',
+                style: TextStyle(
+                  color: Color(0xFF4ADE80),
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                isMe
-                    ? 'You\'re the last one holding cards. Better luck next time!'
-                    : '$name is the last one holding cards.',
+              const Text(
+                'You got rid of all your cards!',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(ctx);
-                  context.go('/');
+                  final gameService = context.read<LocalGameService>();
+                  await gameService.leaveGame();
+                  if (mounted) context.go('/single-player-setup');
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFACC15), Color(0xFFF97316)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Play Again',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final gameService = context.read<LocalGameService>();
+                  await gameService.leaveGame();
+                  if (mounted) context.go('/');
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
                     color: const Color(0x1AFFFFFF),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: const Color(0x33FFFFFF)),
                   ),
                   child: const Text(
-                    'Back to Menu',
+                    'Main Menu',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
