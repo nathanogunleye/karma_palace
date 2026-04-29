@@ -10,11 +10,17 @@ import 'package:karma_palace/src/play_session/room_management_screen.dart';
 import 'package:karma_palace/src/play_session/single_player_setup_screen.dart';
 import 'package:karma_palace/src/play_session/single_player_game_screen.dart';
 import 'package:karma_palace/src/settings/settings_screen.dart';
+import 'package:karma_palace/src/splash/splash_screen.dart';
 
 /// The router describes the game's navigational hierarchy, from the main
 /// screen through settings screens all the way to each individual level.
 final router = GoRouter(
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashScreen(key: Key('splash')),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const MainMenuScreen(key: Key('main menu')),
