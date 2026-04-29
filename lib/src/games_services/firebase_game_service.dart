@@ -480,12 +480,36 @@ class FirebaseGameService extends ChangeNotifier {
         turnOrder: currentPlayer.turnOrder,
       );
 
-      // Move to next player
+      // Move to next player, updating isPlaying for all players
       final nextPlayerId = _getNextPlayerId();
-      
-      final updatedPlayers = _currentRoom!.players.map((p) => 
-        p.id == _currentPlayerId ? updatedPlayer : p
-      ).toList();
+
+      final updatedPlayers = _currentRoom!.players.map((p) {
+        if (p.id == _currentPlayerId) {
+          return Player(
+            id: updatedPlayer.id,
+            name: updatedPlayer.name,
+            isPlaying: false,
+            hand: updatedPlayer.hand,
+            faceUp: updatedPlayer.faceUp,
+            faceDown: updatedPlayer.faceDown,
+            isConnected: updatedPlayer.isConnected,
+            lastSeen: updatedPlayer.lastSeen,
+            turnOrder: updatedPlayer.turnOrder,
+          );
+        } else {
+          return Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == nextPlayerId,
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+          );
+        }
+      }).toList();
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
