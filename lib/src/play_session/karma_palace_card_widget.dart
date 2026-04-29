@@ -138,14 +138,14 @@ class KarmaPalaceCardWidget extends StatelessWidget {
 
     // Large card layout (pile display): proper playing card corners + center
     if (size.width >= 50) {
-      final cornerFontSize = size.width * 0.2;
-      final centerFontSize = size.width * 0.42;
+      final cornerFontSize = size.width * 0.26;
+      final centerFontSize = size.width * 0.50;
       return Stack(
         children: [
           // Top-left corner
           Positioned(
-            top: size.width * 0.06,
-            left: size.width * 0.07,
+            top: size.width * 0.08,
+            left: size.width * 0.08,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -175,8 +175,8 @@ class KarmaPalaceCardWidget extends StatelessWidget {
           ),
           // Bottom-right corner (rotated)
           Positioned(
-            bottom: size.width * 0.06,
-            right: size.width * 0.07,
+            bottom: size.width * 0.08,
+            right: size.width * 0.08,
             child: RotatedBox(
               quarterTurns: 2,
               child: Column(
@@ -205,7 +205,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
     }
 
     // Small card layout: centered rank + suit
-    final fontSize = size.width * 0.38;
+    final fontSize = size.width * 0.46;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,

@@ -240,15 +240,15 @@ class _OtherPlayerTile extends StatelessWidget {
                         card: card,
                         isFaceDown: false,
                         isPlayable: false,
-                        size: const Size(32, 46),
+                        size: const Size(34, 49),
                       ),
                     ))
               else
                 ...player.faceDown.take(3).map((_) => Padding(
                       padding: const EdgeInsets.only(left: 3),
                       child: Container(
-                        width: 32,
-                        height: 46,
+                        width: 34,
+                        height: 49,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
@@ -291,8 +291,8 @@ class _DeckTile extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Container(
-          width: 62,
-          height: 88,
+          width: 64,
+          height: 90,
           decoration: BoxDecoration(
             gradient: deckCount > 0
                 ? const LinearGradient(
@@ -332,8 +332,8 @@ class _PileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardW = 62.0;
-    const cardH = 88.0;
+    const cardW = 64.0;
+    const cardH = 90.0;
     const stackOffset = 20.0;
 
     final visible = playPile.length > 3
@@ -386,9 +386,9 @@ class _PileTile extends StatelessWidget {
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.inbox_outlined, size: 24, color: Colors.white38),
+                Icon(Icons.inbox_outlined, size: 26, color: Colors.white38),
                 SizedBox(height: 4),
-                Text('Empty', style: TextStyle(fontSize: 11, color: Colors.white38)),
+                Text('Empty', style: TextStyle(fontSize: 12, color: Colors.white38)),
               ],
             ),
           ),
@@ -406,8 +406,8 @@ class _RevealedCardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardW = 62.0;
-    const cardH = 88.0;
+    const cardW = 64.0;
+    const cardH = 90.0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -474,7 +474,7 @@ class _CurrentPlayerZones extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Uniform card size: 3 cards across half the inner width (with 8px column gap)
-          final cardW = ((constraints.maxWidth - 8) / 6).clamp(0.0, 58.0);
+          final cardW = ((constraints.maxWidth - 2) / 6).clamp(0.0, 60.0);
           final cardH = cardW * (46 / 32);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +524,6 @@ class _CurrentPlayerZones extends StatelessWidget {
                       multiSelectSourceZone: multiSelectSourceZone,
                     ),
                   ),
-                  const SizedBox(width: 8),
                   Expanded(
                     child: _CardZoneColumn(
                       label: 'Face Up',
@@ -629,11 +628,12 @@ class _CardZoneColumn extends StatelessWidget {
         isHand && displayCards.length > 3
             ? LayoutBuilder(
           builder: (context, constraints) {
-            final contentWidth = displayCards.length * cardW + (displayCards.length - 1) * 2.0;
+            const gap = 3.0;
+            final contentWidth = displayCards.length * cardW + (displayCards.length - 1) * gap;
             final cardWidgets = [
               for (int i = 0; i < displayCards.length; i++)
                 Padding(
-                  padding: EdgeInsets.only(right: i < displayCards.length - 1 ? 2.0 : 0),
+                  padding: EdgeInsets.only(right: i < displayCards.length - 1 ? gap : 0),
                   child: KarmaPalaceCardWidget(
                     card: displayCards[i],
                     isFaceDown: isFaceDown,
@@ -659,13 +659,13 @@ class _CardZoneColumn extends StatelessWidget {
             );
           },
         ) : SizedBox(
-                width: cardW * 3,
+                width: cardW * 3 + 3 * 2,
                 height: cardH,
                 child: Stack(
                   children: [
                     for (int i = 0; i < 3; i++)
                       Positioned(
-                        left: i * cardW,
+                        left: i * (cardW + 3),
                         child: i < displayCards.length
                             ? KarmaPalaceCardWidget(
                                 card: displayCards[i],
