@@ -522,6 +522,15 @@ class LocalGameService extends ChangeNotifier {
     }
   }
 
+  /// Stop the game (cancel AI timer and freeze moves) without clearing state.
+  /// Called when a result is announced so the game no longer runs in the background.
+  void stopGame() {
+    _aiTurnTimer?.cancel();
+    _aiTurnTimer = null;
+    _gameInProgress = false;
+    notifyListeners();
+  }
+
   /// Leave the current game
   Future<void> leaveGame() async {
     _aiTurnTimer?.cancel();

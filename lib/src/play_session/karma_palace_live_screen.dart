@@ -491,7 +491,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     if (!mounted) return;
     showDialog(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
@@ -582,7 +582,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen> with Widg
     final isMe = name == 'You';
     showDialog(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,

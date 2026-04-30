@@ -511,6 +511,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     );
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
+      gameService.stopGame();
       _showWinDialog(room.playPile.lastOrNull);
       return;
     }
@@ -521,7 +522,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen> with Ti
     if (!mounted) return;
     showDialog(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
