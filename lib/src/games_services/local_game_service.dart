@@ -548,6 +548,7 @@ class LocalGameService extends ChangeNotifier {
 
   /// Schedule AI turn with a delay
   void _scheduleAITurn() {
+    if (!_gameInProgress) return;
     _aiTurnTimer?.cancel();
     _aiTurnTimer = Timer(const Duration(milliseconds: 1500), () {
       _playAITurn();
@@ -556,7 +557,7 @@ class LocalGameService extends ChangeNotifier {
 
   /// Play AI turn
   void _playAITurn() {
-    if (_currentRoom == null) return;
+    if (_currentRoom == null || !_gameInProgress) return;
 
     final currentId = _currentRoom!.currentPlayer;
     if (currentId == _currentPlayerId) return; // Human's turn, shouldn't be here
