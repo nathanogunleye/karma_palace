@@ -473,9 +473,12 @@ class _CurrentPlayerZones extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Uniform card size: 3 cards across half the inner width (with 8px column gap)
+          // Hand card size — unchanged
           final cardW = ((constraints.maxWidth - 2) / 6).clamp(0.0, 60.0);
           final cardH = cardW * (46 / 32);
+          // Face-down/up: 2 zones × (3 cards + 2 gaps of 3pt) = 12pt of gap total, scaled down
+          final faceCardW = (((constraints.maxWidth - 12) / 6) * 0.85).clamp(32.0, 60.0);
+          final faceCardH = faceCardW * (46 / 32);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -515,8 +518,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                       isFaceDown: true,
                       isPlayable: isCurrentTurn && player.hand.isEmpty && player.faceUp.isEmpty,
                       zone: 'faceDown',
-                      cardW: cardW,
-                      cardH: cardH,
+                      cardW: faceCardW,
+                      cardH: faceCardH,
                       onCardTap: onCardTap,
                       selectedCardIds: selectedCardIds,
                       isMultiSelectMode: isMultiSelectMode,
@@ -531,8 +534,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                       isFaceDown: false,
                       isPlayable: isCurrentTurn && player.hand.isEmpty,
                       zone: 'faceUp',
-                      cardW: cardW,
-                      cardH: cardH,
+                      cardW: faceCardW,
+                      cardH: faceCardH,
                       onCardTap: onCardTap,
                       selectedCardIds: selectedCardIds,
                       isMultiSelectMode: isMultiSelectMode,
