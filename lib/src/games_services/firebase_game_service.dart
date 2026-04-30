@@ -674,24 +674,23 @@ class FirebaseGameService extends ChangeNotifier {
     return result;
   }
 
-  /// Get the next player ID in turn order
+  /// Get the next player ID in turn order, skipping players who have already won
   String _getNextPlayerId() {
     if (_currentRoom == null) return '';
-    
-    final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
-    if (currentIndex == -1) return _currentRoom!.players.first.id;
-    
-    final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
-    final nextPlayerId = _currentRoom!.players[nextIndex].id;
-    
-    _log.info('DEBUG: Next player calculation');
-    _log.info('DEBUG: Current player: ${_currentRoom!.currentPlayer}');
-    _log.info('DEBUG: Current index: $currentIndex');
-    _log.info('DEBUG: Next index: $nextIndex');
-    _log.info('DEBUG: Next player ID: $nextPlayerId');
-    _log.info('DEBUG: All players: ${_currentRoom!.players.map((p) => p.id).toList()}');
-    
-    return nextPlayerId;
+
+    final players = _currentRoom!.players;
+    final currentIndex = players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
+    if (currentIndex == -1) return players.first.id;
+
+    for (int i = 1; i <= players.length; i++) {
+      final candidate = players[(currentIndex + i) % players.length];
+      if (!candidate.hasWon) {
+        _log.info('DEBUG: Next active player: ${candidate.id}');
+        return candidate.id;
+      }
+    }
+
+    return players.first.id;
   }
 
   /// Handle special card effects
@@ -773,6 +772,23 @@ class FirebaseGameService extends ChangeNotifier {
       _onBurnEffect?.call();
     }
 
+    // If the resolved next player has already won (e.g. they just played a 10 as
+    // their last card), advance past them to the next active player.
+    final nextTarget = finalPlayers.firstWhere(
+      (p) => p.id == finalNextPlayerId,
+      orElse: () => finalPlayers.first,
+    );
+    if (nextTarget.hasWon) {
+      final startIndex = finalPlayers.indexWhere((p) => p.id == finalNextPlayerId);
+      for (int i = 1; i < finalPlayers.length; i++) {
+        final candidate = finalPlayers[(startIndex + i) % finalPlayers.length];
+        if (!candidate.hasWon) {
+          finalNextPlayerId = candidate.id;
+          break;
+        }
+      }
+    }
+
     return (finalPlayPile, finalPlayers, finalNextPlayerId);
   }
 
@@ -794,15 +810,18 @@ class FirebaseGameService extends ChangeNotifier {
     return allSameValue;
   }
 
-  /// Get next player ID after a specific player
+  /// Get next player ID after a specific player, skipping players who have already won
   String _getNextPlayerIdAfter(String playerId) {
-    final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == playerId);
-    if (currentIndex == -1) {
-      return _currentRoom!.players.first.id;
+    final players = _currentRoom!.players;
+    final currentIndex = players.indexWhere((p) => p.id == playerId);
+    if (currentIndex == -1) return players.first.id;
+
+    for (int i = 1; i <= players.length; i++) {
+      final candidate = players[(currentIndex + i) % players.length];
+      if (!candidate.hasWon) return candidate.id;
     }
-    
-    final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
-    return _currentRoom!.players[nextIndex].id;
+
+    return players.first.id;
   }
 
   /// Get the effective top card (handles glass effect)

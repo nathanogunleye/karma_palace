@@ -757,26 +757,36 @@ class LocalGameService extends ChangeNotifier {
     }
   }
 
-  /// Get next player ID
+  /// Get next player ID, skipping players who have already won
   String _getNextPlayerId() {
     if (_currentRoom == null) return _currentPlayerId!;
-    
-    final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
-    final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
-    return _currentRoom!.players[nextIndex].id;
+
+    final players = _currentRoom!.players;
+    final currentIndex = players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
+    if (currentIndex == -1) return _currentPlayerId!;
+
+    for (int i = 1; i <= players.length; i++) {
+      final candidate = players[(currentIndex + i) % players.length];
+      if (!candidate.hasWon) return candidate.id;
+    }
+
+    return _currentPlayerId!;
   }
 
-  /// Get next player ID after a specific player
+  /// Get next player ID after a specific player, skipping players who have already won
   String _getNextPlayerIdAfter(String playerId) {
     if (_currentRoom == null) return _currentPlayerId!;
-    
-    final currentIndex = _currentRoom!.players.indexWhere((p) => p.id == playerId);
-    if (currentIndex == -1) {
-      return _currentRoom!.players.first.id;
+
+    final players = _currentRoom!.players;
+    final currentIndex = players.indexWhere((p) => p.id == playerId);
+    if (currentIndex == -1) return players.first.id;
+
+    for (int i = 1; i <= players.length; i++) {
+      final candidate = players[(currentIndex + i) % players.length];
+      if (!candidate.hasWon) return candidate.id;
     }
-    
-    final nextIndex = (currentIndex + 1) % _currentRoom!.players.length;
-    return _currentRoom!.players[nextIndex].id;
+
+    return _currentPlayerId!;
   }
 
   /// Remove card from player's zone
@@ -881,6 +891,23 @@ class LocalGameService extends ChangeNotifier {
       finalNextPlayerId = _currentRoom!.currentPlayer;
       _log.info('4-of-a-kind detected - play pile burned, same player plays again');
       _onBurnEffect?.call();
+    }
+
+    // If the resolved next player has already won (e.g. they just played a 10 as
+    // their last card), advance past them to the next active player.
+    final nextTarget = finalPlayers.firstWhere(
+      (p) => p.id == finalNextPlayerId,
+      orElse: () => finalPlayers.first,
+    );
+    if (nextTarget.hasWon) {
+      final startIndex = finalPlayers.indexWhere((p) => p.id == finalNextPlayerId);
+      for (int i = 1; i < finalPlayers.length; i++) {
+        final candidate = finalPlayers[(startIndex + i) % finalPlayers.length];
+        if (!candidate.hasWon) {
+          finalNextPlayerId = candidate.id;
+          break;
+        }
+      }
     }
 
     // Re-sync isPlaying flags to match finalNextPlayerId (effects may have changed it)
