@@ -7,7 +7,8 @@ import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'karma_palace_card_widget.dart';
 
 class LiveBoardWidget extends StatelessWidget {
-  final Function(game_card.Card, String)? onCardTap;
+  final Function(game_card.Card, String, Offset)? onCardTap;
+  final GlobalKey? pileKey;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
   final String? multiSelectValue;
@@ -18,6 +19,7 @@ class LiveBoardWidget extends StatelessWidget {
   const LiveBoardWidget({
     super.key,
     this.onCardTap,
+    this.pileKey,
     this.selectedCardIds,
     this.isMultiSelectMode = false,
     this.multiSelectValue,
@@ -40,14 +42,12 @@ class LiveBoardWidget extends StatelessWidget {
       orElse: () => room.players.last,
     );
 
-    final otherPlayers = room.players
-        .where((p) => p.id != gameService.currentPlayerId)
-        .toList();
+    final otherPlayers =
+        room.players.where((p) => p.id != gameService.currentPlayerId).toList();
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final tileWidth = otherPlayers.length == 1
-        ? screenWidth - 24
-        : (screenWidth - 40) / 2;
+    final tileWidth =
+        otherPlayers.length == 1 ? screenWidth - 24 : (screenWidth - 40) / 2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,7 +78,7 @@ class LiveBoardWidget extends StatelessWidget {
           children: [
             _DeckTile(deckCount: room.deck.length),
             const SizedBox(width: 32),
-            _PileTile(playPile: room.playPile),
+            SizedBox(key: pileKey, child: _PileTile(playPile: room.playPile)),
           ],
         ),
 
@@ -92,7 +92,8 @@ class LiveBoardWidget extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: inlineMessageColor,
                       borderRadius: BorderRadius.circular(10),
@@ -150,10 +151,12 @@ class _OtherPlayerTile extends StatelessWidget {
       width: tileWidth,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
+        color:
+            isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
+          color:
+              isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
           width: isCurrentTurn ? 1.5 : 1,
         ),
       ),
@@ -178,14 +181,18 @@ class _OtherPlayerTile extends StatelessWidget {
               if (isCurrentTurn) ...[
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFACC15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
                     'TURN',
-                    style: TextStyle(fontSize: 7, color: Colors.black, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 7,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -245,7 +252,8 @@ class _OtherPlayerTile extends StatelessWidget {
                             colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
                           ),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0x66FFFFFF), width: 0.5),
+                          border: Border.all(
+                              color: const Color(0x66FFFFFF), width: 0.5),
                         ),
                       ),
                     )),
@@ -304,7 +312,8 @@ class _DeckTile extends StatelessWidget {
                       fontSize: 20,
                     ),
                   )
-                : const Icon(Icons.inbox_outlined, size: 24, color: Colors.white38),
+                : const Icon(Icons.inbox_outlined,
+                    size: 24, color: Colors.white38),
           ),
         ),
       ],
@@ -377,7 +386,8 @@ class _PileTile extends StatelessWidget {
               children: [
                 Icon(Icons.inbox_outlined, size: 26, color: Colors.white38),
                 SizedBox(height: 4),
-                Text('Empty', style: TextStyle(fontSize: 12, color: Colors.white38)),
+                Text('Empty',
+                    style: TextStyle(fontSize: 12, color: Colors.white38)),
               ],
             ),
           ),
@@ -391,7 +401,7 @@ class _PileTile extends StatelessWidget {
 class _CurrentPlayerZones extends StatelessWidget {
   final Player player;
   final bool isCurrentTurn;
-  final Function(game_card.Card, String)? onCardTap;
+  final Function(game_card.Card, String, Offset)? onCardTap;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
   final String? multiSelectValue;
@@ -412,10 +422,12 @@ class _CurrentPlayerZones extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
+        color:
+            isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
+          color:
+              isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
           width: isCurrentTurn ? 1.5 : 1,
         ),
       ),
@@ -425,7 +437,8 @@ class _CurrentPlayerZones extends StatelessWidget {
           final cardW = ((constraints.maxWidth - 2) / 6).clamp(0.0, 60.0);
           final cardH = cardW * (46 / 32);
           // Face-down/up: 2 zones × (3 cards + 2 gaps of 3pt) + 2pt zone divider = 14pt total, scaled down
-          final faceCardW = (((constraints.maxWidth - 14) / 6) * 0.85).clamp(32.0, 60.0);
+          final faceCardW =
+              (((constraints.maxWidth - 14) / 6) * 0.85).clamp(32.0, 60.0);
           final faceCardH = faceCardW * (46 / 32);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,19 +448,26 @@ class _CurrentPlayerZones extends StatelessWidget {
                 children: [
                   const Text(
                     'You',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                   if (isCurrentTurn) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFACC15),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
                         'YOUR TURN',
-                        style: TextStyle(fontSize: 7, color: Colors.black, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 7,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -463,7 +483,9 @@ class _CurrentPlayerZones extends StatelessWidget {
                       label: 'Face Down',
                       cards: player.faceDown,
                       isFaceDown: true,
-                      isPlayable: isCurrentTurn && player.hand.isEmpty && player.faceUp.isEmpty,
+                      isPlayable: isCurrentTurn &&
+                          player.hand.isEmpty &&
+                          player.faceUp.isEmpty,
                       zone: 'faceDown',
                       cardW: faceCardW,
                       cardH: faceCardH,
@@ -531,7 +553,7 @@ class _CardZoneColumn extends StatelessWidget {
   final bool isHand;
   final double cardW;
   final double cardH;
-  final Function(game_card.Card, String)? onCardTap;
+  final Function(game_card.Card, String, Offset)? onCardTap;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
   final String? multiSelectValue;
@@ -579,18 +601,26 @@ class _CardZoneColumn extends StatelessWidget {
         isHand && displayCards.length > 3
             ? LayoutBuilder(
                 builder: (context, constraints) {
-                  final contentWidth = displayCards.length * cardW + (displayCards.length - 1) * 3.0;
+                  final contentWidth = displayCards.length * cardW +
+                      (displayCards.length - 1) * 3.0;
                   final cardWidgets = [
                     for (int i = 0; i < displayCards.length; i++)
                       Padding(
-                        padding: EdgeInsets.only(right: i < displayCards.length - 1 ? 3.0 : 0),
+                        padding: EdgeInsets.only(
+                            right: i < displayCards.length - 1 ? 3.0 : 0),
                         child: KarmaPalaceCardWidget(
                           card: displayCards[i],
                           isFaceDown: isFaceDown,
                           isPlayable: isPlayable,
                           size: Size(cardW, cardH),
-                          onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
-                          isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
+                          onTap: null,
+                          onTapWithCenter: onCardTap != null
+                              ? (center) =>
+                                  onCardTap!(displayCards[i], zone, center)
+                              : null,
+                          isSelected:
+                              selectedCardIds?.contains(displayCards[i].id) ??
+                                  false,
                           isMultiSelectMode: isMultiSelectMode,
                           isMultiSelectEligible: _isEligible(displayCards[i]),
                         ),
@@ -600,7 +630,9 @@ class _CardZoneColumn extends StatelessWidget {
                     height: cardH,
                     child: contentWidth <= constraints.maxWidth
                         ? Center(
-                            child: Row(mainAxisSize: MainAxisSize.min, children: cardWidgets),
+                            child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: cardWidgets),
                           )
                         : SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -623,10 +655,17 @@ class _CardZoneColumn extends StatelessWidget {
                                 isFaceDown: isFaceDown,
                                 isPlayable: isPlayable,
                                 size: Size(cardW, cardH),
-                                onTap: onCardTap != null ? () => onCardTap!(displayCards[i], zone) : null,
-                                isSelected: selectedCardIds?.contains(displayCards[i].id) ?? false,
+                                onTap: null,
+                                onTapWithCenter: onCardTap != null
+                                    ? (center) => onCardTap!(
+                                        displayCards[i], zone, center)
+                                    : null,
+                                isSelected: selectedCardIds
+                                        ?.contains(displayCards[i].id) ??
+                                    false,
                                 isMultiSelectMode: isMultiSelectMode,
-                                isMultiSelectEligible: _isEligible(displayCards[i]),
+                                isMultiSelectEligible:
+                                    _isEligible(displayCards[i]),
                               )
                             : Container(
                                 width: cardW,

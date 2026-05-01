@@ -9,7 +9,8 @@ class KarmaPalaceCardWidget extends StatelessWidget {
   final bool isPlayable;
   final Size size;
   final VoidCallback? onTap;
-  
+  final Function(Offset)? onTapWithCenter;
+
   // Multi-card selection support
   final bool isSelected;
   final bool isMultiSelectMode;
@@ -22,6 +23,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
     this.isPlayable = false,
     this.size = const Size(40, 60),
     this.onTap,
+    this.onTapWithCenter,
     this.isSelected = false,
     this.isMultiSelectMode = false,
     this.isMultiSelectEligible = false,
@@ -34,7 +36,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
     // Determine border color based on state
     Color borderColor = palette.ink;
     double borderWidth = 1;
-    
+
     if (isSelected) {
       borderColor = Colors.green;
       borderWidth = 3;
@@ -46,62 +48,73 @@ class KarmaPalaceCardWidget extends StatelessWidget {
       borderWidth = 2;
     }
 
-    return GestureDetector(
-      onTap: isPlayable ? onTap : null,
-      child: Container(
-        width: size.width,
-        height: size.height,
-        decoration: BoxDecoration(
-          color: isFaceDown ? palette.ink : palette.trueWhite,
-          border: Border.all(
-            color: borderColor,
-            width: borderWidth,
-          ),
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: [
-            if (isSelected)
-              BoxShadow(
-                color: Colors.green.withValues(alpha: 0.5),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              )
-            else if (isPlayable || (isMultiSelectMode && isMultiSelectEligible))
-              BoxShadow(
-                color: Colors.blue.withValues(alpha: 0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Card content - centered
-            Center(
-              child: isFaceDown
-                  ? _buildFaceDownCard(palette)
-                  : _buildFaceUpCard(context, palette),
+    return Builder(
+      builder: (cardContext) => GestureDetector(
+        onTap: isPlayable && onTapWithCenter == null ? onTap : null,
+        onTapUp: isPlayable && onTapWithCenter != null
+            ? (_) {
+                final box = cardContext.findRenderObject() as RenderBox?;
+                if (box == null) return;
+                onTapWithCenter!(
+                    box.localToGlobal(box.size.center(Offset.zero)));
+              }
+            : null,
+        child: Container(
+          width: size.width,
+          height: size.height,
+          decoration: BoxDecoration(
+            color: isFaceDown ? palette.ink : palette.trueWhite,
+            border: Border.all(
+              color: borderColor,
+              width: borderWidth,
             ),
-            
-            // Selection indicator
-            if (isSelected)
-              Positioned(
-                top: 2,
-                right: 2,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 8,
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              if (isSelected)
+                BoxShadow(
+                  color: Colors.green.withValues(alpha: 0.5),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                )
+              else if (isPlayable ||
+                  (isMultiSelectMode && isMultiSelectEligible))
+                BoxShadow(
+                  color: Colors.blue.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Card content - centered
+              Center(
+                child: isFaceDown
+                    ? _buildFaceDownCard(palette)
+                    : _buildFaceUpCard(context, palette),
+              ),
+
+              // Selection indicator
+              if (isSelected)
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 8,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -113,7 +126,10 @@ class KarmaPalaceCardWidget extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF2563EB), Color(0xFF7C3AED)], // blue-600 → purple-600
+          colors: [
+            Color(0xFF2563EB),
+            Color(0xFF7C3AED)
+          ], // blue-600 → purple-600
         ),
         borderRadius: BorderRadius.circular(4),
       ),
@@ -161,7 +177,10 @@ class KarmaPalaceCardWidget extends StatelessWidget {
                 ),
                 Text(
                   card.suit,
-                  style: TextStyle(color: textColor, fontSize: cornerFontSize * 0.95, height: 1.0),
+                  style: TextStyle(
+                      color: textColor,
+                      fontSize: cornerFontSize * 0.95,
+                      height: 1.0),
                 ),
               ],
             ),
@@ -194,7 +213,10 @@ class KarmaPalaceCardWidget extends StatelessWidget {
                   ),
                   Text(
                     card.suit,
-                    style: TextStyle(color: textColor, fontSize: cornerFontSize * 0.95, height: 1.0),
+                    style: TextStyle(
+                        color: textColor,
+                        fontSize: cornerFontSize * 0.95,
+                        height: 1.0),
                   ),
                 ],
               ),
@@ -227,7 +249,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        
+
         // Special effect indicator
         // if (card.hasSpecialEffect)
         //   Container(
@@ -297,4 +319,4 @@ class KarmaPalaceCardWidget extends StatelessWidget {
   //       return '';
   //   }
   // }
-} 
+}
