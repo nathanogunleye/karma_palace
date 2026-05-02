@@ -29,10 +29,10 @@ class FirebaseGameService extends ChangeNotifier {
   bool _isHost = false;
 
   // Callback for pick-up notifications
-  VoidCallback? _onPickUpEffect;
+  Function(String)? _onPickUpEffect;
 
   // Callback for burn effects
-  VoidCallback? _onBurnEffect;
+  Function(String)? _onBurnEffect;
 
   // Getters
   Room? get currentRoom => _currentRoom;
@@ -43,7 +43,7 @@ class FirebaseGameService extends ChangeNotifier {
   bool get isInGame => _currentRoom != null;
 
   /// Set callback for pick-up notifications
-  void setPickUpEffectCallback(VoidCallback callback) {
+  void setPickUpEffectCallback(Function(String) callback) {
     _onPickUpEffect = callback;
   }
 
@@ -53,13 +53,20 @@ class FirebaseGameService extends ChangeNotifier {
   }
 
   /// Set callback for burn effects
-  void setBurnEffectCallback(VoidCallback callback) {
+  void setBurnEffectCallback(Function(String) callback) {
     _onBurnEffect = callback;
   }
 
   /// Clear burn effect callback
   void clearBurnEffectCallback() {
     _onBurnEffect = null;
+  }
+
+  String _displayName(String playerId) {
+    if (playerId == _currentPlayerId) return 'You';
+    return _currentRoom!.players
+        .firstWhere((p) => p.id == playerId, orElse: () => _currentRoom!.players.first)
+        .name;
   }
 
   /// Create a new room and join as host
@@ -293,7 +300,7 @@ class FirebaseGameService extends ChangeNotifier {
         );
         await roomRef.set(updatedRoom.toJson());
         _log.info('Face-down flip invalid — forced pick-up');
-        _onPickUpEffect?.call();
+        _onPickUpEffect?.call(_displayName(_currentPlayerId!));
         return;
       }
 
@@ -579,7 +586,7 @@ class FirebaseGameService extends ChangeNotifier {
       _log.info('Picked up play pile, drew ${cardsDrawn.length} cards');
 
       // Notify UI about pick-up effect
-      _onPickUpEffect?.call();
+      _onPickUpEffect?.call(_displayName(_currentPlayerId!));
     } catch (e) {
       _log.severe('Failed to pick up pile: $e');
       rethrow;
@@ -869,7 +876,7 @@ class FirebaseGameService extends ChangeNotifier {
         finalNextPlayerId = _currentPlayerId!; // Same player plays again
         _log.info('Card 10 played - play pile burned, same player plays again');
         // Notify UI about burn effect
-        _onBurnEffect?.call();
+        _onBurnEffect?.call(_displayName(_currentPlayerId!));
         break;
 
       case null:
@@ -884,7 +891,7 @@ class FirebaseGameService extends ChangeNotifier {
       _log.info(
           '4-of-a-kind detected - play pile burned, same player plays again');
       // Notify UI about burn effect
-      _onBurnEffect?.call();
+      _onBurnEffect?.call(_displayName(_currentPlayerId!));
     }
 
     // If the resolved next player has already won (e.g. they just played a 10 as

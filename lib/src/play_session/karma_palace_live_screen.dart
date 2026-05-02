@@ -29,6 +29,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   int _previousPlayPileLength = 0;
   int _previousWinnerCount = 0;
+  String? _previousCurrentPlayerId;
   bool _winAnnounced = false;
   bool _loserAnnounced = false;
 
@@ -665,26 +666,26 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     return card.numericValue >= effectiveTopCard.numericValue;
   }
 
-  void _onPickUpEffect() {
+  void _onPickUpEffect(String playerName) {
     if (mounted) {
       context.read<AudioController>().playSfx(SfxType.huhsh);
-      _showPickUpNotification();
+      _showPickUpNotification(playerName);
     }
   }
 
-  void _onBurnEffect() {
+  void _onBurnEffect(String playerName) {
     if (mounted) {
       context.read<AudioController>().playSfx(SfxType.erase);
-      _showBurnNotification();
+      _showBurnNotification(playerName);
     }
   }
 
-  void _showPickUpNotification() {
-    _showMessage('📦 Player picked up the pile!', color: Colors.blue);
+  void _showPickUpNotification(String playerName) {
+    _showMessage('📦 $playerName picked up the pile!', color: Colors.blue);
   }
 
-  void _showBurnNotification() {
-    _showMessage('🔥 Play pile burned! Same player goes again.',
+  void _showBurnNotification(String playerName) {
+    _showMessage('🔥 $playerName burned the pile! Same player goes again.',
         color: Colors.deepOrange);
   }
 
@@ -706,12 +707,17 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
         final isMyTurn = room.currentPlayer == gameService.currentPlayerId;
 
         if (!isMyTurn) {
-          // Opponent likely picked up the pile
-          _onPickUpEffect();
+          // Opponent likely picked up the pile — the player who picked up was the previous current player
+          final pickupId = _previousCurrentPlayerId ?? room.currentPlayer;
+          final pickupName = pickupId == gameService.currentPlayerId
+              ? 'You'
+              : room.players.firstWhere((p) => p.id == pickupId, orElse: () => room.players.first).name;
+          _onPickUpEffect(pickupName);
         }
         // If it is our turn, the callbacks will handle burn/pick-up detection
       }
 
+      _previousCurrentPlayerId = room.currentPlayer;
       _previousPlayPileLength = currentPileLength;
 
       // Check for win condition

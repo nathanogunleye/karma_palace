@@ -26,10 +26,10 @@ class LocalGameService extends ChangeNotifier {
   Timer? _aiTurnTimer;
 
   // Callback for pick-up notifications
-  VoidCallback? _onPickUpEffect;
+  Function(String)? _onPickUpEffect;
 
   // Callback for burn effects
-  VoidCallback? _onBurnEffect;
+  Function(String)? _onBurnEffect;
 
   // A face-down card that was flipped but couldn't be played — awaiting pick-up
   game_card.Card? _revealedFaceDownCard;
@@ -45,7 +45,7 @@ class LocalGameService extends ChangeNotifier {
   game_card.Card? get revealedFaceDownCard => _revealedFaceDownCard;
 
   /// Set callback for pick-up notifications
-  void setPickUpEffectCallback(VoidCallback callback) {
+  void setPickUpEffectCallback(Function(String) callback) {
     _onPickUpEffect = callback;
   }
 
@@ -55,13 +55,20 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Set callback for burn effects
-  void setBurnEffectCallback(VoidCallback callback) {
+  void setBurnEffectCallback(Function(String) callback) {
     _onBurnEffect = callback;
   }
 
   /// Clear burn effect callback
   void clearBurnEffectCallback() {
     _onBurnEffect = null;
+  }
+
+  String _displayName(String playerId) {
+    if (playerId == _currentPlayerId) return 'You';
+    return _currentRoom!.players
+        .firstWhere((p) => p.id == playerId, orElse: () => _currentRoom!.players.first)
+        .name;
   }
 
   /// Create a new single player game
@@ -521,7 +528,7 @@ class LocalGameService extends ChangeNotifier {
       notifyListeners();
 
       // Notify UI about pick-up effect
-      _onPickUpEffect?.call();
+      _onPickUpEffect?.call(_displayName(_currentPlayerId!));
 
       // Check if AI should play next
       if (nextPlayerId != _currentPlayerId) {
@@ -912,7 +919,7 @@ class LocalGameService extends ChangeNotifier {
       finalPlayPile = [];
       // Keep whoever just played (not always the human)
       finalNextPlayerId = _currentRoom!.currentPlayer;
-      _onBurnEffect?.call();
+      _onBurnEffect?.call(_displayName(_currentRoom!.currentPlayer));
     }
 
     // Check for 4-of-a-kind burn effect (4 cards of the same value)
@@ -921,7 +928,7 @@ class LocalGameService extends ChangeNotifier {
       finalNextPlayerId = _currentRoom!.currentPlayer;
       _log.info(
           '4-of-a-kind detected - play pile burned, same player plays again');
-      _onBurnEffect?.call();
+      _onBurnEffect?.call(_displayName(_currentRoom!.currentPlayer));
     }
 
     // If the resolved next player has already won (e.g. they just played a 10 as
