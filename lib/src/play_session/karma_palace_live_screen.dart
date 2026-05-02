@@ -273,7 +273,8 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
 
-    if (!_isMultiSelectMode) {
+    // Face-down cards are blind flips, so they must always be played one at a time.
+    if (!_isMultiSelectMode && sourceZone != 'faceDown') {
       final sameValueCards = _getSameValueCards(card.value, sourceZone);
       if (sameValueCards.length > 1) {
         _startMultiSelectMode(card.value, sourceZone);
@@ -297,6 +298,8 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   }
 
   List<game_card.Card> _getSameValueCards(String value, String sourceZone) {
+    if (sourceZone == 'faceDown') return [];
+
     final gameService = context.read<FirebaseGameService>();
     final room = gameService.currentRoom;
     if (room == null || gameService.currentPlayerId == null) return [];
@@ -351,6 +354,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   void _playSelectedCards() {
     if (_selectedCardIds.isEmpty || _multiSelectSourceZone == null) return;
+    if (_multiSelectSourceZone == 'faceDown') {
+      _cancelMultiSelect();
+      return;
+    }
     final gameService = context.read<FirebaseGameService>();
     final room = gameService.currentRoom;
     if (room == null || gameService.currentPlayerId == null) return;

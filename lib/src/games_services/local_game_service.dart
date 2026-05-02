@@ -11,12 +11,12 @@ import 'package:karma_palace/src/games_services/ai_player_service.dart';
 class LocalGameService extends ChangeNotifier {
   static final Logger _log = Logger('LocalGameService');
   static final LocalGameService _instance = LocalGameService._internal();
-  
+
   factory LocalGameService() => _instance;
   LocalGameService._internal();
 
   static const Uuid _uuid = Uuid();
-  
+
   // Game state
   Room? _currentRoom;
   String? _currentPlayerId;
@@ -65,7 +65,9 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Create a new single player game
-  Future<void> createSinglePlayerGame(String playerName, AIDifficulty difficulty, {int aiPlayerCount = 1}) async {
+  Future<void> createSinglePlayerGame(
+      String playerName, AIDifficulty difficulty,
+      {int aiPlayerCount = 1}) async {
     try {
       _aiDifficulty = difficulty;
       final playerId = _uuid.v4();
@@ -124,10 +126,9 @@ class LocalGameService extends ChangeNotifier {
       _currentPlayerId = playerId;
       _isConnected = true;
       _gameInProgress = false;
-      
+
       _log.info('Created single player game with AI difficulty: $difficulty');
       notifyListeners();
-      
     } catch (e) {
       _log.severe('Failed to create single player game: $e');
       rethrow;
@@ -142,7 +143,7 @@ class LocalGameService extends ChangeNotifier {
 
     try {
       _gameInProgress = true;
-      
+
       final updatedRoom = Room(
         id: _currentRoom!.id,
         players: _currentRoom!.players,
@@ -157,7 +158,6 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _log.info('Started single player game');
       notifyListeners();
-      
     } catch (e) {
       _log.severe('Failed to start game: $e');
       rethrow;
@@ -171,8 +171,9 @@ class LocalGameService extends ChangeNotifier {
     }
 
     try {
-      final currentPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
-      
+      final currentPlayer =
+          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+
       if (!currentPlayer.isPlaying) {
         throw Exception('Not your turn');
       }
@@ -180,12 +181,13 @@ class LocalGameService extends ChangeNotifier {
       // For face-down cards: remove first, then check validity (blind flip).
       // If invalid, reveal the card and wait for the player to pick up.
       if (sourceZone == 'faceDown') {
-        final flippedPlayer = _removeCardFromPlayer(currentPlayer, card, 'faceDown');
+        final flippedPlayer =
+            _removeCardFromPlayer(currentPlayer, card, 'faceDown');
         if (!_canPlayCard(card, currentPlayer, sourceZone)) {
           _revealedFaceDownCard = card;
-          final updatedPlayers = _currentRoom!.players.map((p) =>
-            p.id == _currentPlayerId ? flippedPlayer : p
-          ).toList();
+          final updatedPlayers = _currentRoom!.players
+              .map((p) => p.id == _currentPlayerId ? flippedPlayer : p)
+              .toList();
           _currentRoom = Room(
             id: _currentRoom!.id,
             players: updatedPlayers,
@@ -197,7 +199,8 @@ class LocalGameService extends ChangeNotifier {
             lastActivity: DateTime.now(),
             resetActive: _currentRoom!.resetActive,
           );
-          _log.info('Face-down flip revealed ${card.displayString} — invalid, awaiting pick-up');
+          _log.info(
+              'Face-down flip revealed ${card.displayString} — invalid, awaiting pick-up');
           notifyListeners();
           return;
         }
@@ -209,24 +212,27 @@ class LocalGameService extends ChangeNotifier {
       }
 
       // Remove card from player's zone
-      final updatedPlayer = _removeCardFromPlayer(currentPlayer, card, sourceZone);
-      
+      final updatedPlayer =
+          _removeCardFromPlayer(currentPlayer, card, sourceZone);
+
       // Add card to play pile
       final updatedPlayPile = [..._currentRoom!.playPile, card];
-      
+
       // Draw cards from deck until player has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedPlayer.hand.length;
       final cardsDrawn = <game_card.Card>[];
       final remainingDeck = <game_card.Card>[];
-      
+
       if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
-        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        final drawCount = cardsToDraw > _currentRoom!.deck.length
+            ? _currentRoom!.deck.length
+            : cardsToDraw;
         cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
         remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
       } else {
         remainingDeck.addAll(_currentRoom!.deck);
       }
-      
+
       // Update player with drawn cards
       final finalPlayer = Player(
         id: updatedPlayer.id,
@@ -239,10 +245,10 @@ class LocalGameService extends ChangeNotifier {
         lastSeen: updatedPlayer.lastSeen,
         turnOrder: updatedPlayer.turnOrder,
       );
-      
+
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      
+
       // Update isPlaying status for all players
       final updatedPlayers = _currentRoom!.players.map((p) {
         if (p.id == _currentPlayerId) {
@@ -264,12 +270,9 @@ class LocalGameService extends ChangeNotifier {
       }).toList();
 
       // Handle special card effects
-      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
-        card, 
-        updatedPlayPile, 
-        nextPlayerId, 
-        updatedPlayers
-      );
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
+          _handleSpecialCardEffects(
+              card, updatedPlayPile, nextPlayerId, updatedPlayers);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -285,14 +288,14 @@ class LocalGameService extends ChangeNotifier {
 
       _currentRoom = updatedRoom;
       _revealedFaceDownCard = null;
-      _log.info('Human played card: ${card.displayString}, drew ${cardsDrawn.length} cards');
+      _log.info(
+          'Human played card: ${card.displayString}, drew ${cardsDrawn.length} cards');
       notifyListeners();
 
       // Check if AI should play next
       if (finalNextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
       }
-
     } catch (e) {
       _log.severe('Failed to play card: $e');
       rethrow;
@@ -300,9 +303,14 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Play multiple cards at once (human player)
-  Future<void> playMultipleCards(List<game_card.Card> cards, String sourceZone) async {
+  Future<void> playMultipleCards(
+      List<game_card.Card> cards, String sourceZone) async {
     if (_currentRoom == null || _currentPlayerId == null) {
       throw Exception('Not in a game');
+    }
+
+    if (sourceZone == 'faceDown') {
+      throw Exception('Face-down cards must be played one at a time');
     }
 
     if (cards.isEmpty) {
@@ -310,8 +318,9 @@ class LocalGameService extends ChangeNotifier {
     }
 
     try {
-      final currentPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
-      
+      final currentPlayer =
+          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+
       if (!currentPlayer.isPlaying) {
         throw Exception('Not your turn');
       }
@@ -326,25 +335,27 @@ class LocalGameService extends ChangeNotifier {
       // Remove all cards from player's zone
       var updatedPlayer = currentPlayer;
       final updatedPlayPile = <game_card.Card>[..._currentRoom!.playPile];
-      
+
       for (final card in cards) {
         updatedPlayer = _removeCardFromPlayer(updatedPlayer, card, sourceZone);
         updatedPlayPile.add(card);
       }
-      
+
       // Draw cards from deck until player has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedPlayer.hand.length;
       final cardsDrawn = <game_card.Card>[];
       final remainingDeck = <game_card.Card>[];
-      
+
       if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
-        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        final drawCount = cardsToDraw > _currentRoom!.deck.length
+            ? _currentRoom!.deck.length
+            : cardsToDraw;
         cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
         remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
       } else {
         remainingDeck.addAll(_currentRoom!.deck);
       }
-      
+
       // Update player with drawn cards
       final finalPlayer = Player(
         id: updatedPlayer.id,
@@ -357,10 +368,10 @@ class LocalGameService extends ChangeNotifier {
         lastSeen: updatedPlayer.lastSeen,
         turnOrder: updatedPlayer.turnOrder,
       );
-      
+
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      
+
       // Update isPlaying status for all players
       final updatedPlayers = _currentRoom!.players.map((p) {
         if (p.id == _currentPlayerId) {
@@ -383,12 +394,9 @@ class LocalGameService extends ChangeNotifier {
 
       // Handle special card effects for the last card played
       final lastCard = cards.last;
-      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
-        lastCard, 
-        updatedPlayPile, 
-        nextPlayerId, 
-        updatedPlayers
-      );
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
+          _handleSpecialCardEffects(
+              lastCard, updatedPlayPile, nextPlayerId, updatedPlayers);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -403,9 +411,10 @@ class LocalGameService extends ChangeNotifier {
       );
 
       _currentRoom = updatedRoom;
-      _log.info('Human played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')}, drew ${cardsDrawn.length} cards');
+      _log.info(
+          'Human played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')}, drew ${cardsDrawn.length} cards');
       notifyListeners();
-      
+
       // Check if AI should play next
       if (finalNextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
@@ -423,8 +432,9 @@ class LocalGameService extends ChangeNotifier {
     }
 
     try {
-      final currentPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
-      
+      final currentPlayer =
+          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+
       if (!currentPlayer.isPlaying) {
         throw Exception('Not your turn');
       }
@@ -435,20 +445,22 @@ class LocalGameService extends ChangeNotifier {
         ..._currentRoom!.playPile,
         if (_revealedFaceDownCard != null) _revealedFaceDownCard!,
       ];
-      
+
       // Draw cards from deck until player has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedHand.length;
       final cardsDrawn = <game_card.Card>[];
       final remainingDeck = <game_card.Card>[];
-      
+
       if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
-        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        final drawCount = cardsToDraw > _currentRoom!.deck.length
+            ? _currentRoom!.deck.length
+            : cardsToDraw;
         cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
         remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
       } else {
         remainingDeck.addAll(_currentRoom!.deck);
       }
-      
+
       final updatedPlayer = Player(
         id: currentPlayer.id,
         name: currentPlayer.name,
@@ -507,15 +519,14 @@ class LocalGameService extends ChangeNotifier {
       _revealedFaceDownCard = null;
       _log.info('Human picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
-      
+
       // Notify UI about pick-up effect
       _onPickUpEffect?.call();
-      
+
       // Check if AI should play next
       if (nextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
       }
-      
     } catch (e) {
       _log.severe('Failed to pick up pile: $e');
       rethrow;
@@ -541,7 +552,7 @@ class LocalGameService extends ChangeNotifier {
     _isConnected = false;
     _gameInProgress = false;
     _revealedFaceDownCard = null;
-    
+
     notifyListeners();
     _log.info('Left single player game');
   }
@@ -560,7 +571,9 @@ class LocalGameService extends ChangeNotifier {
     if (_currentRoom == null || !_gameInProgress) return;
 
     final currentId = _currentRoom!.currentPlayer;
-    if (currentId == _currentPlayerId) return; // Human's turn, shouldn't be here
+    if (currentId == _currentPlayerId) {
+      return; // Human's turn, shouldn't be here
+    }
 
     final aiPlayer = _currentRoom!.players.firstWhere(
       (p) => p.id == currentId,
@@ -568,9 +581,10 @@ class LocalGameService extends ChangeNotifier {
     );
 
     if (!aiPlayer.isPlaying) return;
-    
-    final choice = AIPlayerService.chooseCardToPlay(aiPlayer, _currentRoom!, _aiDifficulty);
-    
+
+    final choice = AIPlayerService.chooseCardToPlay(
+        aiPlayer, _currentRoom!, _aiDifficulty);
+
     if (choice != null) {
       final (card, sourceZone) = choice;
       _playAICard(card, sourceZone);
@@ -585,27 +599,30 @@ class LocalGameService extends ChangeNotifier {
     if (_currentRoom == null) return;
 
     try {
-      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentRoom!.currentPlayer);
-      
+      final aiPlayer = _currentRoom!.players
+          .firstWhere((p) => p.id == _currentRoom!.currentPlayer);
+
       // Remove card from AI's zone
       final updatedPlayer = _removeCardFromPlayer(aiPlayer, card, sourceZone);
-      
+
       // Add card to play pile
       final updatedPlayPile = [..._currentRoom!.playPile, card];
-      
+
       // Draw cards from deck until AI has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedPlayer.hand.length;
       final cardsDrawn = <game_card.Card>[];
       final remainingDeck = <game_card.Card>[];
-      
+
       if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
-        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        final drawCount = cardsToDraw > _currentRoom!.deck.length
+            ? _currentRoom!.deck.length
+            : cardsToDraw;
         cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
         remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
       } else {
         remainingDeck.addAll(_currentRoom!.deck);
       }
-      
+
       // Update AI player with drawn cards
       final finalPlayer = Player(
         id: updatedPlayer.id,
@@ -618,10 +635,10 @@ class LocalGameService extends ChangeNotifier {
         lastSeen: updatedPlayer.lastSeen,
         turnOrder: updatedPlayer.turnOrder,
       );
-      
+
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
-      
+
       // Update isPlaying status for all players
       final updatedPlayers = _currentRoom!.players.map((p) {
         if (p.id == aiPlayer.id) {
@@ -643,12 +660,9 @@ class LocalGameService extends ChangeNotifier {
       }).toList();
 
       // Handle special card effects
-      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) = _handleSpecialCardEffects(
-        card, 
-        updatedPlayPile, 
-        nextPlayerId, 
-        updatedPlayers
-      );
+      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
+          _handleSpecialCardEffects(
+              card, updatedPlayPile, nextPlayerId, updatedPlayers);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -663,14 +677,14 @@ class LocalGameService extends ChangeNotifier {
       );
 
       _currentRoom = updatedRoom;
-      _log.info('AI played card: ${card.displayString} from $sourceZone, drew ${cardsDrawn.length} cards');
+      _log.info(
+          'AI played card: ${card.displayString} from $sourceZone, drew ${cardsDrawn.length} cards');
       notifyListeners();
-      
+
       // Check if AI should continue playing
       if (finalNextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
       }
-      
     } catch (e) {
       _log.severe('Failed to play AI card: $e');
     }
@@ -681,24 +695,27 @@ class LocalGameService extends ChangeNotifier {
     if (_currentRoom == null) return;
 
     try {
-      final aiPlayer = _currentRoom!.players.firstWhere((p) => p.id == _currentRoom!.currentPlayer);
-      
+      final aiPlayer = _currentRoom!.players
+          .firstWhere((p) => p.id == _currentRoom!.currentPlayer);
+
       // Add all cards from play pile to AI's hand
       final updatedHand = [...aiPlayer.hand, ..._currentRoom!.playPile];
-      
+
       // Draw cards from deck until AI has 3 cards in hand (if deck has cards)
       final cardsToDraw = 3 - updatedHand.length;
       final cardsDrawn = <game_card.Card>[];
       final remainingDeck = <game_card.Card>[];
-      
+
       if (cardsToDraw > 0 && _currentRoom!.deck.isNotEmpty) {
-        final drawCount = cardsToDraw > _currentRoom!.deck.length ? _currentRoom!.deck.length : cardsToDraw;
+        final drawCount = cardsToDraw > _currentRoom!.deck.length
+            ? _currentRoom!.deck.length
+            : cardsToDraw;
         cardsDrawn.addAll(_currentRoom!.deck.take(drawCount));
         remainingDeck.addAll(_currentRoom!.deck.skip(drawCount));
       } else {
         remainingDeck.addAll(_currentRoom!.deck);
       }
-      
+
       final updatedPlayer = Player(
         id: aiPlayer.id,
         name: aiPlayer.name,
@@ -756,12 +773,11 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _log.info('AI picked up play pile, drew ${cardsDrawn.length} cards');
       notifyListeners();
-      
+
       // Check if AI should continue playing
       if (nextPlayerId != _currentPlayerId) {
         _scheduleAITurn();
       }
-      
     } catch (e) {
       _log.severe('Failed to pick up AI pile: $e');
     }
@@ -772,7 +788,8 @@ class LocalGameService extends ChangeNotifier {
     if (_currentRoom == null) return _currentPlayerId!;
 
     final players = _currentRoom!.players;
-    final currentIndex = players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
+    final currentIndex =
+        players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
     if (currentIndex == -1) return _currentPlayerId!;
 
     for (int i = 1; i <= players.length; i++) {
@@ -800,7 +817,8 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Remove card from player's zone
-  Player _removeCardFromPlayer(Player player, game_card.Card card, String sourceZone) {
+  Player _removeCardFromPlayer(
+      Player player, game_card.Card card, String sourceZone) {
     switch (sourceZone) {
       case 'hand':
         final updatedHand = player.hand.where((c) => c.id != card.id).toList();
@@ -817,7 +835,8 @@ class LocalGameService extends ChangeNotifier {
           forcedToPlayLow: player.forcedToPlayLow,
         );
       case 'faceUp':
-        final updatedFaceUp = player.faceUp.where((c) => c.id != card.id).toList();
+        final updatedFaceUp =
+            player.faceUp.where((c) => c.id != card.id).toList();
         return Player(
           id: player.id,
           name: player.name,
@@ -831,7 +850,8 @@ class LocalGameService extends ChangeNotifier {
           forcedToPlayLow: player.forcedToPlayLow,
         );
       case 'faceDown':
-        final updatedFaceDown = player.faceDown.where((c) => c.id != card.id).toList();
+        final updatedFaceDown =
+            player.faceDown.where((c) => c.id != card.id).toList();
         return Player(
           id: player.id,
           name: player.name,
@@ -899,7 +919,8 @@ class LocalGameService extends ChangeNotifier {
     if (_shouldBurnForFourOfAKind(finalPlayPile)) {
       finalPlayPile = [];
       finalNextPlayerId = _currentRoom!.currentPlayer;
-      _log.info('4-of-a-kind detected - play pile burned, same player plays again');
+      _log.info(
+          '4-of-a-kind detected - play pile burned, same player plays again');
       _onBurnEffect?.call();
     }
 
@@ -910,7 +931,8 @@ class LocalGameService extends ChangeNotifier {
       orElse: () => finalPlayers.first,
     );
     if (nextTarget.hasWon) {
-      final startIndex = finalPlayers.indexWhere((p) => p.id == finalNextPlayerId);
+      final startIndex =
+          finalPlayers.indexWhere((p) => p.id == finalNextPlayerId);
       for (int i = 1; i < finalPlayers.length; i++) {
         final candidate = finalPlayers[(startIndex + i) % finalPlayers.length];
         if (!candidate.hasWon) {
@@ -921,18 +943,20 @@ class LocalGameService extends ChangeNotifier {
     }
 
     // Re-sync isPlaying flags to match finalNextPlayerId (effects may have changed it)
-    finalPlayers = finalPlayers.map((p) => Player(
-      id: p.id,
-      name: p.name,
-      isPlaying: p.id == finalNextPlayerId,
-      hand: p.hand,
-      faceUp: p.faceUp,
-      faceDown: p.faceDown,
-      isConnected: p.isConnected,
-      lastSeen: p.lastSeen,
-      turnOrder: p.turnOrder,
-      forcedToPlayLow: p.forcedToPlayLow,
-    )).toList();
+    finalPlayers = finalPlayers
+        .map((p) => Player(
+              id: p.id,
+              name: p.name,
+              isPlaying: p.id == finalNextPlayerId,
+              hand: p.hand,
+              faceUp: p.faceUp,
+              faceDown: p.faceDown,
+              isConnected: p.isConnected,
+              lastSeen: p.lastSeen,
+              turnOrder: p.turnOrder,
+              forcedToPlayLow: p.forcedToPlayLow,
+            ))
+        .toList();
 
     return (finalPlayPile, finalPlayers, finalNextPlayerId);
   }
@@ -940,27 +964,43 @@ class LocalGameService extends ChangeNotifier {
   /// Check if the play pile should be burned due to 4 cards of the same value
   bool _shouldBurnForFourOfAKind(List<game_card.Card> playPile) {
     if (playPile.length < 4) return false;
-    
+
     // Get the last 4 cards
     final lastFourCards = playPile.sublist(playPile.length - 4);
-    
+
     // Check if all 4 cards have the same value
     final firstValue = lastFourCards[0].value;
-    final allSameValue = lastFourCards.every((card) => card.value == firstValue);
-    
+    final allSameValue =
+        lastFourCards.every((card) => card.value == firstValue);
+
     if (allSameValue) {
-      _log.info('4-of-a-kind detected: ${lastFourCards.map((c) => c.displayString).join(', ')}');
+      _log.info(
+          '4-of-a-kind detected: ${lastFourCards.map((c) => c.displayString).join(', ')}');
     }
-    
+
     return allSameValue;
   }
 
   /// Create a shuffled deck of cards
   List<game_card.Card> _createShuffledDeck() {
     final suits = ['♠', '♥', '♦', '♣'];
-    final values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    final values = [
+      'A',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      'J',
+      'Q',
+      'K'
+    ];
     final deck = <game_card.Card>[];
-    
+
     for (final suit in suits) {
       for (final value in values) {
         deck.add(game_card.Card(
@@ -970,29 +1010,27 @@ class LocalGameService extends ChangeNotifier {
         ));
       }
     }
-    
+
     deck.shuffle();
     return deck;
   }
-
-
 
   /// Get the effective top card (handles glass effect)
   game_card.Card? _getEffectiveTopCard() {
     if (_currentRoom == null || _currentRoom!.playPile.isEmpty) {
       return null;
     }
-    
+
     // Start from the top and work backwards through 5s
     for (int i = _currentRoom!.playPile.length - 1; i >= 0; i--) {
       final card = _currentRoom!.playPile[i];
-      
+
       // If we find a non-5 card, that's our effective top card
       if (card.value != '5') {
         return card;
       }
     }
-    
+
     // All cards are 5s — treat as empty pile, any card can be played
     return null;
   }
@@ -1000,19 +1038,20 @@ class LocalGameService extends ChangeNotifier {
   /// Check if a card can be played according to game rules
   bool _canPlayCard(game_card.Card card, Player player, [String? sourceZone]) {
     if (_currentRoom == null) return false;
-    
+
     // Check zone restrictions if sourceZone is provided
     if (sourceZone != null) {
       if (sourceZone == 'faceUp' && player.hand.isNotEmpty) {
         return false; // Can't play face-up cards if hand has cards
       }
-      if (sourceZone == 'faceDown' && (player.hand.isNotEmpty || player.faceUp.isNotEmpty)) {
+      if (sourceZone == 'faceDown' &&
+          (player.hand.isNotEmpty || player.faceUp.isNotEmpty)) {
         return false; // Can't play face-down cards if hand or face-up has cards
       }
     }
-    
+
     final effectiveTopCard = _getEffectiveTopCard();
-    
+
     if (effectiveTopCard == null) {
       return true; // First card of the game
     }
@@ -1038,7 +1077,8 @@ class LocalGameService extends ChangeNotifier {
     }
 
     // Check if playing a special card on a non-royal card
-    if (card.hasSpecialEffect && !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
+    if (card.hasSpecialEffect &&
+        !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       return true; // Special cards can be played on any non-royal card
     }
 

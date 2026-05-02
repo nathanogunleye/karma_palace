@@ -253,8 +253,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
 
-    // Check if we should start multi-select mode
-    if (!_isMultiSelectMode) {
+    // Check if we should start multi-select mode. Face-down cards are blind
+    // flips, so they must always be played one at a time.
+    if (!_isMultiSelectMode && sourceZone != 'faceDown') {
       final sameValueCards = _getSameValueCards(card.value, sourceZone);
       if (sameValueCards.length > 1) {
         _startMultiSelectMode(card.value, sourceZone);
@@ -277,6 +278,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   }
 
   List<game_card.Card> _getSameValueCards(String value, String sourceZone) {
+    if (sourceZone == 'faceDown') return [];
+
     final gameService = context.read<LocalGameService>();
     final room = gameService.currentRoom;
 
@@ -335,6 +338,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   void _playSelectedCards() {
     if (_selectedCardIds.isEmpty || _multiSelectSourceZone == null) return;
+    if (_multiSelectSourceZone == 'faceDown') {
+      _cancelMultiSelect();
+      return;
+    }
 
     final gameService = context.read<LocalGameService>();
     final room = gameService.currentRoom;
