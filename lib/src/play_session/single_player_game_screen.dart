@@ -253,9 +253,11 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
 
+    final canPlayTappedCard = _canCurrentPlayerPlayCard(card, sourceZone);
+
     // Check if we should start multi-select mode. Face-down cards are blind
     // flips, so they must always be played one at a time.
-    if (!_isMultiSelectMode && sourceZone != 'faceDown') {
+    if (!_isMultiSelectMode && sourceZone != 'faceDown' && canPlayTappedCard) {
       final sameValueCards = _getSameValueCards(card.value, sourceZone);
       if (sameValueCards.length > 1) {
         _startMultiSelectMode(card.value, sourceZone);
@@ -275,6 +277,20 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     // Normal single card play
     _triggerCardFly(card, tapCenter);
     _playCard(card, sourceZone);
+  }
+
+  bool _canCurrentPlayerPlayCard(game_card.Card card, String sourceZone) {
+    final gameService = context.read<LocalGameService>();
+    final room = gameService.currentRoom;
+
+    if (room == null || gameService.currentPlayerId == null) return false;
+
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+
+    return _canPlayCard(card, currentPlayer, sourceZone);
   }
 
   List<game_card.Card> _getSameValueCards(String value, String sourceZone) {
