@@ -255,7 +255,7 @@ class FirebaseGameService extends ChangeNotifier {
       final currentPlayer =
           _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
 
-      if (!currentPlayer.isPlaying) {
+      if (_currentRoom!.currentPlayer != _currentPlayerId) {
         throw Exception('Not your turn');
       }
 
@@ -329,10 +329,12 @@ class FirebaseGameService extends ChangeNotifier {
       final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
           _handleSpecialCardEffects(
               card, updatedPlayPile, nextPlayerId, updatedPlayers);
+      final finalPlayers =
+          _syncPlayersForTurn(finalCurrentPlayer, finalNextPlayerId);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
-        players: finalCurrentPlayer,
+        players: finalPlayers,
         currentPlayer: finalNextPlayerId,
         gameState: _currentRoom!.gameState,
         deck: remainingDeck,
@@ -367,7 +369,9 @@ class FirebaseGameService extends ChangeNotifier {
       final currentPlayer =
           _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
 
-      if (!currentPlayer.isPlaying) throw Exception('Not your turn');
+      if (_currentRoom!.currentPlayer != _currentPlayerId) {
+        throw Exception('Not your turn');
+      }
 
       for (final card in cards) {
         if (!_canPlayCard(card, currentPlayer, sourceZone)) {
@@ -428,10 +432,12 @@ class FirebaseGameService extends ChangeNotifier {
       final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
           _handleSpecialCardEffects(
               lastCard, updatedPlayPile, nextPlayerId, updatedPlayers);
+      final finalPlayers =
+          _syncPlayersForTurn(finalCurrentPlayer, finalNextPlayerId);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
-        players: finalCurrentPlayer,
+        players: finalPlayers,
         currentPlayer: finalNextPlayerId,
         gameState: _currentRoom!.gameState,
         deck: remainingDeck,
@@ -461,7 +467,7 @@ class FirebaseGameService extends ChangeNotifier {
       final currentPlayer =
           _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
 
-      if (!currentPlayer.isPlaying) {
+      if (_currentRoom!.currentPlayer != _currentPlayerId) {
         throw Exception('Not your turn');
       }
 
@@ -499,9 +505,26 @@ class FirebaseGameService extends ChangeNotifier {
       // Move to next player
       final nextPlayerId = _getNextPlayerId();
 
-      final updatedPlayers = _currentRoom!.players
-          .map((p) => p.id == _currentPlayerId ? updatedPlayer : p)
-          .toList();
+      final updatedPlayers = _syncPlayersForTurn(
+          _currentRoom!.players.map((p) {
+            if (p.id == _currentPlayerId) {
+              return Player(
+                id: updatedPlayer.id,
+                name: updatedPlayer.name,
+                isPlaying: updatedPlayer.isPlaying,
+                hand: updatedPlayer.hand,
+                faceUp: updatedPlayer.faceUp,
+                faceDown: updatedPlayer.faceDown,
+                isConnected: updatedPlayer.isConnected,
+                lastSeen: updatedPlayer.lastSeen,
+                turnOrder: updatedPlayer.turnOrder,
+                forcedToPlayLow: false,
+              );
+            }
+
+            return p;
+          }).toList(),
+          nextPlayerId);
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -724,6 +747,25 @@ class FirebaseGameService extends ChangeNotifier {
     }
 
     return players.first.id;
+  }
+
+  List<Player> _syncPlayersForTurn(
+      List<Player> players, String currentPlayerId) {
+    return players
+        .map((p) => Player(
+              id: p.id,
+              name: p.name,
+              isPlaying: p.id == currentPlayerId,
+              hand: p.hand,
+              faceUp: p.faceUp,
+              faceDown: p.faceDown,
+              isConnected: p.isConnected,
+              lastSeen: p.lastSeen,
+              turnOrder: p.turnOrder,
+              forcedToPlayLow:
+                  p.id == currentPlayerId ? p.forcedToPlayLow : false,
+            ))
+        .toList();
   }
 
   /// Handle special card effects
