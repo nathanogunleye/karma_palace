@@ -29,9 +29,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   bool _winAnnounced = false;
   bool _loserAnnounced = false;
 
-  // Card fly animation
+  // Card fly animation — single card
   final GlobalKey _playAreaKey = GlobalKey();
   final GlobalKey _pileKey = GlobalKey();
+  final GlobalKey _playerAreaKey = GlobalKey();
   late AnimationController _cardFlyController;
   late Animation<Offset> _flyAnimation;
   late Animation<double> _flyOpacity;
@@ -39,6 +40,15 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   late Animation<double> _flyRotation;
   game_card.Card? _flyingCard;
   int _flyRun = 0;
+
+  // Card fly animation — multiple cards
+  late AnimationController _multiCardController;
+  List<game_card.Card> _flyingCards = [];
+  List<Animation<Offset>> _multiCardPositions = [];
+  List<Animation<double>> _multiCardOpacities = [];
+  List<Animation<double>> _multiCardScales = [];
+  List<Animation<double>> _multiCardRotations = [];
+  int _multiCardFlyRun = 0;
 
   final Set<String> _selectedCardIds = <String>{};
   bool _isMultiSelectMode = false;
@@ -55,6 +65,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     _cardFlyController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 320),
+    );
+    _multiCardController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeGameState();
@@ -73,6 +87,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   void dispose() {
     _messageTimer?.cancel();
     _cardFlyController.dispose();
+    _multiCardController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     final gameService = context.read<FirebaseGameService>();
     gameService.clearPickUpEffectCallback();
@@ -273,6 +288,100 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     });
   }
 
+  void _triggerMultiCardFly(List<game_card.Card> cards) {
+    if (cards.isEmpty) return;
+    final playAreaBox =
+        _playAreaKey.currentContext?.findRenderObject() as RenderBox?;
+    final pileBox = _pileKey.currentContext?.findRenderObject() as RenderBox?;
+    final playerAreaBox =
+        _playerAreaKey.currentContext?.findRenderObject() as RenderBox?;
+    if (playAreaBox == null || pileBox == null) return;
+
+    final n = cards.length;
+    final pileDest = playAreaBox.globalToLocal(
+      pileBox.localToGlobal(pileBox.size.center(Offset.zero)),
+    );
+
+    // Fan cards out from the centre of the current player's card area.
+    // Fall back to bottom-centre of the play area if the key isn't ready.
+    final Offset baseStart;
+    if (playerAreaBox != null) {
+      baseStart = playAreaBox.globalToLocal(
+        playerAreaBox.localToGlobal(playerAreaBox.size.center(Offset.zero)),
+      );
+    } else {
+      final areaSize = playAreaBox.size;
+      baseStart = Offset(areaSize.width / 2, areaSize.height - 120);
+    }
+    const spread = 30.0; // horizontal gap between card start positions
+
+    // Stagger: each card departs 10 % of the total duration after the previous
+    const stagger = 0.10;
+    _multiCardController.duration = Duration(
+      milliseconds: 320 + (n - 1) * 70,
+    );
+    _multiCardController.reset();
+
+    final positions = <Animation<Offset>>[];
+    final opacities = <Animation<double>>[];
+    final scales = <Animation<double>>[];
+    final rotations = <Animation<double>>[];
+
+    for (int i = 0; i < n; i++) {
+      final t0 = (i * stagger).clamp(0.0, 1.0);
+      final t1 = (t0 + (1.0 - stagger * (n - 1))).clamp(t0 + 0.01, 1.0);
+      final interval = Interval(t0, t1, curve: Curves.easeInOutCubic);
+
+      final xOffset = (i - (n - 1) / 2.0) * spread;
+      final start = baseStart + Offset(xOffset, 0);
+
+      positions.add(
+        Tween<Offset>(begin: start, end: pileDest).animate(
+          CurvedAnimation(parent: _multiCardController, curve: interval),
+        ),
+      );
+      opacities.add(
+        TweenSequence<double>([
+          TweenSequenceItem(tween: ConstantTween(1.0), weight: 70),
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
+        ]).animate(
+          CurvedAnimation(parent: _multiCardController, curve: interval),
+        ),
+      );
+      scales.add(
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.12), weight: 35),
+          TweenSequenceItem(tween: Tween(begin: 1.12, end: 0.82), weight: 65),
+        ]).animate(
+          CurvedAnimation(parent: _multiCardController, curve: interval),
+        ),
+      );
+      rotations.add(
+        Tween<double>(
+          begin: -0.06 + i * 0.04,
+          end: 0.05 - i * 0.02,
+        ).animate(
+          CurvedAnimation(parent: _multiCardController, curve: interval),
+        ),
+      );
+    }
+
+    final run = ++_multiCardFlyRun;
+    setState(() {
+      _flyingCards = List<game_card.Card>.from(cards);
+      _multiCardPositions = positions;
+      _multiCardOpacities = opacities;
+      _multiCardScales = scales;
+      _multiCardRotations = rotations;
+    });
+
+    _multiCardController.forward(from: 0).then((_) {
+      if (mounted && run == _multiCardFlyRun) {
+        setState(() => _flyingCards = []);
+      }
+    });
+  }
+
   void _onCardTap(game_card.Card card, String sourceZone, Offset tapCenter) {
     HapticFeedback.lightImpact();
     final gameService = context.read<FirebaseGameService>();
@@ -404,6 +513,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     final selectedCards =
         sourceCards.where((c) => _selectedCardIds.contains(c.id)).toList();
     if (selectedCards.isNotEmpty) {
+      _triggerMultiCardFly(selectedCards);
       _playMultipleCards(selectedCards, _multiSelectSourceZone!);
     }
     _cancelMultiSelect();
@@ -874,6 +984,49 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     );
   }
 
+  List<Widget> _buildMultiCardOverlays() {
+    const cardW = 56.0;
+    const cardH = 56.0 * 46 / 32;
+    final overlays = <Widget>[];
+    for (int i = 0; i < _flyingCards.length && i < _multiCardPositions.length; i++) {
+      final card = _flyingCards[i];
+      final posAnim = _multiCardPositions[i];
+      final opAnim = _multiCardOpacities[i];
+      final scAnim = _multiCardScales[i];
+      final rotAnim = _multiCardRotations[i];
+      overlays.add(
+        AnimatedBuilder(
+          animation: _multiCardController,
+          builder: (context, child) {
+            return Positioned(
+              left: posAnim.value.dx - cardW / 2,
+              top: posAnim.value.dy - cardH / 2,
+              child: IgnorePointer(
+                child: Transform.rotate(
+                  angle: rotAnim.value,
+                  child: Transform.scale(
+                    scale: scAnim.value,
+                    child: Opacity(
+                      opacity: opAnim.value.clamp(0.0, 1.0),
+                      child: child,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+          child: KarmaPalaceCardWidget(
+            card: card,
+            isFaceDown: false,
+            isPlayable: false,
+            size: const Size(cardW, cardH),
+          ),
+        ),
+      );
+    }
+    return overlays;
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameService = context.watch<FirebaseGameService>();
@@ -982,6 +1135,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                     Expanded(
                       child: LiveBoardWidget(
                         pileKey: _pileKey,
+                        playerAreaKey: _playerAreaKey,
                         onCardTap: _onCardTap,
                         selectedCardIds: _selectedCardIds,
                         isMultiSelectMode: _isMultiSelectMode,
@@ -1068,7 +1222,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                       ),
                   ],
                 ),
-                // Flying card overlay
+                // Flying card overlay — single card
                 if (_flyingCard != null)
                   AnimatedBuilder(
                     animation: _cardFlyController,
@@ -1099,6 +1253,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                       size: const Size(56, 56 * 46 / 32),
                     ),
                   ),
+
+                // Flying card overlay — multiple cards (multi-select play)
+                ..._buildMultiCardOverlays(),
               ],
             ),
           ),

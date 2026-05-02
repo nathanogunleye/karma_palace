@@ -9,6 +9,7 @@ import 'karma_palace_card_widget.dart';
 class LiveBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String, Offset)? onCardTap;
   final GlobalKey? pileKey;
+  final GlobalKey? playerAreaKey;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
   final String? multiSelectValue;
@@ -20,6 +21,7 @@ class LiveBoardWidget extends StatelessWidget {
     super.key,
     this.onCardTap,
     this.pileKey,
+    this.playerAreaKey,
     this.selectedCardIds,
     this.isMultiSelectMode = false,
     this.multiSelectValue,
@@ -116,6 +118,7 @@ class LiveBoardWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: _CurrentPlayerZones(
+            key: playerAreaKey,
             player: humanPlayer,
             isCurrentTurn: room.currentPlayer == humanPlayer.id,
             onCardTap: onCardTap,
@@ -408,6 +411,7 @@ class _CurrentPlayerZones extends StatelessWidget {
   final String? multiSelectSourceZone;
 
   const _CurrentPlayerZones({
+    super.key,
     required this.player,
     required this.isCurrentTurn,
     this.onCardTap,
