@@ -884,7 +884,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                               Consumer<LocalGameService>(
                                 builder: (context, svc, _) {
                                   final r = svc.currentRoom;
-                                  if (r == null) return const SizedBox.shrink();
+                                  if (r == null || r.gameState != GameState.playing) return const SizedBox.shrink();
                                   final isMyTurn =
                                       r.currentPlayer == svc.currentPlayerId;
                                   final turnName = isMyTurn

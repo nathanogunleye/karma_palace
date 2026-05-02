@@ -44,7 +44,7 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
 
     return Consumer<KarmaPalaceGameState>(
       builder: (context, gameState, child) {
-        final currentIsCurrentTurn = player?.id == gameState.room?.currentPlayer;
+        final currentIsCurrentTurn = gameState.gameInProgress && player?.id == gameState.room?.currentPlayer;
 
         return Container(
           width: playerAreaWidth,

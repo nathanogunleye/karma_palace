@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/model/firebase/player.dart';
+import 'package:karma_palace/src/model/firebase/room.dart';
 
 import 'karma_palace_card_widget.dart';
 import 'package:karma_palace/src/games_services/local_game_service.dart';
@@ -66,7 +67,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
               children: otherPlayers
                   .map((p) => _OtherPlayerTile(
                         player: p,
-                        isCurrentTurn: p.id == room.currentPlayer,
+                        isCurrentTurn: room.gameState == GameState.playing && p.id == room.currentPlayer,
                         tileWidth: tileWidth,
                       ))
                   .toList(),
@@ -124,7 +125,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: _CurrentPlayerZones(
             player: humanPlayer,
-            isCurrentTurn: room.currentPlayer == humanPlayer.id,
+            isCurrentTurn: room.gameState == GameState.playing && room.currentPlayer == humanPlayer.id,
             onCardTap: onCardTap,
             selectedCardIds: selectedCardIds,
             isMultiSelectMode: isMultiSelectMode,
