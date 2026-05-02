@@ -259,7 +259,45 @@ class FirebaseGameService extends ChangeNotifier {
         throw Exception('Not your turn');
       }
 
-      // Validate that the card can be played according to game rules
+      // For face-down cards, an invalid flip forces an automatic pick-up —
+      // the card goes to the pile and the player takes it all back.
+      if (sourceZone == 'faceDown' && !_canPlayCard(card, currentPlayer, sourceZone)) {
+        final flippedPlayer = _removeCardFromPlayer(currentPlayer, card, 'faceDown');
+        final pileWithFlipped = [..._currentRoom!.playPile, card];
+        final updatedHand = [...flippedPlayer.hand, ...pileWithFlipped];
+        final finalPlayer = Player(
+          id: flippedPlayer.id,
+          name: flippedPlayer.name,
+          isPlaying: flippedPlayer.isPlaying,
+          hand: updatedHand,
+          faceUp: flippedPlayer.faceUp,
+          faceDown: flippedPlayer.faceDown,
+          isConnected: flippedPlayer.isConnected,
+          lastSeen: flippedPlayer.lastSeen,
+          turnOrder: flippedPlayer.turnOrder,
+        );
+        final nextPlayerId = _getNextPlayerId();
+        final updatedPlayers = _syncPlayersForTurn(
+          _currentRoom!.players.map((p) => p.id == _currentPlayerId ? finalPlayer : p).toList(),
+          nextPlayerId,
+        );
+        final updatedRoom = Room(
+          id: _currentRoom!.id,
+          players: updatedPlayers,
+          currentPlayer: nextPlayerId,
+          gameState: _currentRoom!.gameState,
+          deck: _currentRoom!.deck,
+          playPile: [],
+          createdAt: _currentRoom!.createdAt,
+          lastActivity: DateTime.now(),
+        );
+        await roomRef.set(updatedRoom.toJson());
+        _log.info('Face-down flip invalid — forced pick-up');
+        _onPickUpEffect?.call();
+        return;
+      }
+
+      // Validate that non-face-down cards can be played
       if (!_canPlayCard(card, currentPlayer, sourceZone)) {
         throw Exception('Cannot play ${card.displayString} - invalid move');
       }

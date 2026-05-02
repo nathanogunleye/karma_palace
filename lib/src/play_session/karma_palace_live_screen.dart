@@ -171,29 +171,35 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   Future<void> _playCard(game_card.Card card, String sourceZone) async {
     try {
-      final gameState = context.read<KarmaPalaceGameState>();
+      // Face-down cards are blind flips — skip client-side validation so we
+      // never reveal the card's identity before or after the play.
+      if (sourceZone != 'faceDown') {
+        final gameState = context.read<KarmaPalaceGameState>();
 
-      // Validate the card play
-      _log.info('DEBUG: Validating card play: ${card.displayString}');
-      _log.info(
-          'DEBUG: Game state can play card: ${gameState.canPlayCard(card)}');
-      _log.info('DEBUG: Is my turn: ${gameState.isMyTurn}');
-      _log.info('DEBUG: Game in progress: ${gameState.gameInProgress}');
-      _log.info('DEBUG: Current player ID: ${gameState.currentPlayerId}');
-      _log.info('DEBUG: Room current player: ${gameState.room?.currentPlayer}');
+        _log.info('DEBUG: Validating card play: ${card.displayString}');
+        _log.info(
+            'DEBUG: Game state can play card: ${gameState.canPlayCard(card)}');
+        _log.info('DEBUG: Is my turn: ${gameState.isMyTurn}');
+        _log.info('DEBUG: Game in progress: ${gameState.gameInProgress}');
+        _log.info('DEBUG: Current player ID: ${gameState.currentPlayerId}');
+        _log.info(
+            'DEBUG: Room current player: ${gameState.room?.currentPlayer}');
 
-      if (!gameState.canPlayCard(card)) {
-        _log.info('DEBUG: Card play validation failed');
-        _showMessage('Cannot play ${card.displayString}', color: Colors.red);
-        return;
+        if (!gameState.canPlayCard(card)) {
+          _log.info('DEBUG: Card play validation failed');
+          _showMessage('Cannot play ${card.displayString}', color: Colors.red);
+          return;
+        }
+        _log.info('DEBUG: Card play validation passed');
       }
-      _log.info('DEBUG: Card play validation passed');
 
       final gameService = context.read<FirebaseGameService>();
       await gameService.playCard(card, sourceZone);
       _log.info('Played card: ${card.displayString} from $sourceZone');
-      _showMessage('Played ${card.displayString}',
-          color: Colors.green, duration: const Duration(seconds: 1));
+      if (sourceZone != 'faceDown') {
+        _showMessage('Played ${card.displayString}',
+            color: Colors.green, duration: const Duration(seconds: 1));
+      }
     } catch (e) {
       _log.severe('Failed to play card: $e');
       _showMessage(e.toString().replaceFirst('Exception: ', ''),
@@ -293,7 +299,8 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     }
 
     final gameState = context.read<KarmaPalaceGameState>();
-    if (gameState.canPlayCard(card)) {
+    // Face-down cards are always flipped blind — always animate.
+    if (sourceZone == 'faceDown' || gameState.canPlayCard(card)) {
       _triggerCardFly(card, tapCenter);
     }
     _playCard(card, sourceZone);
@@ -453,6 +460,20 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     }
 
     return false;
+  }
+
+  /// True when the player has only face-down cards left (must flip one before picking up).
+  bool _isInFaceDownOnlyPhase() {
+    final gameService = context.read<FirebaseGameService>();
+    final room = gameService.currentRoom;
+    if (room == null || gameService.currentPlayerId == null) return false;
+    final currentPlayer = room.players.firstWhere(
+      (p) => p.id == gameService.currentPlayerId,
+      orElse: () => room.players.first,
+    );
+    return currentPlayer.hand.isEmpty &&
+        currentPlayer.faceUp.isEmpty &&
+        currentPlayer.faceDown.isNotEmpty;
   }
 
   /// Get the effective top card (handles glass effect)
@@ -1008,12 +1029,14 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                                           label: 'Pick Up Pile',
                                           color: gameService.currentPlayerId ==
                                                       room.currentPlayer &&
-                                                  !_canCurrentPlayerPlayAnyCard()
+                                                  !_canCurrentPlayerPlayAnyCard() &&
+                                                  !_isInFaceDownOnlyPhase()
                                               ? const Color(0xFFF97316)
                                               : Colors.grey.shade700,
                                           onTap: gameService.currentPlayerId ==
                                                       room.currentPlayer &&
-                                                  !_canCurrentPlayerPlayAnyCard()
+                                                  !_canCurrentPlayerPlayAnyCard() &&
+                                                  !_isInFaceDownOnlyPhase()
                                               ? _pickUpPile
                                               : null,
                                         ),
