@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
+import 'package:karma_palace/src/audio/audio_controller.dart';
+import 'package:karma_palace/src/audio/sounds.dart';
 import 'package:karma_palace/src/games_services/local_game_service.dart';
 import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
@@ -184,6 +186,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   Future<void> _pickUpPile() async {
     HapticFeedback.mediumImpact();
+    context.read<AudioController>().playSfx(SfxType.huhsh);
     try {
       final gameService = context.read<LocalGameService>();
       await gameService.pickUpPile();
@@ -552,12 +555,14 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   void _onPickUpEffect() {
     if (mounted) {
+      context.read<AudioController>().playSfx(SfxType.huhsh);
       _showPickUpNotification();
     }
   }
 
   void _onBurnEffect() {
     if (mounted) {
+      context.read<AudioController>().playSfx(SfxType.erase);
       _showBurnNotification();
     }
   }
@@ -577,6 +582,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
     if (room != null && mounted) {
       final currentPileLength = room.playPile.length;
+
+      if (currentPileLength > _previousPlayPileLength) {
+        context.read<AudioController>().playSfx(SfxType.wssh);
+      }
 
       // Detect if pile was emptied (either by burn or pick-up)
       if (_previousPlayPileLength > 0 && currentPileLength == 0) {
@@ -609,6 +618,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     );
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
+      context.read<AudioController>().playSfx(SfxType.congrats);
       gameService.stopGame();
       _showWinDialog(room.playPile.lastOrNull);
       return;

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
+import 'package:karma_palace/src/audio/audio_controller.dart';
+import 'package:karma_palace/src/audio/sounds.dart';
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
@@ -26,6 +28,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   static final Logger _log = Logger('KarmaPalaceLiveScreen');
 
   int _previousPlayPileLength = 0;
+  int _previousWinnerCount = 0;
   bool _winAnnounced = false;
   bool _loserAnnounced = false;
 
@@ -224,6 +227,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   Future<void> _pickUpPile() async {
     HapticFeedback.mediumImpact();
+    context.read<AudioController>().playSfx(SfxType.huhsh);
     try {
       final gameService = context.read<FirebaseGameService>();
       await gameService.pickUpPile();
@@ -663,12 +667,14 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   void _onPickUpEffect() {
     if (mounted) {
+      context.read<AudioController>().playSfx(SfxType.huhsh);
       _showPickUpNotification();
     }
   }
 
   void _onBurnEffect() {
     if (mounted) {
+      context.read<AudioController>().playSfx(SfxType.erase);
       _showBurnNotification();
     }
   }
@@ -688,6 +694,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
     if (room != null && mounted) {
       final currentPileLength = room.playPile.length;
+
+      if (currentPileLength > _previousPlayPileLength) {
+        context.read<AudioController>().playSfx(SfxType.wssh);
+      }
 
       // Detect if pile was emptied (either by burn or pick-up)
       if (_previousPlayPileLength > 0 && currentPileLength == 0) {
@@ -716,6 +726,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
+    final currentWinnerCount = room.players.where((p) => p.hasWon).length;
+    if (currentWinnerCount > _previousWinnerCount) {
+      _previousWinnerCount = currentWinnerCount;
+      context.read<AudioController>().playSfx(SfxType.congrats);
+    }
+
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
       _showWinNotification(room.playPile.lastOrNull);
