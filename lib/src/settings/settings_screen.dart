@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../player_progress/player_progress.dart';
@@ -8,6 +9,9 @@ import 'custom_name_dialog.dart';
 import 'settings.dart';
 
 class SettingsScreen extends StatelessWidget {
+  static final Future<PackageInfo> _packageInfoFuture =
+      PackageInfo.fromPlatform();
+
   const SettingsScreen({super.key});
 
   @override
@@ -34,13 +38,15 @@ class SettingsScreen extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     GestureDetector(
                       onTap: () => GoRouter.of(context).pop(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: const Color(0x1AFFFFFF),
                           borderRadius: BorderRadius.circular(8),
@@ -48,11 +54,14 @@ class SettingsScreen extends StatelessWidget {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.arrow_back, color: Colors.white, size: 16),
+                            Icon(Icons.arrow_back,
+                                color: Colors.white, size: 16),
                             SizedBox(width: 4),
                             Text(
                               'Back',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -88,7 +97,8 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () => showCustomNameDialog(context),
                         child: Row(
                           children: [
-                            const Icon(Icons.person_outline, color: Colors.white70, size: 20),
+                            const Icon(Icons.person_outline,
+                                color: Colors.white70, size: 20),
                             const SizedBox(width: 12),
                             const Text(
                               'Name',
@@ -103,11 +113,13 @@ class SettingsScreen extends StatelessWidget {
                               valueListenable: settings.playerName,
                               builder: (context, name, _) => Text(
                                 name,
-                                style: const TextStyle(color: Colors.white54, fontSize: 15),
+                                style: const TextStyle(
+                                    color: Colors.white54, fontSize: 15),
                               ),
                             ),
                             const SizedBox(width: 6),
-                            const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
+                            const Icon(Icons.chevron_right,
+                                color: Colors.white38, size: 20),
                           ],
                         ),
                       ),
@@ -186,7 +198,8 @@ class SettingsScreen extends StatelessWidget {
                         },
                         child: const Row(
                           children: [
-                            Icon(Icons.delete_outline, color: Color(0xFFFC8181), size: 20),
+                            Icon(Icons.delete_outline,
+                                color: Color(0xFFFC8181), size: 20),
                             SizedBox(width: 12),
                             Text(
                               'Reset Progress',
@@ -198,6 +211,47 @@ class SettingsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // App version
+                      FutureBuilder<PackageInfo>(
+                        future: _packageInfoFuture,
+                        builder: (context, snapshot) {
+                          final packageInfo = snapshot.data;
+                          final versionLabel = packageInfo == null
+                              ? 'Loading...'
+                              : '${packageInfo.version} (Build ${packageInfo.buildNumber})';
+
+                          return _SettingsRow(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline,
+                                    color: Colors.white70, size: 20),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Version',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: Text(
+                                    versionLabel,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                    style: const TextStyle(
+                                        color: Colors.white54, fontSize: 15),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 24),
