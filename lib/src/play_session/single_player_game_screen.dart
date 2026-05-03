@@ -15,6 +15,7 @@ import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
 import 'single_player_board_widget.dart';
 import 'karma_palace_card_widget.dart';
+import 'seven_overlay.dart';
 
 class SinglePlayerGameScreen extends StatefulWidget {
   const SinglePlayerGameScreen({super.key});
@@ -56,6 +57,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   Color _inlineMessageColor = Colors.grey;
   Timer? _messageTimer;
 
+  bool _showSevenOverlay = false;
+  Timer? _sevenOverlayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +81,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   @override
   void dispose() {
     _messageTimer?.cancel();
+    _sevenOverlayTimer?.cancel();
     _cardFlyController.dispose();
     final gameService = context.read<LocalGameService>();
     gameService.clearPickUpEffectCallback();
@@ -631,6 +636,15 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
         color: Colors.deepOrange);
   }
 
+  void _triggerSevenOverlay() {
+    _sevenOverlayTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _showSevenOverlay = true);
+    _sevenOverlayTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) setState(() => _showSevenOverlay = false);
+    });
+  }
+
   void _onGameStateChanged() {
     final gameService = context.read<LocalGameService>();
     final room = gameService.currentRoom;
@@ -658,6 +672,22 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
           } else {
             _onPickUpEffect(actingPlayerName);
           }
+        }
+      }
+
+      // Show 7 overlay when the turn just changed to the human player and
+      // they are forced to play low.
+      final isMyTurn = room.currentPlayer == gameService.currentPlayerId;
+      final turnJustChangedToMe = isMyTurn &&
+          _previousCurrentPlayerId != null &&
+          _previousCurrentPlayerId != gameService.currentPlayerId;
+      if (turnJustChangedToMe) {
+        final me = room.players.firstWhere(
+          (p) => p.id == gameService.currentPlayerId,
+          orElse: () => room.players.first,
+        );
+        if (me.forcedToPlayLow == true) {
+          _triggerSevenOverlay();
         }
       }
 
@@ -1115,6 +1145,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       ),
                   ],
                 ),
+                // Seven overlay — shown when it's the player's turn and forcedToPlayLow
+                SevenOverlay(isActive: _showSevenOverlay),
+
                 // Flying card overlay
                 if (_flyingCard != null)
                   AnimatedBuilder(
