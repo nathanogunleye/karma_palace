@@ -588,21 +588,23 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
         context.read<AudioController>().playSfx(SfxType.wssh);
       }
 
-      // Detect if pile was emptied (either by burn or pick-up)
+      // Detect if pile was emptied (either by burn or pick-up) by the AI.
+      // Callbacks handle the local player's own actions.
       if (_previousPlayPileLength > 0 && currentPileLength == 0) {
-        // Pile was emptied - determine if it was a pick-up or burn
-        // We'll use a simple heuristic: if it's not our turn, it's likely a pick-up
-        final isMyTurn = room.currentPlayer == gameService.currentPlayerId;
-
-        if (!isMyTurn) {
-          // AI likely picked up the pile — the player who picked up was the previous current player
-          final pickupId = _previousCurrentPlayerId ?? room.currentPlayer;
-          final pickupName = pickupId == gameService.currentPlayerId
-              ? 'You'
-              : room.players.firstWhere((p) => p.id == pickupId, orElse: () => room.players.first).name;
-          _onPickUpEffect(pickupName);
+        final actingPlayerId = _previousCurrentPlayerId ?? room.currentPlayer;
+        if (actingPlayerId != gameService.currentPlayerId) {
+          final actingPlayerName = room.players
+              .firstWhere((p) => p.id == actingPlayerId, orElse: () => room.players.first)
+              .name;
+          // Burn: same player goes again (currentPlayer unchanged).
+          // Pickup: turn moves to next player (currentPlayer changed).
+          final isBurn = room.currentPlayer == actingPlayerId;
+          if (isBurn) {
+            _onBurnEffect(actingPlayerName);
+          } else {
+            _onPickUpEffect(actingPlayerName);
+          }
         }
-        // If it is our turn, the callbacks will handle burn/pick-up detection
       }
 
       _previousCurrentPlayerId = room.currentPlayer;
