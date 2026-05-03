@@ -46,21 +46,8 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
       builder: (context, gameState, child) {
         final currentIsCurrentTurn = gameState.gameInProgress && player?.id == gameState.room?.currentPlayer;
 
-        return Container(
-          width: playerAreaWidth,
-          height: playerAreaHeight,
-          decoration: BoxDecoration(
-            color: currentIsCurrentTurn
-                ? const Color(0x33FFFFFF) // white/20 — active player highlight
-                : const Color(0x0DFFFFFF), // white/5
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: currentIsCurrentTurn
-                  ? Colors.white.withValues(alpha: 0.6)
-                  : Colors.white.withValues(alpha: 0.2),
-              width: currentIsCurrentTurn ? 1.5 : 1,
-            ),
-          ),
+        return _PlayerAreaContainer(
+          isCurrentTurn: currentIsCurrentTurn,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -353,6 +340,89 @@ class KarmaPalacePlayerWidget extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PlayerAreaContainer extends StatefulWidget {
+  final bool isCurrentTurn;
+  final Widget child;
+
+  const _PlayerAreaContainer({
+    required this.isCurrentTurn,
+    required this.child,
+  });
+
+  @override
+  State<_PlayerAreaContainer> createState() => _PlayerAreaContainerState();
+}
+
+class _PlayerAreaContainerState extends State<_PlayerAreaContainer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _glow = Tween<double>(begin: 8, end: 24).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isCurrentTurn) {
+      return Container(
+        width: playerAreaWidth,
+        height: playerAreaHeight,
+        decoration: BoxDecoration(
+          color: const Color(0x0DFFFFFF),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: widget.child,
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _glow,
+      builder: (context, child) => Container(
+        width: playerAreaWidth,
+        height: playerAreaHeight,
+        decoration: BoxDecoration(
+          color: const Color(0x33FFFFFF),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: const Color(0xFFFACC15).withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFACC15).withValues(alpha: 0.6),
+              blurRadius: _glow.value,
+              spreadRadius: _glow.value / 3,
+            ),
+            BoxShadow(
+              color: const Color(0xFFFACC15).withValues(alpha: 0.25),
+              blurRadius: _glow.value * 2,
+              spreadRadius: _glow.value / 2,
+            ),
+          ],
+        ),
+        child: child,
+      ),
+      child: widget.child,
     );
   }
 }

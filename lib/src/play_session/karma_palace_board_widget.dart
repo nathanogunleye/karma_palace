@@ -120,7 +120,7 @@ class KarmaPalaceBoardWidget extends StatelessWidget {
           );
         }
         
-        return Stack(children: widgets);
+        return Stack(clipBehavior: Clip.none, children: widgets);
       },
     );
   }
