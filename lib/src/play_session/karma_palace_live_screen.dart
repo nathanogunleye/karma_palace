@@ -742,7 +742,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
-      _showWinNotification(room.playPile.lastOrNull);
+      final playersWithCards = room.players.where((p) => !p.hasWon).toList();
+      final isLastToFinish = playersWithCards.isEmpty;
+      _showWinNotification(room.playPile.lastOrNull, isLastToFinish: isLastToFinish);
       return;
     }
 
@@ -750,16 +752,19 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     if (!_loserAnnounced && room.players.length > 1) {
       final playersWithCards = room.players.where((p) => !p.hasWon).toList();
       if (playersWithCards.length == 1) {
-        _loserAnnounced = true;
         final loser = playersWithCards.first;
         final isMe = loser.id == gameService.currentPlayerId;
-        _showLoserNotification(
-            isMe ? 'You' : loser.name, room.playPile.lastOrNull);
+        // Don't label the human player as loser while they still have cards —
+        // let them finish and receive the win notification instead.
+        if (!isMe) {
+          _loserAnnounced = true;
+          _showLoserNotification(loser.name, room.playPile.lastOrNull);
+        }
       }
     }
   }
 
-  void _showWinNotification(game_card.Card? winningCard) {
+  void _showWinNotification(game_card.Card? winningCard, {bool isLastToFinish = false}) {
     if (!mounted) return;
     showDialog(
       context: context,
@@ -779,9 +784,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
             children: [
               const Text('🎉', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
-              const Text(
-                'You\'re Out!',
-                style: TextStyle(
+              Text(
+                isLastToFinish ? 'You Won!' : 'You\'re Out!',
+                style: const TextStyle(
                   color: Color(0xFF86EFAC),
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -792,10 +797,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                 _DialogCard(card: winningCard),
                 const SizedBox(height: 12),
               ],
-              const Text(
-                'You\'ve played all your cards! The game continues with the remaining players.',
+              Text(
+                isLastToFinish
+                    ? 'You\'ve cleared all your cards!'
+                    : 'You\'ve played all your cards! The game continues with the remaining players.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
               const SizedBox(height: 24),
               Row(
