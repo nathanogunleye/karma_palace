@@ -1257,12 +1257,12 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
         backgroundColor: Colors.transparent,
         body: Container(
           decoration: gradientDecoration,
-          child: SafeArea(
-            child: Stack(
-              key: _playAreaKey,
-              clipBehavior: Clip.none,
-              children: [
-                Column(
+          child: Stack(
+            key: _playAreaKey,
+            clipBehavior: Clip.none,
+            children: [
+              SafeArea(
+                child: Column(
                   children: [
                     // Header — Exit | Title/Turn | Rules
                     Padding(
@@ -1444,23 +1444,24 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                       ),
                   ],
                 ),
-                // Glass smash overlay — shown when a 5 is played
-                GlassSmashOverlay(isActive: _showGlassSmash),
+              ),
+              // Glass smash overlay — shown when a 5 is played
+              GlassSmashOverlay(isActive: _showGlassSmash),
 
-                // Seven overlay — shown when it's the player's turn and forcedToPlayLow
-                SevenOverlay(isActive: _showSevenOverlay),
+              // Seven overlay — shown when it's the player's turn and forcedToPlayLow
+              SevenOverlay(isActive: _showSevenOverlay),
 
-                // Burn overlay — shown when 10 is played or four-of-a-kind completes
-                BurnOverlay(isActive: _showBurnOverlay),
+              // Burn overlay — shown when 10 is played or four-of-a-kind completes
+              BurnOverlay(isActive: _showBurnOverlay),
 
-                // Reset overlay — shown when a 2 is played
-                ResetOverlay(isActive: _showResetOverlay),
+              // Reset overlay — shown when a 2 is played
+              ResetOverlay(isActive: _showResetOverlay),
 
-                // Skip overlay — shown when a 9 is played
-                SkipOverlay(isActive: _showSkipOverlay),
+              // Skip overlay — shown when a 9 is played
+              SkipOverlay(isActive: _showSkipOverlay),
 
-                // Flying card overlay — single card
-                if (_flyingCard != null)
+              // Flying card overlay — single card
+              if (_flyingCard != null)
                   AnimatedBuilder(
                     animation: _cardFlyController,
                     builder: (context, child) {
@@ -1491,10 +1492,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                     ),
                   ),
 
-                // Flying card overlay — multiple cards (multi-select play)
-                ..._buildMultiCardOverlays(),
-              ],
-            ),
+              // Flying card overlay — multiple cards (multi-select play)
+              ..._buildMultiCardOverlays(),
+            ],
           ),
         ),
       ),
