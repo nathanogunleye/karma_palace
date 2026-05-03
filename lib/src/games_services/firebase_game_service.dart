@@ -77,17 +77,15 @@ class FirebaseGameService extends ChangeNotifier {
           .substring(0, 8); // Use first 8 characters for shorter room ID
       final playerId = _uuid.v4();
 
-      // Create initial deck
+      // Create initial deck and deal 9 cards to host immediately
       final deck = _createShuffledDeck();
-
-      // Create host player with no cards — startGame deals to everyone
       final hostPlayer = Player(
         id: playerId,
         name: playerName,
         isPlaying: false,
-        hand: [],
-        faceUp: [],
-        faceDown: [],
+        hand: deck.take(3).toList(),
+        faceUp: deck.skip(3).take(3).toList(),
+        faceDown: deck.skip(6).take(3).toList(),
         isConnected: true,
         lastSeen: DateTime.now(),
         turnOrder: 0,
@@ -99,7 +97,7 @@ class FirebaseGameService extends ChangeNotifier {
         players: [hostPlayer],
         currentPlayer: playerId,
         gameState: GameState.waiting,
-        deck: deck,
+        deck: deck.skip(9).toList(),
         playPile: [],
         createdAt: DateTime.now(),
         lastActivity: DateTime.now(),
@@ -151,27 +149,27 @@ class FirebaseGameService extends ChangeNotifier {
         throw Exception('Room is full (maximum 5 players)');
       }
 
-      // Create new player
+      // Deal 9 cards to the new player from the remaining deck
       final newPlayer = Player(
         id: playerId,
         name: playerName,
         isPlaying: false,
-        hand: [],
-        faceUp: [],
-        faceDown: [],
+        hand: room.deck.take(3).toList(),
+        faceUp: room.deck.skip(3).take(3).toList(),
+        faceDown: room.deck.skip(6).take(3).toList(),
         isConnected: true,
         lastSeen: DateTime.now(),
         turnOrder: room.players.length,
       );
 
-      // Add player to room
+      // Add player to room and remove their cards from the deck
       final updatedPlayers = [...room.players, newPlayer];
       final updatedRoom = Room(
         id: room.id,
         players: updatedPlayers,
         currentPlayer: room.currentPlayer,
         gameState: room.gameState,
-        deck: room.deck,
+        deck: room.deck.skip(9).toList(),
         playPile: room.playPile,
         createdAt: room.createdAt,
         lastActivity: DateTime.now(),
@@ -199,45 +197,31 @@ class FirebaseGameService extends ChangeNotifier {
     try {
       final roomRef = _database.ref('rooms/$_currentRoomId');
 
-      // Deal cards to all players
-      final updatedPlayers = <Player>[];
-      final deck = _currentRoom!.deck;
-      int cardIndex = 0;
-
-      for (int i = 0; i < _currentRoom!.players.length; i++) {
-        final player = _currentRoom!.players[i];
-
-        // Deal 3 cards to hand, face up, and face down
-        final hand = deck.skip(cardIndex).take(3).toList();
-        cardIndex += 3;
-        final faceUp = deck.skip(cardIndex).take(3).toList();
-        cardIndex += 3;
-        final faceDown = deck.skip(cardIndex).take(3).toList();
-        cardIndex += 3;
-
-        final updatedPlayer = Player(
+      // Cards are already dealt during createRoom/joinRoom — just set first player and start
+      final sortedPlayers = [..._currentRoom!.players]
+        ..sort((a, b) => a.turnOrder.compareTo(b.turnOrder));
+      final updatedPlayers = sortedPlayers.asMap().entries.map((e) {
+        final player = e.value;
+        return Player(
           id: player.id,
           name: player.name,
-          isPlaying: i == 0, // First player starts
-          hand: hand,
-          faceUp: faceUp,
-          faceDown: faceDown,
+          isPlaying: e.key == 0,
+          hand: player.hand,
+          faceUp: player.faceUp,
+          faceDown: player.faceDown,
           isConnected: player.isConnected,
           lastSeen: player.lastSeen,
           turnOrder: player.turnOrder,
+          forcedToPlayLow: player.forcedToPlayLow,
         );
-
-        updatedPlayers.add(updatedPlayer);
-      }
-
-      final remainingDeck = deck.skip(cardIndex).toList();
+      }).toList();
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
         players: updatedPlayers,
         currentPlayer: updatedPlayers[0].id,
         gameState: GameState.playing,
-        deck: remainingDeck,
+        deck: _currentRoom!.deck,
         playPile: [],
         createdAt: _currentRoom!.createdAt,
         lastActivity: DateTime.now(),
@@ -249,6 +233,64 @@ class FirebaseGameService extends ChangeNotifier {
       _log.severe('Failed to start game: $e');
       rethrow;
     }
+  }
+
+  /// Swap a hand card with a face-up card before the game starts
+  Future<void> swapPreGameCards(String handCardId, String faceUpCardId) async {
+    if (_currentRoom == null || _currentPlayerId == null) {
+      throw Exception('Not in a game');
+    }
+    if (_currentRoom!.gameState != GameState.waiting) {
+      throw Exception('Can only swap before the game starts');
+    }
+
+    final playerIndex =
+        _currentRoom!.players.indexWhere((p) => p.id == _currentPlayerId);
+    if (playerIndex == -1) throw Exception('Player not found');
+
+    final player = _currentRoom!.players[playerIndex];
+    final handCardIndex = player.hand.indexWhere((c) => c.id == handCardId);
+    final faceUpCardIndex =
+        player.faceUp.indexWhere((c) => c.id == faceUpCardId);
+
+    if (handCardIndex == -1) throw Exception('Hand card not found');
+    if (faceUpCardIndex == -1) throw Exception('Face-up card not found');
+
+    final newHand = List<game_card.Card>.from(player.hand);
+    final newFaceUp = List<game_card.Card>.from(player.faceUp);
+    final temp = newHand[handCardIndex];
+    newHand[handCardIndex] = newFaceUp[faceUpCardIndex];
+    newFaceUp[faceUpCardIndex] = temp;
+
+    final updatedPlayer = Player(
+      id: player.id,
+      name: player.name,
+      isPlaying: player.isPlaying,
+      hand: newHand,
+      faceUp: newFaceUp,
+      faceDown: player.faceDown,
+      isConnected: player.isConnected,
+      lastSeen: player.lastSeen,
+      turnOrder: player.turnOrder,
+      forcedToPlayLow: player.forcedToPlayLow,
+    );
+
+    final updatedPlayers = List<Player>.from(_currentRoom!.players);
+    updatedPlayers[playerIndex] = updatedPlayer;
+
+    final updatedRoom = Room(
+      id: _currentRoom!.id,
+      players: updatedPlayers,
+      currentPlayer: _currentRoom!.currentPlayer,
+      gameState: _currentRoom!.gameState,
+      deck: _currentRoom!.deck,
+      playPile: _currentRoom!.playPile,
+      createdAt: _currentRoom!.createdAt,
+      lastActivity: DateTime.now(),
+    );
+
+    await _database.ref('rooms/$_currentRoomId').set(updatedRoom.toJson());
+    _log.info('Swapped cards: hand[$handCardId] <-> faceUp[$faceUpCardId]');
   }
 
   /// Play a card

@@ -19,6 +19,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
   final String? inlineMessage;
   final Color inlineMessageColor;
   final game_card.Card? revealedFaceDownCard;
+  final bool isPreGame;
 
   const SinglePlayerBoardWidget({
     super.key,
@@ -31,6 +32,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
     this.inlineMessage,
     this.inlineMessageColor = Colors.grey,
     this.revealedFaceDownCard,
+    this.isPreGame = false,
   });
 
   @override
@@ -128,6 +130,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
           child: _CurrentPlayerZones(
             player: humanPlayer,
             isCurrentTurn: room.gameState == GameState.playing && room.currentPlayer == humanPlayer.id,
+            isPreGame: isPreGame,
             onCardTap: onCardTap,
             selectedCardIds: selectedCardIds,
             isMultiSelectMode: isMultiSelectMode,
@@ -449,6 +452,7 @@ class _RevealedCardTile extends StatelessWidget {
 class _CurrentPlayerZones extends StatelessWidget {
   final Player player;
   final bool isCurrentTurn;
+  final bool isPreGame;
   final Function(game_card.Card, String, Offset)? onCardTap;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
@@ -458,6 +462,7 @@ class _CurrentPlayerZones extends StatelessWidget {
   const _CurrentPlayerZones({
     required this.player,
     required this.isCurrentTurn,
+    this.isPreGame = false,
     this.onCardTap,
     this.selectedCardIds,
     this.isMultiSelectMode = false,
@@ -542,7 +547,7 @@ class _CurrentPlayerZones extends StatelessWidget {
                       label: 'Face Up',
                       cards: player.faceUp,
                       isFaceDown: false,
-                      isPlayable: isCurrentTurn && player.hand.isEmpty,
+                      isPlayable: isPreGame || (isCurrentTurn && player.hand.isEmpty),
                       zone: 'faceUp',
                       cardW: faceCardW,
                       cardH: faceCardH,
@@ -562,7 +567,7 @@ class _CurrentPlayerZones extends StatelessWidget {
                   label: 'Hand',
                   cards: player.hand,
                   isFaceDown: false,
-                  isPlayable: isCurrentTurn,
+                  isPlayable: isPreGame || isCurrentTurn,
                   zone: 'hand',
                   isHand: true,
                   cardW: cardW,

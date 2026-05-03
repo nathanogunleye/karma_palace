@@ -48,6 +48,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   String? _multiSelectSourceZone;
   String? _multiSelectValue;
 
+  // Pre-game card swap state
+  game_card.Card? _swapSelectedCard;
+  String? _swapSelectedZone;
+
   String? _inlineMessage;
   Color _inlineMessageColor = Colors.grey;
   Timer? _messageTimer;
@@ -251,9 +255,59 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     });
   }
 
+  void _handleSwapCardTap(game_card.Card card, String sourceZone) {
+    if (_swapSelectedCard == null) {
+      setState(() {
+        _swapSelectedCard = card;
+        _swapSelectedZone = sourceZone;
+      });
+    } else if (_swapSelectedZone == sourceZone) {
+      // Same zone — change selection
+      setState(() => _swapSelectedCard = card);
+    } else {
+      // Different zone — perform the swap
+      final handCardId =
+          sourceZone == 'hand' ? card.id : _swapSelectedCard!.id;
+      final faceUpCardId =
+          sourceZone == 'faceUp' ? card.id : _swapSelectedCard!.id;
+      _performSwap(handCardId, faceUpCardId);
+    }
+  }
+
+  Future<void> _performSwap(String handCardId, String faceUpCardId) async {
+    setState(() {
+      _swapSelectedCard = null;
+      _swapSelectedZone = null;
+    });
+    try {
+      HapticFeedback.mediumImpact();
+      final gameService = context.read<LocalGameService>();
+      await gameService.swapPreGameCards(handCardId, faceUpCardId);
+    } catch (e) {
+      _showMessage(e.toString().replaceFirst('Exception: ', ''),
+          color: Colors.red);
+    }
+  }
+
+  void _cancelSwapSelection() {
+    setState(() {
+      _swapSelectedCard = null;
+      _swapSelectedZone = null;
+    });
+  }
+
   void _onCardTap(game_card.Card card, String sourceZone, Offset tapCenter) {
     HapticFeedback.lightImpact();
     final gameService = context.read<LocalGameService>();
+
+    // Pre-game: allow swapping hand ↔ face-up cards
+    if (gameService.currentRoom?.gameState == GameState.waiting) {
+      if (sourceZone == 'hand' || sourceZone == 'faceUp') {
+        _handleSwapCardTap(card, sourceZone);
+      }
+      return;
+    }
+
     if (gameService.currentRoom?.gameState != GameState.playing) return;
     _log.info('DEBUG: Card tapped: ${card.displayString} from $sourceZone');
 
@@ -930,13 +984,16 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       child: SinglePlayerBoardWidget(
                         pileKey: _pileKey,
                         onCardTap: _onCardTap,
-                        selectedCardIds: _selectedCardIds,
+                        selectedCardIds: room.gameState == GameState.waiting && _swapSelectedCard != null
+                            ? {_swapSelectedCard!.id}
+                            : _selectedCardIds,
                         isMultiSelectMode: _isMultiSelectMode,
                         multiSelectValue: _multiSelectValue,
                         multiSelectSourceZone: _multiSelectSourceZone,
                         inlineMessage: _inlineMessage,
                         inlineMessageColor: _inlineMessageColor,
                         revealedFaceDownCard: gameService.revealedFaceDownCard,
+                        isPreGame: room.gameState == GameState.waiting,
                       ),
                     ),
 
@@ -1012,10 +1069,48 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     else if (room.gameState == GameState.waiting)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: _GameButton(
-                          label: 'Start Game',
-                          color: const Color(0xFF22C55E),
-                          onTap: gameService.isHost ? _startGame : null,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _swapSelectedCard != null
+                                  ? 'Now tap a card from the other zone to swap'
+                                  : 'Tap a hand or face-up card to swap before starting',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            if (_swapSelectedCard != null)
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _GameButton(
+                                      label: 'Start Game',
+                                      color: const Color(0xFF22C55E),
+                                      onTap: gameService.isHost ? _startGame : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _GameButton(
+                                      label: 'Cancel',
+                                      color: Colors.grey.shade700,
+                                      onTap: _cancelSwapSelection,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              _GameButton(
+                                label: 'Start Game',
+                                color: const Color(0xFF22C55E),
+                                onTap: gameService.isHost ? _startGame : null,
+                              ),
+                          ],
                         ),
                       ),
                   ],

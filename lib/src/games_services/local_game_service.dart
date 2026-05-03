@@ -142,6 +142,63 @@ class LocalGameService extends ChangeNotifier {
     }
   }
 
+  /// Swap a hand card with a face-up card before the game starts
+  Future<void> swapPreGameCards(String handCardId, String faceUpCardId) async {
+    if (_currentRoom == null || _currentPlayerId == null) {
+      throw Exception('Not in a game');
+    }
+    if (_currentRoom!.gameState != GameState.waiting) {
+      throw Exception('Can only swap before the game starts');
+    }
+
+    final playerIndex =
+        _currentRoom!.players.indexWhere((p) => p.id == _currentPlayerId);
+    if (playerIndex == -1) throw Exception('Player not found');
+
+    final player = _currentRoom!.players[playerIndex];
+    final handCardIndex = player.hand.indexWhere((c) => c.id == handCardId);
+    final faceUpCardIndex =
+        player.faceUp.indexWhere((c) => c.id == faceUpCardId);
+
+    if (handCardIndex == -1) throw Exception('Hand card not found');
+    if (faceUpCardIndex == -1) throw Exception('Face-up card not found');
+
+    final newHand = List<game_card.Card>.from(player.hand);
+    final newFaceUp = List<game_card.Card>.from(player.faceUp);
+    final temp = newHand[handCardIndex];
+    newHand[handCardIndex] = newFaceUp[faceUpCardIndex];
+    newFaceUp[faceUpCardIndex] = temp;
+
+    final updatedPlayer = Player(
+      id: player.id,
+      name: player.name,
+      isPlaying: player.isPlaying,
+      hand: newHand,
+      faceUp: newFaceUp,
+      faceDown: player.faceDown,
+      isConnected: player.isConnected,
+      lastSeen: player.lastSeen,
+      turnOrder: player.turnOrder,
+      forcedToPlayLow: player.forcedToPlayLow,
+    );
+
+    final updatedPlayers = List<Player>.from(_currentRoom!.players);
+    updatedPlayers[playerIndex] = updatedPlayer;
+
+    _currentRoom = Room(
+      id: _currentRoom!.id,
+      players: updatedPlayers,
+      currentPlayer: _currentRoom!.currentPlayer,
+      gameState: _currentRoom!.gameState,
+      deck: _currentRoom!.deck,
+      playPile: _currentRoom!.playPile,
+      createdAt: _currentRoom!.createdAt,
+      lastActivity: DateTime.now(),
+    );
+
+    notifyListeners();
+  }
+
   /// Start the single player game
   Future<void> startGame() async {
     if (_currentRoom == null) {

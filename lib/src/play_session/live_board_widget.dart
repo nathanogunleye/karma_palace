@@ -18,6 +18,7 @@ class LiveBoardWidget extends StatelessWidget {
   final String? multiSelectSourceZone;
   final String? inlineMessage;
   final Color inlineMessageColor;
+  final bool isPreGame;
 
   const LiveBoardWidget({
     super.key,
@@ -30,6 +31,7 @@ class LiveBoardWidget extends StatelessWidget {
     this.multiSelectSourceZone,
     this.inlineMessage,
     this.inlineMessageColor = Colors.grey,
+    this.isPreGame = false,
   });
 
   @override
@@ -124,6 +126,7 @@ class LiveBoardWidget extends StatelessWidget {
             key: playerAreaKey,
             player: humanPlayer,
             isCurrentTurn: room.gameState == GameState.playing && room.currentPlayer == humanPlayer.id,
+            isPreGame: isPreGame,
             onCardTap: onCardTap,
             selectedCardIds: selectedCardIds,
             isMultiSelectMode: isMultiSelectMode,
@@ -400,6 +403,7 @@ class _PileTile extends StatelessWidget {
 class _CurrentPlayerZones extends StatelessWidget {
   final Player player;
   final bool isCurrentTurn;
+  final bool isPreGame;
   final Function(game_card.Card, String, Offset)? onCardTap;
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
@@ -410,6 +414,7 @@ class _CurrentPlayerZones extends StatelessWidget {
     super.key,
     required this.player,
     required this.isCurrentTurn,
+    this.isPreGame = false,
     this.onCardTap,
     this.selectedCardIds,
     this.isMultiSelectMode = false,
@@ -494,7 +499,7 @@ class _CurrentPlayerZones extends StatelessWidget {
                       label: 'Face Up',
                       cards: player.faceUp,
                       isFaceDown: false,
-                      isPlayable: isCurrentTurn && player.hand.isEmpty,
+                      isPlayable: isPreGame || (isCurrentTurn && player.hand.isEmpty),
                       zone: 'faceUp',
                       cardW: faceCardW,
                       cardH: faceCardH,
@@ -514,7 +519,7 @@ class _CurrentPlayerZones extends StatelessWidget {
                   label: 'Hand',
                   cards: player.hand,
                   isFaceDown: false,
-                  isPlayable: isCurrentTurn,
+                  isPlayable: isPreGame || isCurrentTurn,
                   zone: 'hand',
                   isHand: true,
                   cardW: cardW,
