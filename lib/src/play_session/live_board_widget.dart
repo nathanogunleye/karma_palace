@@ -6,6 +6,7 @@ import 'package:karma_palace/src/model/firebase/room.dart';
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 
 import 'karma_palace_card_widget.dart';
+import 'card_bounce_scope.dart';
 
 class LiveBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String, Offset)? onCardTap;
@@ -52,7 +53,8 @@ class LiveBoardWidget extends StatelessWidget {
     final tileWidth =
         otherPlayers.length == 1 ? screenWidth - 24 : (screenWidth - 40) / 2;
 
-    return Column(
+    return CardBounceScope(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Other players grid
@@ -132,6 +134,7 @@ class LiveBoardWidget extends StatelessWidget {
 
         const SizedBox(height: 8),
       ],
+      ),
     );
   }
 }

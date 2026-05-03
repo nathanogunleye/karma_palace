@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 import 'package:karma_palace/src/style/palette.dart';
 import 'package:provider/provider.dart';
+import 'card_bounce_scope.dart';
 
 class KarmaPalaceCardWidget extends StatelessWidget {
   final game_card.Card card;
@@ -48,7 +49,7 @@ class KarmaPalaceCardWidget extends StatelessWidget {
       borderWidth = 2;
     }
 
-    return Builder(
+    final cardContent = Builder(
       builder: (cardContext) => GestureDetector(
         onTap: isPlayable && onTapWithCenter == null ? onTap : null,
         onTapUp: isPlayable && onTapWithCenter != null
@@ -117,6 +118,20 @@ class KarmaPalaceCardWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (!isSelected) return cardContent;
+
+    final bounceAnim = CardBounceScope.maybeOf(context);
+    if (bounceAnim == null) return cardContent;
+
+    return AnimatedBuilder(
+      animation: bounceAnim,
+      builder: (_, child) => Transform.translate(
+        offset: Offset(0, bounceAnim.value),
+        child: child,
+      ),
+      child: cardContent,
     );
   }
 
@@ -249,25 +264,6 @@ class KarmaPalaceCardWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-
-        // Special effect indicator
-        // if (card.hasSpecialEffect)
-        //   Container(
-        //     margin: const EdgeInsets.only(top: 2),
-        //     padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-        //     decoration: BoxDecoration(
-        //       color: _getSpecialEffectColor(),
-        //       borderRadius: BorderRadius.circular(2),
-        //     ),
-        //     child: Text(
-        //       _getSpecialEffectSymbol(),
-        //       style: TextStyle(
-        //         color: Colors.white,
-        //         fontSize: fontSize * 0.3,
-        //         fontWeight: FontWeight.bold,
-        //       ),
-        //     ),
-        //   ),
       ],
     );
   }
@@ -285,38 +281,4 @@ class KarmaPalaceCardWidget extends StatelessWidget {
         return palette.blackInk;
     }
   }
-
-  // Color _getSpecialEffectColor() {
-  //   switch (card.specialEffect) {
-  //     case game_card.SpecialEffect.reset:
-  //       return Colors.orange;
-  //     case game_card.SpecialEffect.glass:
-  //       return Colors.cyan;
-  //     case game_card.SpecialEffect.forceLow:
-  //       return Colors.purple;
-  //     case game_card.SpecialEffect.skip:
-  //       return Colors.red;
-  //     case game_card.SpecialEffect.burn:
-  //       return Colors.deepOrange;
-  //     default:
-  //       return Colors.grey;
-  //   }
-  // }
-
-  // String _getSpecialEffectSymbol() {
-  //   switch (card.specialEffect) {
-  //     case game_card.SpecialEffect.reset:
-  //       return '↻';
-  //     case game_card.SpecialEffect.glass:
-  //       return '👁';
-  //     case game_card.SpecialEffect.forceLow:
-  //       return '↓';
-  //     case game_card.SpecialEffect.skip:
-  //       return '⏭';
-  //     case game_card.SpecialEffect.burn:
-  //       return '🔥';
-  //     default:
-  //       return '';
-  //   }
-  // }
 }
