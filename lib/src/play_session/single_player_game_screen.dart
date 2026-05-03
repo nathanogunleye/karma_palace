@@ -16,6 +16,7 @@ import 'package:karma_palace/src/model/firebase/room.dart';
 import 'single_player_board_widget.dart';
 import 'karma_palace_card_widget.dart';
 import 'seven_overlay.dart';
+import 'glass_smash_overlay.dart';
 
 class SinglePlayerGameScreen extends StatefulWidget {
   const SinglePlayerGameScreen({super.key});
@@ -60,6 +61,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   bool _showSevenOverlay = false;
   Timer? _sevenOverlayTimer;
 
+  bool _showGlassSmash = false;
+  Timer? _glassSmashTimer;
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +86,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   void dispose() {
     _messageTimer?.cancel();
     _sevenOverlayTimer?.cancel();
+    _glassSmashTimer?.cancel();
     _cardFlyController.dispose();
     final gameService = context.read<LocalGameService>();
     gameService.clearPickUpEffectCallback();
@@ -645,6 +650,15 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     });
   }
 
+  void _triggerGlassSmash() {
+    _glassSmashTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _showGlassSmash = true);
+    _glassSmashTimer = Timer(const Duration(milliseconds: 2000), () {
+      if (mounted) setState(() => _showGlassSmash = false);
+    });
+  }
+
   void _onGameStateChanged() {
     final gameService = context.read<LocalGameService>();
     final room = gameService.currentRoom;
@@ -654,6 +668,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
       if (currentPileLength > _previousPlayPileLength) {
         context.read<AudioController>().playSfx(SfxType.wssh);
+        // Show glass smash when a 5 is played by anyone.
+        if (room.playPile.isNotEmpty && room.playPile.last.value == '5') {
+          _triggerGlassSmash();
+        }
       }
 
       // Detect if pile was emptied (either by burn or pick-up) by the AI.
@@ -1145,6 +1163,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       ),
                   ],
                 ),
+                // Glass smash overlay — shown when a 5 is played
+                GlassSmashOverlay(isActive: _showGlassSmash),
+
                 // Seven overlay — shown when it's the player's turn and forcedToPlayLow
                 SevenOverlay(isActive: _showSevenOverlay),
 
