@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
 import 'package:karma_palace/src/audio/audio_controller.dart';
+import 'package:karma_palace/src/settings/settings.dart';
 import 'package:karma_palace/src/audio/sounds.dart';
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'package:karma_palace/src/game_internals/karma_palace_game_state.dart';
@@ -810,6 +811,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
           _previousCurrentPlayerId != null &&
           _previousCurrentPlayerId != gameService.currentPlayerId;
       if (turnJustChangedToMe) {
+        if (context.read<SettingsController>().hapticsOn.value) {
+          HapticFeedback.heavyImpact();
+          Future.delayed(const Duration(milliseconds: 80), HapticFeedback.heavyImpact);
+        }
         final me = room.players.firstWhere(
           (p) => p.id == gameService.currentPlayerId,
           orElse: () => room.players.first,

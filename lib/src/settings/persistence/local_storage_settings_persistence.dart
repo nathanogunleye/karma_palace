@@ -37,6 +37,12 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   }
 
   @override
+  Future<bool> getHapticsOn({required bool defaultValue}) async {
+    final prefs = await instanceFuture;
+    return prefs.getBool('hapticsOn') ?? defaultValue;
+  }
+
+  @override
   Future<void> saveAudioOn(bool value) async {
     final prefs = await instanceFuture;
     await prefs.setBool('audioOn', value);
@@ -58,5 +64,11 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<void> saveSoundsOn(bool value) async {
     final prefs = await instanceFuture;
     await prefs.setBool('soundsOn', value);
+  }
+
+  @override
+  Future<void> saveHapticsOn(bool value) async {
+    final prefs = await instanceFuture;
+    await prefs.setBool('hapticsOn', value);
   }
 }

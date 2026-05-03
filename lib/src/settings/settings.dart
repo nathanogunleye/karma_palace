@@ -35,6 +35,9 @@ class SettingsController {
   /// Whether or not the music is on.
   ValueNotifier<bool> musicOn = ValueNotifier(true);
 
+  /// Whether or not haptic feedback is on.
+  ValueNotifier<bool> hapticsOn = ValueNotifier(true);
+
   /// Creates a new instance of [SettingsController] backed by [store].
   ///
   /// By default, settings are persisted using [LocalStorageSettingsPersistence]
@@ -65,6 +68,11 @@ class SettingsController {
     _store.saveSoundsOn(soundsOn.value);
   }
 
+  void toggleHapticsOn() {
+    hapticsOn.value = !hapticsOn.value;
+    _store.saveHapticsOn(hapticsOn.value);
+  }
+
   /// Asynchronously loads values from the injected persistence store.
   Future<void> _loadStateFromPersistence() async {
     final loadedValues = await Future.wait([
@@ -84,6 +92,9 @@ class SettingsController {
           .getMusicOn(defaultValue: true)
           .then((value) => musicOn.value = value),
       _store.getPlayerName().then((value) => playerName.value = value),
+      _store
+          .getHapticsOn(defaultValue: true)
+          .then((value) => hapticsOn.value = value),
     ]);
 
     _log.fine(() => 'Loaded settings: $loadedValues');

@@ -184,6 +184,38 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
 
+                      const SizedBox(height: 12),
+
+                      // Haptics
+                      ValueListenableBuilder<bool>(
+                        valueListenable: settings.hapticsOn,
+                        builder: (context, hapticsOn, _) => _SettingsRow(
+                          onTap: () => settings.toggleHapticsOn(),
+                          child: Row(
+                            children: [
+                              Icon(
+                                hapticsOn
+                                    ? Icons.vibration
+                                    : Icons.phone_android,
+                                color: Colors.white70,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Haptics',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Spacer(),
+                              _Toggle(value: hapticsOn),
+                            ],
+                          ),
+                        ),
+                      ),
+
                       const SizedBox(height: 24),
 
                       // Reset progress
