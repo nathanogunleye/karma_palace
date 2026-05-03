@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:karma_palace/src/games_services/firebase_game_service.dart';
 import 'package:karma_palace/src/settings/settings.dart';
@@ -11,7 +12,9 @@ import 'package:karma_palace/src/style/palette.dart';
 enum _Step { name, mode, create, join }
 
 class RoomManagementScreen extends StatefulWidget {
-  const RoomManagementScreen({super.key});
+  final String? initialRoomId;
+
+  const RoomManagementScreen({super.key, this.initialRoomId});
 
   @override
   State<RoomManagementScreen> createState() => _RoomManagementScreenState();
@@ -28,6 +31,7 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
   String? _errorMessage;
   String _createdRoomId = '';
   bool _copied = false;
+  final _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -42,8 +46,12 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
     final settings = context.read<SettingsController>();
     final savedName = settings.playerName.value;
     _nameController.text = savedName;
-    // Skip name step if the player already has a custom name
-    if (savedName != 'Player') {
+    final hasName = savedName != 'Player';
+    if (widget.initialRoomId != null) {
+      // Arrived via deeplink — go straight to join step.
+      _joinIdController.text = widget.initialRoomId!;
+      setState(() => _step = hasName ? _Step.join : _Step.name);
+    } else if (hasName) {
       setState(() => _step = _Step.mode);
     }
   }
@@ -110,6 +118,19 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
     setState(() => _copied = true);
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _copied = false);
+  }
+
+  Future<void> _shareRoomLink() async {
+    final link = 'https://karma-palace.web.app/join/$_createdRoomId';
+    final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final origin = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : const Rect.fromLTWH(0, 0, 100, 50);
+    await Share.share(
+      'Join my Karma Palace game! Room code: $_createdRoomId\n$link',
+      subject: 'Join my Karma Palace game',
+      sharePositionOrigin: origin,
+    );
   }
 
   @override
@@ -348,6 +369,24 @@ class _RoomManagementScreenState extends State<RoomManagementScreen> {
                           child: Icon(
                             _copied ? Icons.check : Icons.copy,
                             color: _copied ? const Color(0xFF4ADE80) : Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _shareRoomLink,
+                        child: Container(
+                          key: _shareButtonKey,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0x1AFFFFFF),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0x66FFFFFF)),
+                          ),
+                          child: const Icon(
+                            Icons.share,
+                            color: Colors.white,
                             size: 22,
                           ),
                         ),

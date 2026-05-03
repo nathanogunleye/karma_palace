@@ -22,6 +22,13 @@ final router = GoRouter(
       builder: (context, state) => const SplashScreen(key: Key('splash')),
     ),
     GoRoute(
+      path: '/join/:roomId',
+      builder: (context, state) => RoomManagementScreen(
+        key: const Key('room management join'),
+        initialRoomId: state.params['roomId'],
+      ),
+    ),
+    GoRoute(
       path: '/',
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,

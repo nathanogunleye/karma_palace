@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["UU84VRSAAC.com.nathanodong.karmaPalace"],
+        "components": [
+          {
+            "/": "/join/*",
+            "comment": "Matches any multiplayer room join URL"
+          }
+        ]
+      }
+    ]
+  }
+}
