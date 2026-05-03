@@ -39,11 +39,11 @@ deploy-ipa: build-ipa
 	xcrun altool --upload-app --type ios --file "build/ios/ipa/karma_palace.ipa" --username $$APP_STORE_USERNAME --password $$APP_STORE_PASSWORD --show-progress
 
 build-web:
-	flutter build web
+	flutter build web --release
 
 .PHONY: build
-build: ## Build
-	flutter pub run build_runner build --delete-conflicting-outputs
+generate: ## Generate code
+	dart run build_runner build --delete-conflicting-outputs
 
 upgrade:
 	flutter pub upgrade

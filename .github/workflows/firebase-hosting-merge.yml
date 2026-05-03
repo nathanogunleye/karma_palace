@@ -26,13 +26,16 @@ jobs:
           restore-keys: ${{ runner.os }}-pub-
 
       - name: Clean
-        run: flutter clean
+        run: make clean
 
       - name: Download dependencies
         run: flutter pub get
 
+      - name: Generate
+        run: make generate
+
       - name: Build web
-        run: flutter build web --release
+        run: make build-web
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
