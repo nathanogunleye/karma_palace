@@ -151,19 +151,11 @@ class _OtherPlayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return _GlowingTileContainer(
+      isCurrentTurn: isCurrentTurn,
       width: tileWidth,
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color:
-            isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color:
-              isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
-          width: isCurrentTurn ? 1.5 : 1,
-        ),
-      ),
+      borderRadius: 10,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -424,18 +416,10 @@ class _CurrentPlayerZones extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return _GlowingTileContainer(
+      isCurrentTurn: isCurrentTurn,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color:
-            isCurrentTurn ? const Color(0x33FACC15) : const Color(0x0DFFFFFF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              isCurrentTurn ? const Color(0xFFFACC15) : const Color(0x33FFFFFF),
-          width: isCurrentTurn ? 1.5 : 1,
-        ),
-      ),
+      borderRadius: 12,
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Hand card size — unchanged
@@ -686,6 +670,97 @@ class _CardZoneColumn extends StatelessWidget {
                 ),
               ),
       ],
+    );
+  }
+}
+
+// ── Shared animated glow container ────────────────────────────────────────────
+
+class _GlowingTileContainer extends StatefulWidget {
+  final bool isCurrentTurn;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final double? width;
+
+  const _GlowingTileContainer({
+    required this.isCurrentTurn,
+    required this.child,
+    required this.padding,
+    required this.borderRadius,
+    this.width,
+  });
+
+  @override
+  State<_GlowingTileContainer> createState() => _GlowingTileContainerState();
+}
+
+class _GlowingTileContainerState extends State<_GlowingTileContainer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _glow = Tween<double>(begin: 8, end: 24).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isCurrentTurn) {
+      return Container(
+        width: widget.width,
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          color: const Color(0x0DFFFFFF),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(color: const Color(0x33FFFFFF)),
+        ),
+        child: widget.child,
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _glow,
+      builder: (context, child) => Container(
+        width: widget.width,
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          color: const Color(0x1AFACC15),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(
+            color: const Color(0xFFFACC15).withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFACC15).withValues(alpha: 0.25),
+              blurRadius: _glow.value,
+              spreadRadius: _glow.value / 4,
+            ),
+            BoxShadow(
+              color: const Color(0xFFFACC15).withValues(alpha: 0.1),
+              blurRadius: _glow.value * 2,
+              spreadRadius: _glow.value / 3,
+            ),
+          ],
+        ),
+        child: child,
+      ),
+      child: widget.child,
     );
   }
 }
