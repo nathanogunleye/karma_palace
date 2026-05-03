@@ -18,6 +18,9 @@ import 'single_player_board_widget.dart';
 import 'karma_palace_card_widget.dart';
 import 'seven_overlay.dart';
 import 'glass_smash_overlay.dart';
+import 'burn_overlay.dart';
+import 'reset_overlay.dart';
+import 'skip_overlay.dart';
 
 class SinglePlayerGameScreen extends StatefulWidget {
   const SinglePlayerGameScreen({super.key});
@@ -65,6 +68,15 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   bool _showGlassSmash = false;
   Timer? _glassSmashTimer;
 
+  bool _showBurnOverlay = false;
+  Timer? _burnOverlayTimer;
+
+  bool _showResetOverlay = false;
+  Timer? _resetOverlayTimer;
+
+  bool _showSkipOverlay = false;
+  Timer? _skipOverlayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +100,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     _messageTimer?.cancel();
     _sevenOverlayTimer?.cancel();
     _glassSmashTimer?.cancel();
+    _burnOverlayTimer?.cancel();
+    _resetOverlayTimer?.cancel();
+    _skipOverlayTimer?.cancel();
     _cardFlyController.dispose();
     final gameService = context.read<LocalGameService>();
     gameService.clearPickUpEffectCallback();
@@ -630,6 +645,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (mounted) {
       context.read<AudioController>().playSfx(SfxType.erase);
       _showBurnNotification(playerName);
+      _triggerBurnOverlay();
     }
   }
 
@@ -660,6 +676,33 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     });
   }
 
+  void _triggerBurnOverlay() {
+    _burnOverlayTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _showBurnOverlay = true);
+    _burnOverlayTimer = Timer(const Duration(milliseconds: 2000), () {
+      if (mounted) setState(() => _showBurnOverlay = false);
+    });
+  }
+
+  void _triggerResetOverlay() {
+    _resetOverlayTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _showResetOverlay = true);
+    _resetOverlayTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _showResetOverlay = false);
+    });
+  }
+
+  void _triggerSkipOverlay() {
+    _skipOverlayTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _showSkipOverlay = true);
+    _skipOverlayTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _showSkipOverlay = false);
+    });
+  }
+
   void _onGameStateChanged() {
     final gameService = context.read<LocalGameService>();
     final room = gameService.currentRoom;
@@ -669,9 +712,11 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
       if (currentPileLength > _previousPlayPileLength) {
         context.read<AudioController>().playSfx(SfxType.wssh);
-        // Show glass smash when a 5 is played by anyone.
-        if (room.playPile.isNotEmpty && room.playPile.last.value == '5') {
-          _triggerGlassSmash();
+        if (room.playPile.isNotEmpty) {
+          final topValue = room.playPile.last.value;
+          if (topValue == '5') _triggerGlassSmash();
+          if (topValue == '2') _triggerResetOverlay();
+          if (topValue == '9') _triggerSkipOverlay();
         }
       }
 
@@ -1173,6 +1218,15 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
                 // Seven overlay — shown when it's the player's turn and forcedToPlayLow
                 SevenOverlay(isActive: _showSevenOverlay),
+
+                // Burn overlay — shown when 10 is played or four-of-a-kind completes
+                BurnOverlay(isActive: _showBurnOverlay),
+
+                // Reset overlay — shown when a 2 is played
+                ResetOverlay(isActive: _showResetOverlay),
+
+                // Skip overlay — shown when a 9 is played
+                SkipOverlay(isActive: _showSkipOverlay),
 
                 // Flying card overlay
                 if (_flyingCard != null)
