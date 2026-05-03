@@ -201,13 +201,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Music by Mr Smith',
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
-                      ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
