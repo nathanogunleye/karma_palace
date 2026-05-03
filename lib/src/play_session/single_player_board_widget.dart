@@ -668,28 +668,30 @@ class _CardZoneColumn extends StatelessWidget {
                       ),
                   ];
                   return SizedBox(
-                    height: cardH,
-                    child: contentWidth <= constraints.maxWidth
-                        ? Center(
-                            child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: cardWidgets),
-                          )
-                        : SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(children: cardWidgets),
-                          ),
+                    height: cardH + 8,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: contentWidth <= constraints.maxWidth
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: cardWidgets)
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(children: cardWidgets),
+                            ),
+                    ),
                   );
                 },
               )
             : SizedBox(
                 width: cardW * 3 + 3 * 2,
-                height: cardH,
+                height: cardH + 8,
                 child: Stack(
                   children: [
                     for (int i = 0; i < 3; i++)
                       Positioned(
                         left: i * (cardW + 3),
+                        bottom: 0,
                         child: i < displayCards.length
                             ? KarmaPalaceCardWidget(
                                 card: displayCards[i],
