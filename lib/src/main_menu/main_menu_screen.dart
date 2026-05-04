@@ -6,6 +6,8 @@ import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../settings/settings.dart';
 import '../style/palette.dart';
+import '../games_services/local_game_service.dart';
+import '../games_services/ai_player_service.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
@@ -177,7 +179,44 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           },
                         ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
+
+                      // How to Play button
+                      GestureDetector(
+                        onTap: () async {
+                          audioController.playSfx(SfxType.buttonTap);
+                          final gameService = context.read<LocalGameService>();
+                          await gameService.createSinglePlayerGame('Player', AIDifficulty.easy, aiPlayerCount: 1);
+                          await gameService.startGame();
+                          if (context.mounted) GoRouter.of(context).go('/how-to-play');
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: const Color(0x1AFFFFFF),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0x33FFFFFF)),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.help_outline, color: Colors.white70, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'How to Play',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
 
                       // Bottom utility row
                       Row(

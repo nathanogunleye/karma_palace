@@ -21,9 +21,12 @@ import 'glass_smash_overlay.dart';
 import 'burn_overlay.dart';
 import 'reset_overlay.dart';
 import 'skip_overlay.dart';
+import 'tutorial_overlay.dart';
 
 class SinglePlayerGameScreen extends StatefulWidget {
-  const SinglePlayerGameScreen({super.key});
+  final bool showTutorial;
+
+  const SinglePlayerGameScreen({super.key, this.showTutorial = false});
 
   @override
   State<SinglePlayerGameScreen> createState() => _SinglePlayerGameScreenState();
@@ -36,6 +39,14 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   int _previousPlayPileLength = 0;
   String? _previousCurrentPlayerId;
   bool _resultAnnounced = false;
+
+  // Tutorial state
+  late bool _isTutorialActive;
+  int _tutorialStep = 0;
+  final GlobalKey _playerZonesKey = GlobalKey();
+  final GlobalKey _deckPileRowKey = GlobalKey();
+  final GlobalKey _handKey = GlobalKey();
+  final GlobalKey _actionButtonsKey = GlobalKey();
 
   // Card fly animation
   final GlobalKey _playAreaKey = GlobalKey();
@@ -80,6 +91,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   @override
   void initState() {
     super.initState();
+    _isTutorialActive = widget.showTutorial;
     _cardFlyController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 320),
@@ -1240,6 +1252,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     Expanded(
                       child: SinglePlayerBoardWidget(
                         pileKey: _pileKey,
+                        deckPileRowKey: _deckPileRowKey,
+                        playerZonesKey: _playerZonesKey,
+                        handKey: _handKey,
                         onCardTap: _onCardTap,
                         selectedCardIds:
                             room.gameState == GameState.waiting &&
@@ -1259,6 +1274,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     // Action buttons
                     if (room.gameState == GameState.playing)
                       Padding(
+                        key: _actionButtonsKey,
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -1424,6 +1440,30 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     isPlayable: false,
                     size: const Size(56, 56 * 46 / 32),
                   ),
+                ),
+
+              // Tutorial overlay
+              if (_isTutorialActive)
+                TutorialOverlay(
+                  step: _tutorialStep,
+                  total: 12,
+                  playerZonesKey: _playerZonesKey,
+                  deckPileRowKey: _deckPileRowKey,
+                  handKey: _handKey,
+                  actionButtonsKey: _actionButtonsKey,
+                  onNext: () {
+                    if (_tutorialStep < 11) {
+                      setState(() => _tutorialStep++);
+                    } else {
+                      setState(() => _isTutorialActive = false);
+                    }
+                  },
+                  onBack: () {
+                    if (_tutorialStep > 0) {
+                      setState(() => _tutorialStep--);
+                    }
+                  },
+                  onClose: () => setState(() => _isTutorialActive = false),
                 ),
             ],
           ),

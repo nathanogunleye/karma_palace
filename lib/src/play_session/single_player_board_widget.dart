@@ -11,6 +11,9 @@ import 'package:karma_palace/src/games_services/local_game_service.dart';
 class SinglePlayerBoardWidget extends StatelessWidget {
   final Function(game_card.Card, String, Offset)? onCardTap;
   final GlobalKey? pileKey;
+  final GlobalKey? deckPileRowKey;
+  final GlobalKey? playerZonesKey;
+  final GlobalKey? handKey;
 
   final Set<String>? selectedCardIds;
   final bool isMultiSelectMode;
@@ -25,6 +28,9 @@ class SinglePlayerBoardWidget extends StatelessWidget {
     super.key,
     this.onCardTap,
     this.pileKey,
+    this.deckPileRowKey,
+    this.playerZonesKey,
+    this.handKey,
     this.selectedCardIds,
     this.isMultiSelectMode = false,
     this.multiSelectValue,
@@ -88,6 +94,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
           // Deck + Pile + revealed face-down card
           Row(
+            key: deckPileRowKey,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _DeckTile(deckCount: room.deck.length),
@@ -137,6 +144,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
 
           // Current player zones
           Padding(
+            key: playerZonesKey,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _CurrentPlayerZones(
               player: humanPlayer,
@@ -149,6 +157,7 @@ class SinglePlayerBoardWidget extends StatelessWidget {
               isMultiSelectMode: isMultiSelectMode,
               multiSelectValue: multiSelectValue,
               multiSelectSourceZone: multiSelectSourceZone,
+              handKey: handKey,
             ),
           ),
 
@@ -484,6 +493,7 @@ class _CurrentPlayerZones extends StatelessWidget {
   final bool isMultiSelectMode;
   final String? multiSelectValue;
   final String? multiSelectSourceZone;
+  final GlobalKey? handKey;
 
   const _CurrentPlayerZones({
     required this.player,
@@ -494,6 +504,7 @@ class _CurrentPlayerZones extends StatelessWidget {
     this.isMultiSelectMode = false,
     this.multiSelectValue,
     this.multiSelectSourceZone,
+    this.handKey,
   });
 
   @override
@@ -592,6 +603,7 @@ class _CurrentPlayerZones extends StatelessWidget {
               const SizedBox(height: 8),
               // Hand below — full width, centred
               Center(
+                key: handKey,
                 child: _CardZoneColumn(
                   label: 'Hand',
                   cards: player.hand,
