@@ -26,6 +26,9 @@ class LocalGameService extends ChangeNotifier {
   AIDifficulty _aiDifficulty = AIDifficulty.medium;
   Timer? _aiTurnTimer;
 
+  // Blocks AI turn scheduling while tutorial is shown
+  bool _tutorialActive = false;
+
   // Callback for pick-up notifications
   Function(String)? _onPickUpEffect;
 
@@ -716,15 +719,26 @@ class LocalGameService extends ChangeNotifier {
     _currentPlayerId = null;
     _isConnected = false;
     _gameInProgress = false;
+    _tutorialActive = false;
     _revealedFaceDownCard = null;
 
     notifyListeners();
     _log.info('Left single player game');
   }
 
+  /// Pause/resume AI turns for the tutorial. Call with false when tutorial ends.
+  void setTutorialActive(bool active) {
+    _tutorialActive = active;
+    if (!active && _gameInProgress) {
+      final currentId = _currentRoom?.currentPlayer;
+      final isAITurn = currentId != null && currentId != _currentPlayerId;
+      if (isAITurn) _scheduleAITurn();
+    }
+  }
+
   /// Schedule AI turn with a delay
   void _scheduleAITurn() {
-    if (!_gameInProgress) return;
+    if (!_gameInProgress || _tutorialActive) return;
     _aiTurnTimer?.cancel();
     _aiTurnTimer = Timer(const Duration(milliseconds: 1500), () {
       _playAITurn();

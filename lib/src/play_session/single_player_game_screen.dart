@@ -104,6 +104,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       gameService.setPickUpEffectCallback(_onPickUpEffect);
       gameService.setBurnEffectCallback(_onBurnEffect);
       gameService.addListener(_onGameStateChanged);
+      if (widget.showTutorial) gameService.setTutorialActive(true);
     });
   }
 
@@ -1456,6 +1457,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       setState(() => _tutorialStep++);
                     } else {
                       setState(() => _isTutorialActive = false);
+                      context.read<LocalGameService>().setTutorialActive(false);
                     }
                   },
                   onBack: () {
@@ -1463,7 +1465,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       setState(() => _tutorialStep--);
                     }
                   },
-                  onClose: () => setState(() => _isTutorialActive = false),
+                  onClose: () {
+                    setState(() => _isTutorialActive = false);
+                    context.read<LocalGameService>().setTutorialActive(false);
+                  },
                 ),
             ],
           ),
