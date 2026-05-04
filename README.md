@@ -1,6 +1,6 @@
 # Karma Palace
 
-Shithead Card Game
+A skillful card game
 
 ## Special Cards
 
