@@ -226,6 +226,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   }
 
   Future<void> _playCard(game_card.Card card, String sourceZone) async {
+    final audio = context.read<AudioController>();
     try {
       final gameService = context.read<LocalGameService>();
       await gameService.playCard(card, sourceZone);
@@ -238,6 +239,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       }
     } catch (e) {
       _log.severe('Failed to play card: $e');
+      audio.playSfx(SfxType.wrongAnswer);
       _showMessage(
         e.toString().replaceFirst('Exception: ', ''),
         color: Colors.red,

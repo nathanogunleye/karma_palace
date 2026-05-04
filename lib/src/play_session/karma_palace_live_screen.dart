@@ -238,6 +238,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
         if (!gameState.canPlayCard(card)) {
           _log.info('DEBUG: Card play validation failed');
+          context.read<AudioController>().playSfx(SfxType.wrongAnswer);
           _showMessage('Cannot play ${card.displayString}', color: Colors.red);
           return;
         }

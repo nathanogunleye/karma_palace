@@ -4,38 +4,41 @@
 
 List<String> soundTypeToFilename(SfxType type) => switch (type) {
       SfxType.huhsh => const [
-          'hash1.mp3',
-          'hash2.mp3',
-          'hash3.mp3',
+          'sfx/hash1.mp3',
+          'sfx/hash2.mp3',
+          'sfx/hash3.mp3',
         ],
       SfxType.wssh => const [
-          'wssh1.mp3',
-          'wssh2.mp3',
-          'dsht1.mp3',
-          'ws1.mp3',
-          'spsh1.mp3',
-          'hh1.mp3',
-          'hh2.mp3',
-          'kss1.mp3',
+          'sfx/wssh1.mp3',
+          'sfx/wssh2.mp3',
+          'sfx/dsht1.mp3',
+          'sfx/ws1.mp3',
+          'sfx/spsh1.mp3',
+          'sfx/hh1.mp3',
+          'sfx/hh2.mp3',
+          'sfx/kss1.mp3',
         ],
       SfxType.buttonTap => const [
-          'k1.mp3',
-          'k2.mp3',
-          'p1.mp3',
-          'p2.mp3',
+          'sfx/k1.mp3',
+          'sfx/k2.mp3',
+          'sfx/p1.mp3',
+          'sfx/p2.mp3',
         ],
       SfxType.congrats => const [
-          'yay1.mp3',
-          'wehee1.mp3',
-          'oo1.mp3',
+          'sfx/yay1.mp3',
+          'sfx/wehee1.mp3',
+          'sfx/oo1.mp3',
         ],
       SfxType.erase => const [
-          'fwfwfwfwfw1.mp3',
-          'fwfwfwfw1.mp3',
+          'sfx/fwfwfwfwfw1.mp3',
+          'sfx/fwfwfwfw1.mp3',
         ],
       SfxType.swishSwish => const [
-          'swishswish1.mp3',
-        ]
+          'sfx/swishswish1.mp3',
+        ],
+      SfxType.wrongAnswer => const [
+          'audio/wrong_answer.mp3',
+        ],
     };
 
 /// Allows control over loudness of different SFX types.
@@ -49,6 +52,7 @@ double soundTypeToVolume(SfxType type) {
     case SfxType.congrats:
     case SfxType.erase:
     case SfxType.swishSwish:
+    case SfxType.wrongAnswer:
       return 1.0;
   }
 }
@@ -60,4 +64,5 @@ enum SfxType {
   congrats,
   erase,
   swishSwish,
+  wrongAnswer,
 }
