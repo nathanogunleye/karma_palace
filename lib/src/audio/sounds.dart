@@ -50,6 +50,21 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
       SfxType.vineBoom => const [
           'audio/vine_boom.mp3',
         ],
+      SfxType.reset => const [
+          'audio/reset.mp3',
+        ],
+      SfxType.glass => const [
+          'audio/glass.mp3',
+        ],
+      SfxType.skip => const [
+          'audio/skip.mp3',
+        ],
+      SfxType.lower => const [
+          'audio/lower.mp3',
+        ],
+      SfxType.burn => const [
+          'audio/burn.mp3',
+        ],
     };
 
 /// Allows control over loudness of different SFX types.
@@ -67,6 +82,11 @@ double soundTypeToVolume(SfxType type) {
     case SfxType.faaah:
     case SfxType.takingPlayingCard:
     case SfxType.vineBoom:
+    case SfxType.reset:
+    case SfxType.glass:
+    case SfxType.skip:
+    case SfxType.lower:
+    case SfxType.burn:
       return 1.0;
   }
 }
@@ -82,4 +102,9 @@ enum SfxType {
   faaah,
   takingPlayingCard,
   vineBoom,
+  reset,
+  glass,
+  skip,
+  lower,
+  burn,
 }

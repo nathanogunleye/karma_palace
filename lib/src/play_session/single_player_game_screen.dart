@@ -765,9 +765,24 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
         context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
         if (room.playPile.isNotEmpty) {
           final topValue = room.playPile.last.value;
-          if (topValue == '5') _triggerGlassSmash();
-          if (topValue == '2') _triggerResetOverlay();
-          if (topValue == '9') _triggerSkipOverlay();
+          if (topValue == '5') {
+            context.read<AudioController>().playSfx(SfxType.glass);
+            _triggerGlassSmash();
+          }
+          if (topValue == '2') {
+            context.read<AudioController>().playSfx(SfxType.reset);
+            _triggerResetOverlay();
+          }
+          if (topValue == '9') {
+            context.read<AudioController>().playSfx(SfxType.skip);
+            _triggerSkipOverlay();
+          }
+          if (topValue == '7') {
+            context.read<AudioController>().playSfx(SfxType.lower);
+          }
+          if (topValue == '10') {
+            context.read<AudioController>().playSfx(SfxType.burn);
+          }
         }
       }
 
