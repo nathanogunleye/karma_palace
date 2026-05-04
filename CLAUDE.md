@@ -37,7 +37,7 @@ The app uses **Provider** with `ChangeNotifier`. Global providers are registered
 - `KarmaPalaceGameState` — read-only derived game state (is it my turn? can I play this card?) computed from the room object
 - `FirebaseGameService` — authoritative state for multiplayer; owns the Firebase Realtime Database listener and performs all write operations
 - `LocalGameService` — authoritative state for single-player; holds an in-memory `Room` and drives AI turns via a `Timer`
-- `SettingsController`, `Palette`, `PlayerProgress`, `AudioController` — cross-cutting concerns
+- `SettingsController`, `Palette`, `AudioController` — cross-cutting concerns
 
 ### Data Models (three layers)
 - `lib/src/model/firebase/` — JSON-serializable models (`Room`, `Player`, `Card`) used as the wire format for Firebase and the shared game data structure across both modes. All `.g.dart` files are codegen; do not edit them.

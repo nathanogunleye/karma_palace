@@ -4,7 +4,6 @@
 
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:karma_palace/main.dart';
-// import 'package:karma_palace/src/player_progress/persistence/memory_player_progress_persistence.dart';
 // import 'package:karma_palace/src/settings/persistence/memory_settings_persistence.dart';
 
 void main() {
@@ -12,7 +11,6 @@ void main() {
   //   // Build our game and trigger a frame.
   //   await tester.pumpWidget(MyApp(
   //     settingsPersistence: MemoryOnlySettingsPersistence(),
-  //     playerProgressPersistence: MemoryOnlyPlayerProgressPersistence(),
   //     adsController: null,
   //     gamesServicesController: null,
   //     inAppPurchaseController: null,

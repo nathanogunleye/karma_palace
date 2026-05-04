@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
-import '../player_progress/player_progress.dart';
 import '../style/palette.dart';
 import 'custom_name_dialog.dart';
 import 'settings.dart';
@@ -38,15 +37,19 @@ class SettingsScreen extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     GestureDetector(
                       onTap: () => GoRouter.of(context).pop(),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0x1AFFFFFF),
                           borderRadius: BorderRadius.circular(8),
@@ -54,14 +57,18 @@ class SettingsScreen extends StatelessWidget {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.arrow_back,
-                                color: Colors.white, size: 16),
+                            Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Back',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500),
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -97,8 +104,11 @@ class SettingsScreen extends StatelessWidget {
                         onTap: () => showCustomNameDialog(context),
                         child: Row(
                           children: [
-                            const Icon(Icons.person_outline,
-                                color: Colors.white70, size: 20),
+                            const Icon(
+                              Icons.person_outline,
+                              color: Colors.white70,
+                              size: 20,
+                            ),
                             const SizedBox(width: 12),
                             const Text(
                               'Name',
@@ -114,12 +124,17 @@ class SettingsScreen extends StatelessWidget {
                               builder: (context, name, _) => Text(
                                 name,
                                 style: const TextStyle(
-                                    color: Colors.white54, fontSize: 15),
+                                  color: Colors.white54,
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 6),
-                            const Icon(Icons.chevron_right,
-                                color: Colors.white38, size: 20),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white38,
+                              size: 20,
+                            ),
                           ],
                         ),
                       ),
@@ -216,35 +231,6 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
-
-                      // Reset progress
-                      _SettingsRow(
-                        onTap: () {
-                          context.read<PlayerProgress>().reset();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Player progress has been reset.'),
-                            ),
-                          );
-                        },
-                        child: const Row(
-                          children: [
-                            Icon(Icons.delete_outline,
-                                color: Color(0xFFFC8181), size: 20),
-                            SizedBox(width: 12),
-                            Text(
-                              'Reset Progress',
-                              style: TextStyle(
-                                color: Color(0xFFFC8181),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
                       const SizedBox(height: 12),
 
                       // App version
@@ -259,8 +245,11 @@ class SettingsScreen extends StatelessWidget {
                           return _SettingsRow(
                             child: Row(
                               children: [
-                                const Icon(Icons.info_outline,
-                                    color: Colors.white70, size: 20),
+                                const Icon(
+                                  Icons.info_outline,
+                                  color: Colors.white70,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 12),
                                 const Text(
                                   'Version',
@@ -277,7 +266,9 @@ class SettingsScreen extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.end,
                                     style: const TextStyle(
-                                        color: Colors.white54, fontSize: 15),
+                                      color: Colors.white54,
+                                      fontSize: 15,
+                                    ),
                                   ),
                                 ),
                               ],
