@@ -360,8 +360,8 @@ class _PileTile extends StatelessWidget {
     const cardH = 90.0;
     const stackOffset = 20.0;
 
-    final visible = playPile.length > 3
-        ? playPile.sublist(playPile.length - 3)
+    final visible = playPile.length > 4
+        ? playPile.sublist(playPile.length - 4)
         : List<game_card.Card>.from(playPile);
     final n = visible.length;
 
@@ -380,7 +380,7 @@ class _PileTile extends StatelessWidget {
         const SizedBox(height: 4),
         if (playPile.isNotEmpty)
           SizedBox(
-            width: cardW + stackOffset * 2,
+            width: cardW + stackOffset * 3,
             height: cardH,
             child: Stack(
               children: [
