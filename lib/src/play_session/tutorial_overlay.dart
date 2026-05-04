@@ -40,7 +40,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     (
       title: 'Your Cards Setup 🎴',
       body:
-          'You start with 3 face-down cards, 3 face-up cards on top of them, and 3 cards in your hand.',
+          'You start with 3 face-down cards, 3 face-up cards alongside them, and 3 cards in your hand.',
     ),
     (
       title: 'Playing Cards 🎯',
@@ -60,7 +60,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     (
       title: 'Special Card: 2 🔄',
       body:
-          '2s reset the pile! They can be played on anything, and the next player starts fresh.',
+          '2s reset the pile! They can be played on any non-royal card (not on J, Q, or K), and the next player starts fresh.',
     ),
     (
       title: 'Special Card: 5 💎',
@@ -88,7 +88,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     (
       title: 'Face-Up & Face-Down Cards 🎲',
       body:
-          'After your hand is empty, play face-up cards. After those, play face-down cards blind – you won\'t know what they are!',
+          'Once the deck is empty and your hand is empty, play your face-up cards. After those, play face-down cards blind – you won\'t know what they are!',
     ),
     (
       title: "You're Ready! 🎉",
