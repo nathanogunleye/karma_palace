@@ -1446,13 +1446,13 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
               if (_isTutorialActive)
                 TutorialOverlay(
                   step: _tutorialStep,
-                  total: 12,
+                  total: 13,
                   playerZonesKey: _playerZonesKey,
                   deckPileRowKey: _deckPileRowKey,
                   handKey: _handKey,
                   actionButtonsKey: _actionButtonsKey,
                   onNext: () {
-                    if (_tutorialStep < 11) {
+                    if (_tutorialStep < 12) {
                       setState(() => _tutorialStep++);
                     } else {
                       setState(() => _isTutorialActive = false);

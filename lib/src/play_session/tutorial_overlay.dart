@@ -14,7 +14,7 @@ class TutorialOverlay extends StatefulWidget {
   const TutorialOverlay({
     super.key,
     required this.step,
-    this.total = 12,
+    this.total = 13,
     this.playerZonesKey,
     this.deckPileRowKey,
     this.handKey,
@@ -72,6 +72,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       body: '7s force low! The next player must play a 7 or lower.',
     ),
     (
+      title: 'Special Card: 9 ⏭️',
+      body: '9s skip the next player\'s turn entirely.',
+    ),
+    (
       title: 'Special Card: 10 🔥',
       body:
           '10s burn the pile! All cards in the pile are discarded and you get to play again.',
@@ -103,7 +107,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
         return widget.deckPileRowKey;
       case 4:
         return widget.actionButtonsKey;
-      case 10:
+      case 11:
         return widget.playerZonesKey;
       default:
         return null;
