@@ -39,6 +39,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   int _previousPlayPileLength = 0;
   String? _previousCurrentPlayerId;
+  bool _pickUpButtonWasActive = false;
   bool _resultAnnounced = false;
   DateTime? _gameStartTime;
 
@@ -249,7 +250,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   Future<void> _pickUpPile() async {
     HapticFeedback.mediumImpact();
-    context.read<AudioController>().playSfx(SfxType.huhsh);
+    context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
     try {
       final gameService = context.read<LocalGameService>();
       await gameService.pickUpPile();
@@ -680,7 +681,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   void _onPickUpEffect(String playerName) {
     if (mounted) {
-      context.read<AudioController>().playSfx(SfxType.huhsh);
+      context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
       _showPickUpNotification(playerName);
     }
   }
@@ -761,7 +762,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       final currentPileLength = room.playPile.length;
 
       if (currentPileLength > _previousPlayPileLength) {
-        context.read<AudioController>().playSfx(SfxType.wssh);
+        context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
         if (room.playPile.isNotEmpty) {
           final topValue = room.playPile.last.value;
           if (topValue == '5') _triggerGlassSmash();
@@ -816,6 +817,16 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
         }
       }
 
+      final isPickUpButtonActive =
+          room.currentPlayer == gameService.currentPlayerId &&
+              (gameService.revealedFaceDownCard != null ||
+                  (!_canCurrentPlayerPlayAnyCard() &&
+                      !_isInFaceDownOnlyPhase()));
+      if (isPickUpButtonActive && !_pickUpButtonWasActive) {
+        context.read<AudioController>().playSfx(SfxType.vineBoom);
+      }
+      _pickUpButtonWasActive = isPickUpButtonActive;
+
       _previousCurrentPlayerId = room.currentPlayer;
       _previousPlayPileLength = currentPileLength;
 
@@ -852,7 +863,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
     if (allOpponentsAreOut) {
       _resultAnnounced = true;
-      context.read<AudioController>().playSfx(SfxType.erase);
+      context.read<AudioController>().playSfx(SfxType.faaah);
       context.read<AnalyticsService>().logGameEnded(mode: 'single_player', outcome: 'loss');
       gameService.stopGame();
       _showLossDialog(duration: _gameDuration());

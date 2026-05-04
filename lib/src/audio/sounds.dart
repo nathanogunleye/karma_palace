@@ -39,6 +39,17 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
       SfxType.wrongAnswer => const [
           'audio/wrong_answer.mp3',
         ],
+      SfxType.faaah => const [
+          'audio/faaah.mp3',
+        ],
+      SfxType.takingPlayingCard => const [
+          'audio/taking_playing_card.mp3',
+          'audio/taking_playing_card_2.mp3',
+          'audio/taking_playing_card_3.mp3',
+        ],
+      SfxType.vineBoom => const [
+          'audio/vine_boom.mp3',
+        ],
     };
 
 /// Allows control over loudness of different SFX types.
@@ -53,6 +64,9 @@ double soundTypeToVolume(SfxType type) {
     case SfxType.erase:
     case SfxType.swishSwish:
     case SfxType.wrongAnswer:
+    case SfxType.faaah:
+    case SfxType.takingPlayingCard:
+    case SfxType.vineBoom:
       return 1.0;
   }
 }
@@ -65,4 +79,7 @@ enum SfxType {
   erase,
   swishSwish,
   wrongAnswer,
+  faaah,
+  takingPlayingCard,
+  vineBoom,
 }

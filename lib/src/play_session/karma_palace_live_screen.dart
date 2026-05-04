@@ -37,6 +37,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   int _previousPlayPileLength = 0;
   int _previousWinnerCount = 0;
   String? _previousCurrentPlayerId;
+  bool _pickUpButtonWasActive = false;
   bool _winAnnounced = false;
   bool _loserAnnounced = false;
   DateTime? _gameStartTime;
@@ -261,7 +262,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   Future<void> _pickUpPile() async {
     HapticFeedback.mediumImpact();
-    context.read<AudioController>().playSfx(SfxType.huhsh);
+    context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
     try {
       final gameService = context.read<FirebaseGameService>();
       await gameService.pickUpPile();
@@ -752,7 +753,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
   void _onPickUpEffect(String playerName) {
     if (mounted) {
-      context.read<AudioController>().playSfx(SfxType.huhsh);
+      context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
       _showPickUpNotification(playerName);
     }
   }
@@ -831,7 +832,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
       final currentPileLength = room.playPile.length;
 
       if (currentPileLength > _previousPlayPileLength) {
-        context.read<AudioController>().playSfx(SfxType.wssh);
+        context.read<AudioController>().playSfx(SfxType.takingPlayingCard);
         if (room.playPile.isNotEmpty) {
           final topValue = room.playPile.last.value;
           if (topValue == '5') _triggerGlassSmash();
@@ -879,6 +880,15 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
         }
       }
 
+      final isPickUpButtonActive =
+          room.currentPlayer == gameService.currentPlayerId &&
+              !_canCurrentPlayerPlayAnyCard() &&
+              !_isInFaceDownOnlyPhase();
+      if (isPickUpButtonActive && !_pickUpButtonWasActive) {
+        context.read<AudioController>().playSfx(SfxType.vineBoom);
+      }
+      _pickUpButtonWasActive = isPickUpButtonActive;
+
       _previousCurrentPlayerId = room.currentPlayer;
       _previousPlayPileLength = currentPileLength;
 
@@ -920,6 +930,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
           _showLoserNotification(loser.name, room.playPile.lastOrNull);
         } else {
           _loserAnnounced = true;
+          context.read<AudioController>().playSfx(SfxType.faaah);
           context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'loss');
           _showLoserNotification('You', room.playPile.lastOrNull, duration: _gameDuration());
         }
