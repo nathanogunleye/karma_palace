@@ -906,14 +906,13 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
       if (playersWithCards.length == 1) {
         final loser = playersWithCards.first;
         final isMe = loser.id == gameService.currentPlayerId;
-        // Don't label the human player as loser while they still have cards —
-        // let them finish and receive the win notification instead.
         if (!isMe) {
           _loserAnnounced = true;
           _showLoserNotification(loser.name, room.playPile.lastOrNull);
         } else {
           _loserAnnounced = true;
           context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'loss');
+          _showLoserNotification('You', room.playPile.lastOrNull);
         }
       }
     }
