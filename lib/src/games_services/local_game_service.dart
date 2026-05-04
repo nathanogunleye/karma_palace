@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
@@ -217,10 +218,26 @@ class LocalGameService extends ChangeNotifier {
     try {
       _gameInProgress = true;
 
+      final players = _currentRoom!.players;
+      final startIndex = Random().nextInt(players.length);
+      final startPlayerId = players[startIndex].id;
+      final updatedPlayers = players.map((p) => Player(
+        id: p.id,
+        name: p.name,
+        isPlaying: p.id == startPlayerId,
+        hand: p.hand,
+        faceUp: p.faceUp,
+        faceDown: p.faceDown,
+        isConnected: p.isConnected,
+        lastSeen: p.lastSeen,
+        turnOrder: p.turnOrder,
+        forcedToPlayLow: p.forcedToPlayLow,
+      )).toList();
+
       final updatedRoom = Room(
         id: _currentRoom!.id,
-        players: _currentRoom!.players,
-        currentPlayer: _currentRoom!.currentPlayer,
+        players: updatedPlayers,
+        currentPlayer: startPlayerId,
         gameState: GameState.playing,
         deck: _currentRoom!.deck,
         playPile: [],
@@ -231,6 +248,10 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _log.info('Started single player game');
       notifyListeners();
+
+      if (startPlayerId != _currentPlayerId) {
+        _scheduleAITurn();
+      }
     } catch (e) {
       _log.severe('Failed to start game: $e');
       rethrow;

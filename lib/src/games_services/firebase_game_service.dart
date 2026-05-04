@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
@@ -205,12 +206,13 @@ class FirebaseGameService extends ChangeNotifier {
       // Cards are already dealt during createRoom/joinRoom — just set first player and start
       final sortedPlayers = [..._currentRoom!.players]
         ..sort((a, b) => a.turnOrder.compareTo(b.turnOrder));
+      final startIndex = Random().nextInt(sortedPlayers.length);
       final updatedPlayers = sortedPlayers.asMap().entries.map((e) {
         final player = e.value;
         return Player(
           id: player.id,
           name: player.name,
-          isPlaying: e.key == 0,
+          isPlaying: e.key == startIndex,
           hand: player.hand,
           faceUp: player.faceUp,
           faceDown: player.faceDown,
@@ -224,7 +226,7 @@ class FirebaseGameService extends ChangeNotifier {
       final updatedRoom = Room(
         id: _currentRoom!.id,
         players: updatedPlayers,
-        currentPlayer: updatedPlayers[0].id,
+        currentPlayer: updatedPlayers[startIndex].id,
         gameState: GameState.playing,
         deck: _currentRoom!.deck,
         playPile: [],
