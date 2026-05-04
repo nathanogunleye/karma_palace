@@ -492,6 +492,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
       return;
     }
 
+    // Tapped outside the current multi-select group — exit multi-select first
+    if (_isMultiSelectMode) _cancelMultiSelect();
+
     final gameState = context.read<KarmaPalaceGameState>();
     // Face-down cards are always flipped blind — always animate.
     if (sourceZone == 'faceDown' || gameState.canPlayCard(card)) {

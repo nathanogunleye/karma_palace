@@ -392,6 +392,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       return;
     }
 
+    // Tapped outside the current multi-select group — exit multi-select first
+    if (_isMultiSelectMode) _cancelMultiSelect();
+
     // Normal single card play
     _triggerCardFly(card, tapCenter);
     _playCard(card, sourceZone);
