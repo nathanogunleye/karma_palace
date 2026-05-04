@@ -2,6 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../games_services/local_game_service.dart';
+import '../games_services/ai_player_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -106,7 +111,27 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       await _exitController.forward();
       if (!mounted) return;
-      GoRouter.of(context).go('/');
+
+      final gameService = context.read<LocalGameService>();
+      final router = GoRouter.of(context);
+      final prefs = await SharedPreferences.getInstance();
+      final isFirstLaunch = prefs.getBool('has_launched') != true;
+
+      if (!mounted) return;
+
+      if (isFirstLaunch) {
+        await prefs.setBool('has_launched', true);
+        await gameService.createSinglePlayerGame(
+          'Player',
+          AIDifficulty.easy,
+          aiPlayerCount: 1,
+        );
+        await gameService.startGame();
+        if (!mounted) return;
+        router.go('/how-to-play');
+      } else {
+        router.go('/');
+      }
     });
   }
 
