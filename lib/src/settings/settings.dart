@@ -38,6 +38,10 @@ class SettingsController {
   /// Whether or not haptic feedback is on.
   ValueNotifier<bool> hapticsOn = ValueNotifier(true);
 
+  ValueNotifier<int> lastAiPlayerCount = ValueNotifier(2);
+
+  ValueNotifier<String> lastAiDifficulty = ValueNotifier('medium');
+
   /// Creates a new instance of [SettingsController] backed by [store].
   ///
   /// By default, settings are persisted using [LocalStorageSettingsPersistence]
@@ -73,6 +77,16 @@ class SettingsController {
     _store.saveHapticsOn(hapticsOn.value);
   }
 
+  void setLastAiPlayerCount(int value) {
+    lastAiPlayerCount.value = value;
+    _store.saveLastAiPlayerCount(value);
+  }
+
+  void setLastAiDifficulty(String value) {
+    lastAiDifficulty.value = value;
+    _store.saveLastAiDifficulty(value);
+  }
+
   /// Asynchronously loads values from the injected persistence store.
   Future<void> _loadStateFromPersistence() async {
     final loadedValues = await Future.wait([
@@ -95,6 +109,12 @@ class SettingsController {
       _store
           .getHapticsOn(defaultValue: true)
           .then((value) => hapticsOn.value = value),
+      _store
+          .getLastAiPlayerCount(defaultValue: 2)
+          .then((value) => lastAiPlayerCount.value = value),
+      _store
+          .getLastAiDifficulty(defaultValue: 'medium')
+          .then((value) => lastAiDifficulty.value = value),
     ]);
 
     _log.fine(() => 'Loaded settings: $loadedValues');

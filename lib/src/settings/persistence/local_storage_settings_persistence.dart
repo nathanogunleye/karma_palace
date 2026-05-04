@@ -71,4 +71,28 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final prefs = await instanceFuture;
     await prefs.setBool('hapticsOn', value);
   }
+
+  @override
+  Future<int> getLastAiPlayerCount({required int defaultValue}) async {
+    final prefs = await instanceFuture;
+    return prefs.getInt('lastAiPlayerCount') ?? defaultValue;
+  }
+
+  @override
+  Future<String> getLastAiDifficulty({required String defaultValue}) async {
+    final prefs = await instanceFuture;
+    return prefs.getString('lastAiDifficulty') ?? defaultValue;
+  }
+
+  @override
+  Future<void> saveLastAiPlayerCount(int value) async {
+    final prefs = await instanceFuture;
+    await prefs.setInt('lastAiPlayerCount', value);
+  }
+
+  @override
+  Future<void> saveLastAiDifficulty(String value) async {
+    final prefs = await instanceFuture;
+    await prefs.setString('lastAiDifficulty', value);
+  }
 }

@@ -26,4 +26,12 @@ abstract class SettingsPersistence {
   Future<void> saveSoundsOn(bool value);
 
   Future<void> saveHapticsOn(bool value);
+
+  Future<int> getLastAiPlayerCount({required int defaultValue});
+
+  Future<String> getLastAiDifficulty({required String defaultValue});
+
+  Future<void> saveLastAiPlayerCount(int value);
+
+  Future<void> saveLastAiDifficulty(String value);
 }

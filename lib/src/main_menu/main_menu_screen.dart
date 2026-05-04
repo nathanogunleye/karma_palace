@@ -21,6 +21,18 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   int _playerCount = 2;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _playerCount = context.read<SettingsController>().lastAiPlayerCount.value;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
     final settingsController = context.watch<SettingsController>();

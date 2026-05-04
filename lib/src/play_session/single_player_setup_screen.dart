@@ -36,6 +36,11 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
     final settings = context.read<SettingsController>();
     final savedName = settings.playerName.value;
     _playerNameController.text = savedName;
+    final savedDifficulty = AIDifficulty.values.firstWhere(
+      (d) => d.name == settings.lastAiDifficulty.value,
+      orElse: () => AIDifficulty.medium,
+    );
+    setState(() => _selectedDifficulty = savedDifficulty);
     if (savedName == 'Player') {
       _promptToChangeName();
     }
@@ -140,7 +145,10 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
 
     try {
       final name = _playerNameController.text.trim();
-      context.read<SettingsController>().setPlayerName(name);
+      final settings = context.read<SettingsController>();
+      settings.setPlayerName(name);
+      settings.setLastAiPlayerCount(widget.playerCount);
+      settings.setLastAiDifficulty(_selectedDifficulty.name);
       final gameService = context.read<LocalGameService>();
       await gameService.createSinglePlayerGame(
         name,
