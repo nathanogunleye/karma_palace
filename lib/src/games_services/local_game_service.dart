@@ -383,16 +383,37 @@ class LocalGameService extends ChangeNotifier {
         updatedPlayers,
       );
 
+      final roomId = _currentRoom!.id;
+      final gameState = _currentRoom!.gameState;
+      final createdAt = _currentRoom!.createdAt;
+      final resetActive = card.specialEffect == game_card.SpecialEffect.reset;
+
+      if (finalPlayPile.isEmpty && updatedPlayPile.isNotEmpty) {
+        _currentRoom = Room(
+          id: roomId,
+          players: finalCurrentPlayer,
+          currentPlayer: finalNextPlayerId,
+          gameState: gameState,
+          deck: remainingDeck,
+          playPile: updatedPlayPile,
+          createdAt: createdAt,
+          lastActivity: DateTime.now(),
+          resetActive: resetActive,
+        );
+        notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+
       final updatedRoom = Room(
-        id: _currentRoom!.id,
+        id: roomId,
         players: finalCurrentPlayer,
         currentPlayer: finalNextPlayerId,
-        gameState: _currentRoom!.gameState,
+        gameState: gameState,
         deck: remainingDeck,
         playPile: finalPlayPile,
-        createdAt: _currentRoom!.createdAt,
+        createdAt: createdAt,
         lastActivity: DateTime.now(),
-        resetActive: card.specialEffect == game_card.SpecialEffect.reset,
+        resetActive: resetActive,
       );
 
       _currentRoom = updatedRoom;
@@ -519,16 +540,37 @@ class LocalGameService extends ChangeNotifier {
         skipCount: cards.where((card) => card.value == '9').length,
       );
 
+      final roomId = _currentRoom!.id;
+      final gameState = _currentRoom!.gameState;
+      final createdAt = _currentRoom!.createdAt;
+      final resetActive = lastCard.specialEffect == game_card.SpecialEffect.reset;
+
+      if (finalPlayPile.isEmpty && updatedPlayPile.isNotEmpty) {
+        _currentRoom = Room(
+          id: roomId,
+          players: finalCurrentPlayer,
+          currentPlayer: finalNextPlayerId,
+          gameState: gameState,
+          deck: remainingDeck,
+          playPile: updatedPlayPile,
+          createdAt: createdAt,
+          lastActivity: DateTime.now(),
+          resetActive: resetActive,
+        );
+        notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+
       final updatedRoom = Room(
-        id: _currentRoom!.id,
+        id: roomId,
         players: finalCurrentPlayer,
         currentPlayer: finalNextPlayerId,
-        gameState: _currentRoom!.gameState,
+        gameState: gameState,
         deck: remainingDeck,
         playPile: finalPlayPile,
-        createdAt: _currentRoom!.createdAt,
+        createdAt: createdAt,
         lastActivity: DateTime.now(),
-        resetActive: lastCard.specialEffect == game_card.SpecialEffect.reset,
+        resetActive: resetActive,
       );
 
       _currentRoom = updatedRoom;
@@ -690,7 +732,7 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Play AI turn
-  void _playAITurn() {
+  Future<void> _playAITurn() async {
     if (_currentRoom == null || !_gameInProgress) return;
 
     final currentId = _currentRoom!.currentPlayer;
@@ -721,7 +763,7 @@ class LocalGameService extends ChangeNotifier {
   }
 
   /// Play one or more matching cards for the AI
-  void _playAICards(List<game_card.Card> cards, String sourceZone) {
+  Future<void> _playAICards(List<game_card.Card> cards, String sourceZone) async {
     if (_currentRoom == null) return;
     if (cards.isEmpty) return;
 
@@ -804,16 +846,37 @@ class LocalGameService extends ChangeNotifier {
         skipCount: cards.where((card) => card.value == '9').length,
       );
 
+      final roomId = _currentRoom!.id;
+      final gameState = _currentRoom!.gameState;
+      final createdAt = _currentRoom!.createdAt;
+      final resetActive = lastCard.specialEffect == game_card.SpecialEffect.reset;
+
+      if (finalPlayPile.isEmpty && updatedPlayPile.isNotEmpty) {
+        _currentRoom = Room(
+          id: roomId,
+          players: finalCurrentPlayer,
+          currentPlayer: finalNextPlayerId,
+          gameState: gameState,
+          deck: remainingDeck,
+          playPile: updatedPlayPile,
+          createdAt: createdAt,
+          lastActivity: DateTime.now(),
+          resetActive: resetActive,
+        );
+        notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+
       final updatedRoom = Room(
-        id: _currentRoom!.id,
+        id: roomId,
         players: finalCurrentPlayer,
         currentPlayer: finalNextPlayerId,
-        gameState: _currentRoom!.gameState,
+        gameState: gameState,
         deck: remainingDeck,
         playPile: finalPlayPile,
-        createdAt: _currentRoom!.createdAt,
+        createdAt: createdAt,
         lastActivity: DateTime.now(),
-        resetActive: lastCard.specialEffect == game_card.SpecialEffect.reset,
+        resetActive: resetActive,
       );
 
       _currentRoom = updatedRoom;

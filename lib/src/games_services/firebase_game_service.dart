@@ -448,6 +448,25 @@ class FirebaseGameService extends ChangeNotifier {
         finalNextPlayerId,
       );
 
+      if (finalPlayPile.isEmpty && updatedPlayPile.isNotEmpty) {
+        final roomId = _currentRoom!.id;
+        final gameState = _currentRoom!.gameState;
+        final createdAt = _currentRoom!.createdAt;
+        _currentRoom = Room(
+          id: roomId,
+          players: finalPlayers,
+          currentPlayer: finalNextPlayerId,
+          gameState: gameState,
+          deck: remainingDeck,
+          playPile: updatedPlayPile,
+          createdAt: createdAt,
+          lastActivity: DateTime.now(),
+          resetActive: card.specialEffect == game_card.SpecialEffect.reset,
+        );
+        notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+
       final updatedRoom = Room(
         id: _currentRoom!.id,
         players: finalPlayers,
@@ -564,6 +583,25 @@ class FirebaseGameService extends ChangeNotifier {
         finalCurrentPlayer,
         finalNextPlayerId,
       );
+
+      if (finalPlayPile.isEmpty && updatedPlayPile.isNotEmpty) {
+        final roomId = _currentRoom!.id;
+        final gameState = _currentRoom!.gameState;
+        final createdAt = _currentRoom!.createdAt;
+        _currentRoom = Room(
+          id: roomId,
+          players: finalPlayers,
+          currentPlayer: finalNextPlayerId,
+          gameState: gameState,
+          deck: remainingDeck,
+          playPile: updatedPlayPile,
+          createdAt: createdAt,
+          lastActivity: DateTime.now(),
+          resetActive: lastCard.specialEffect == game_card.SpecialEffect.reset,
+        );
+        notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
