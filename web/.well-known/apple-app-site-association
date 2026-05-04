@@ -3,6 +3,7 @@
     "details": [
       {
         "appIDs": ["UU84VRSAAC.com.nathanodong.karmaPalace"],
+        "paths": ["/join/*"],
         "components": [
           {
             "/": "/join/*",

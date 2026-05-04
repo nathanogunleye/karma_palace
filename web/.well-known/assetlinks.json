@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.nathanodong.karma_palace",
+      "sha256_cert_fingerprints": [
+        "4B:EB:34:DE:23:2E:3D:0C:58:26:F5:E3:5C:4A:3C:90:FF:DD:63:9A:13:55:7E:23:EE:6A:04:33:17:6A:8E:7A"
+      ]
+    }
+  }
+]
