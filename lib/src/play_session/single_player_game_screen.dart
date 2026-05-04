@@ -40,6 +40,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   int _previousPlayPileLength = 0;
   String? _previousCurrentPlayerId;
   bool _resultAnnounced = false;
+  DateTime? _gameStartTime;
 
   // Tutorial state
   late bool _isTutorialActive;
@@ -748,6 +749,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     final room = gameService.currentRoom;
 
     if (room != null && mounted) {
+      if (room.gameState == GameState.playing && _gameStartTime == null) {
+        _gameStartTime = DateTime.now();
+      }
+
       final currentPileLength = room.playPile.length;
 
       if (currentPileLength > _previousPlayPileLength) {
@@ -836,7 +841,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       context.read<AudioController>().playSfx(SfxType.congrats);
       context.read<AnalyticsService>().logGameEnded(mode: 'single_player', outcome: 'win');
       gameService.stopGame();
-      _showWinDialog(room.playPile.lastOrNull);
+      _showWinDialog(room.playPile.lastOrNull, duration: _gameDuration());
       return;
     }
 
@@ -845,12 +850,24 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       context.read<AudioController>().playSfx(SfxType.erase);
       context.read<AnalyticsService>().logGameEnded(mode: 'single_player', outcome: 'loss');
       gameService.stopGame();
-      _showLossDialog();
+      _showLossDialog(duration: _gameDuration());
       return;
     }
   }
 
-  void _showWinDialog(game_card.Card? winningCard) {
+  Duration? _gameDuration() {
+    if (_gameStartTime == null) return null;
+    return DateTime.now().difference(_gameStartTime!);
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    if (m == 0) return '${s}s';
+    return '${m}m ${s}s';
+  }
+
+  void _showWinDialog(game_card.Card? winningCard, {Duration? duration}) {
     if (!mounted) return;
     showDialog(
       context: context,
@@ -888,6 +905,14 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
+              if (duration != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '⏱ ${_formatDuration(duration)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
               const SizedBox(height: 28),
               GestureDetector(
                 onTap: () async {
@@ -950,7 +975,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     );
   }
 
-  void _showLossDialog() {
+  void _showLossDialog({Duration? duration}) {
     if (!mounted) return;
     showDialog(
       context: context,
@@ -982,6 +1007,14 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
+              if (duration != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '⏱ ${_formatDuration(duration)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
               const SizedBox(height: 28),
               GestureDetector(
                 onTap: () async {

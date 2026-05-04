@@ -39,6 +39,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
   String? _previousCurrentPlayerId;
   bool _winAnnounced = false;
   bool _loserAnnounced = false;
+  DateTime? _gameStartTime;
 
   // Card fly animation — single card
   final GlobalKey _playAreaKey = GlobalKey();
@@ -819,6 +820,10 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     final room = gameService.currentRoom;
 
     if (room != null && mounted) {
+      if (room.gameState == GameState.playing && _gameStartTime == null) {
+        _gameStartTime = DateTime.now();
+      }
+
       final currentPileLength = room.playPile.length;
 
       if (currentPileLength > _previousPlayPileLength) {
@@ -896,7 +901,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
       context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'win');
       final playersWithCards = room.players.where((p) => !p.hasWon).toList();
       final isLastToFinish = playersWithCards.isEmpty;
-      _showWinNotification(room.playPile.lastOrNull, isLastToFinish: isLastToFinish);
+      _showWinNotification(room.playPile.lastOrNull, isLastToFinish: isLastToFinish, duration: _gameDuration());
       return;
     }
 
@@ -912,13 +917,25 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
         } else {
           _loserAnnounced = true;
           context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'loss');
-          _showLoserNotification('You', room.playPile.lastOrNull);
+          _showLoserNotification('You', room.playPile.lastOrNull, duration: _gameDuration());
         }
       }
     }
   }
 
-  void _showWinNotification(game_card.Card? winningCard, {bool isLastToFinish = false}) {
+  Duration? _gameDuration() {
+    if (_gameStartTime == null) return null;
+    return DateTime.now().difference(_gameStartTime!);
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    if (m == 0) return '${s}s';
+    return '${m}m ${s}s';
+  }
+
+  void _showWinNotification(game_card.Card? winningCard, {bool isLastToFinish = false, Duration? duration}) {
     if (!mounted) return;
     showDialog(
       context: context,
@@ -958,6 +975,14 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
+              if (duration != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '⏱ ${_formatDuration(duration)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -1013,7 +1038,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
     );
   }
 
-  void _showLoserNotification(String name, game_card.Card? winningCard) {
+  void _showLoserNotification(String name, game_card.Card? winningCard, {Duration? duration}) {
     if (!mounted) return;
     final isMe = name == 'You';
     showDialog(
@@ -1054,6 +1079,14 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
+              if (duration != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '⏱ ${_formatDuration(duration)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
               const SizedBox(height: 24),
               GestureDetector(
                 onTap: () {
