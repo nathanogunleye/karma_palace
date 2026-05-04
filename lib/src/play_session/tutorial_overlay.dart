@@ -149,43 +149,14 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
-  Widget _buildPositionedCard(
-    BuildContext context,
-    ({String title, String body}) stepData,
-    bool isLast,
-  ) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    // Put the card at the top when the highlight is in the lower half of the screen
-    final pinToTop =
-        _highlightRect != null &&
-        _highlightRect!.center.dy > screenHeight / 2;
-
-    final card = SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, pinToTop ? 24 : 0, 16, pinToTop ? 0 : 24),
-        child: _TutorialCard(
-          step: widget.step,
-          total: widget.total,
-          title: stepData.title,
-          body: stepData.body,
-          isFirst: widget.step == 0,
-          isLast: isLast,
-          onNext: isLast ? widget.onClose : widget.onNext,
-          onBack: widget.onBack,
-          onClose: widget.onClose,
-        ),
-      ),
-    );
-
-    return pinToTop
-        ? Positioned(top: 0, left: 0, right: 0, child: card)
-        : Positioned(bottom: 0, left: 0, right: 0, child: card);
-  }
-
   @override
   Widget build(BuildContext context) {
     final stepData = _steps[widget.step.clamp(0, _steps.length - 1)];
     final isLast = widget.step == widget.total - 1;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final pinToTop =
+        _highlightRect != null &&
+        _highlightRect!.center.dy > screenHeight / 2;
 
     return Stack(
       children: [
@@ -223,8 +194,36 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             ),
           ),
 
-        // Tutorial card — sits on whichever half the highlight isn't on
-        _buildPositionedCard(context, stepData, isLast),
+        // Tutorial card — slides between top and bottom to avoid the highlight
+        Positioned.fill(
+          key: const ValueKey('tutorial-card'),
+          child: AnimatedAlign(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            alignment: pinToTop ? Alignment.topCenter : Alignment.bottomCenter,
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  pinToTop ? 24 : 0,
+                  16,
+                  pinToTop ? 0 : 24,
+                ),
+                child: _TutorialCard(
+                  step: widget.step,
+                  total: widget.total,
+                  title: stepData.title,
+                  body: stepData.body,
+                  isFirst: widget.step == 0,
+                  isLast: isLast,
+                  onNext: isLast ? widget.onClose : widget.onNext,
+                  onBack: widget.onBack,
+                  onClose: widget.onClose,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
