@@ -35,7 +35,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   int _previousPlayPileLength = 0;
   String? _previousCurrentPlayerId;
-  bool _winAnnounced = false;
+  bool _resultAnnounced = false;
 
   // Card fly animation
   final GlobalKey _playAreaKey = GlobalKey();
@@ -111,9 +111,11 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     super.dispose();
   }
 
-  void _showMessage(String text,
-      {Color color = Colors.grey,
-      Duration duration = const Duration(seconds: 3)}) {
+  void _showMessage(
+    String text, {
+    Color color = Colors.grey,
+    Duration duration = const Duration(seconds: 3),
+  }) {
     _messageTimer?.cancel();
     if (!mounted) return;
     setState(() {
@@ -135,17 +137,21 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (gameService.currentRoom != null &&
         gameService.currentPlayerId != null) {
       _log.info(
-          'DEBUG: Updating game state for player: ${gameService.currentPlayerId}');
+        'DEBUG: Updating game state for player: ${gameService.currentPlayerId}',
+      );
       _log.info(
-          'DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
+        'DEBUG: Current game state player ID: ${gameState.currentPlayerId}',
+      );
 
       // Initialize game state if not already done for this player
       if (gameState.currentPlayerId == null ||
           gameState.currentPlayerId != gameService.currentPlayerId) {
         _log.info(
-            'DEBUG: Initializing game state for new player: ${gameService.currentPlayerId}');
+          'DEBUG: Initializing game state for new player: ${gameService.currentPlayerId}',
+        );
         _log.info(
-            'DEBUG: Previous player ID was: ${gameState.currentPlayerId}');
+          'DEBUG: Previous player ID was: ${gameState.currentPlayerId}',
+        );
 
         // Reset game state completely for new player
         if (gameState.currentPlayerId != null) {
@@ -155,7 +161,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           gameState.initializeGame(
-              gameService.currentRoom!, gameService.currentPlayerId!);
+            gameService.currentRoom!,
+            gameService.currentPlayerId!,
+          );
         });
       } else {
         // Just update the room data
@@ -174,15 +182,20 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (gameService.currentRoom != null &&
         gameService.currentPlayerId != null) {
       _log.info(
-          'DEBUG: Initializing game state for player: ${gameService.currentPlayerId}');
+        'DEBUG: Initializing game state for player: ${gameService.currentPlayerId}',
+      );
       _log.info(
-          'DEBUG: Current game state player ID: ${gameState.currentPlayerId}');
+        'DEBUG: Current game state player ID: ${gameState.currentPlayerId}',
+      );
       gameState.initializeGame(
-          gameService.currentRoom!, gameService.currentPlayerId!);
+        gameService.currentRoom!,
+        gameService.currentPlayerId!,
+      );
       _log.info('Initialized game state for single player game');
     } else {
       _log.info(
-          'DEBUG: Cannot initialize game state - room or playerId is null');
+        'DEBUG: Cannot initialize game state - room or playerId is null',
+      );
     }
   }
 
@@ -210,8 +223,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       }
     } catch (e) {
       _log.severe('Failed to play card: $e');
-      _showMessage(e.toString().replaceFirst('Exception: ', ''),
-          color: Colors.red);
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        color: Colors.red,
+      );
     }
   }
 
@@ -262,7 +277,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     );
 
     final curved = CurvedAnimation(
-        parent: _cardFlyController, curve: Curves.easeInOutCubic);
+      parent: _cardFlyController,
+      curve: Curves.easeInOutCubic,
+    );
     _flyAnimation = Tween<Offset>(begin: begin, end: pileDest).animate(curved);
     _flyOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 70),
@@ -292,10 +309,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       setState(() => _swapSelectedCard = card);
     } else {
       // Different zone — perform the swap
-      final handCardId =
-          sourceZone == 'hand' ? card.id : _swapSelectedCard!.id;
-      final faceUpCardId =
-          sourceZone == 'faceUp' ? card.id : _swapSelectedCard!.id;
+      final handCardId = sourceZone == 'hand' ? card.id : _swapSelectedCard!.id;
+      final faceUpCardId = sourceZone == 'faceUp'
+          ? card.id
+          : _swapSelectedCard!.id;
       _performSwap(handCardId, faceUpCardId);
     }
   }
@@ -310,8 +327,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       final gameService = context.read<LocalGameService>();
       await gameService.swapPreGameCards(handCardId, faceUpCardId);
     } catch (e) {
-      _showMessage(e.toString().replaceFirst('Exception: ', ''),
-          color: Colors.red);
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        color: Colors.red,
+      );
     }
   }
 
@@ -480,14 +499,17 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   }
 
   Future<void> _playMultipleCards(
-      List<game_card.Card> cards, String sourceZone) async {
+    List<game_card.Card> cards,
+    String sourceZone,
+  ) async {
     try {
       final gameService = context.read<LocalGameService>();
 
       // Play all cards at once using the new method
       await gameService.playMultipleCards(cards, sourceZone);
       _log.info(
-          'Played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')} from $sourceZone');
+        'Played ${cards.length} cards: ${cards.map((c) => c.displayString).join(', ')} from $sourceZone',
+      );
 
       // Check for win condition after playing all cards
       final room = gameService.currentRoom;
@@ -496,8 +518,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       }
     } catch (e) {
       _log.severe('Failed to play multiple cards: $e');
-      _showMessage(e.toString().replaceFirst('Exception: ', ''),
-          color: Colors.red);
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        color: Colors.red,
+      );
     }
   }
 
@@ -654,8 +678,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
   }
 
   void _showBurnNotification(String playerName) {
-    _showMessage('🔥 $playerName burned the pile! Same player goes again.',
-        color: Colors.deepOrange);
+    _showMessage(
+      '🔥 $playerName burned the pile! Same player goes again.',
+      color: Colors.deepOrange,
+    );
   }
 
   void _triggerSevenOverlay() {
@@ -726,7 +752,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
         final actingPlayerId = _previousCurrentPlayerId ?? room.currentPlayer;
         if (actingPlayerId != gameService.currentPlayerId) {
           final actingPlayerName = room.players
-              .firstWhere((p) => p.id == actingPlayerId, orElse: () => room.players.first)
+              .firstWhere(
+                (p) => p.id == actingPlayerId,
+                orElse: () => room.players.first,
+              )
               .name;
           // Burn: same player goes again (currentPlayer unchanged).
           // Pickup: turn moves to next player (currentPlayer changed).
@@ -742,13 +771,17 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
       // Show 7 overlay when the turn just changed to the human player and
       // they are forced to play low.
       final isMyTurn = room.currentPlayer == gameService.currentPlayerId;
-      final turnJustChangedToMe = isMyTurn &&
+      final turnJustChangedToMe =
+          isMyTurn &&
           _previousCurrentPlayerId != null &&
           _previousCurrentPlayerId != gameService.currentPlayerId;
       if (turnJustChangedToMe) {
         if (context.read<SettingsController>().hapticsOn.value) {
           HapticFeedback.heavyImpact();
-          Future.delayed(const Duration(milliseconds: 80), HapticFeedback.heavyImpact);
+          Future.delayed(
+            const Duration(milliseconds: 80),
+            HapticFeedback.heavyImpact,
+          );
         }
         final me = room.players.firstWhere(
           (p) => p.id == gameService.currentPlayerId,
@@ -769,18 +802,34 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
   void _checkWinCondition(Room room) {
     if (room.gameState != GameState.playing) return;
+    if (_resultAnnounced) return;
+
     final gameService = context.read<LocalGameService>();
     // An invalid face-down flip is pending pickup — player hasn't truly won yet.
-    if (gameService.revealedFaceDownCard != null) return;
+    final hasPendingFaceDownPickup = gameService.revealedFaceDownCard != null;
     final humanPlayer = room.players.firstWhere(
       (p) => p.id == gameService.currentPlayerId,
       orElse: () => room.players.last,
     );
-    if (humanPlayer.hasWon && !_winAnnounced) {
-      _winAnnounced = true;
+
+    final humanIsOut = humanPlayer.hasWon && !hasPendingFaceDownPickup;
+    final allOpponentsAreOut = room.players
+        .where((p) => p.id != gameService.currentPlayerId)
+        .every((p) => p.hasWon);
+
+    if (humanIsOut) {
+      _resultAnnounced = true;
       context.read<AudioController>().playSfx(SfxType.congrats);
       gameService.stopGame();
       _showWinDialog(room.playPile.lastOrNull);
+      return;
+    }
+
+    if (allOpponentsAreOut) {
+      _resultAnnounced = true;
+      context.read<AudioController>().playSfx(SfxType.erase);
+      gameService.stopGame();
+      _showLossDialog();
       return;
     }
   }
@@ -885,6 +934,100 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     );
   }
 
+  void _showLossDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierColor: Colors.black,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B1461),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x80EF4444)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'You Lost!',
+                style: TextStyle(
+                  color: Color(0xFFF87171),
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Everyone else got rid of their cards first.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 28),
+              GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final gameService = context.read<LocalGameService>();
+                  await gameService.leaveGame();
+                  if (mounted) context.go('/single-player-setup');
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFACC15), Color(0xFFF97316)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Play Again',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final gameService = context.read<LocalGameService>();
+                  await gameService.leaveGame();
+                  if (mounted) context.go('/');
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1AFFFFFF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0x33FFFFFF)),
+                  ),
+                  child: const Text(
+                    'Main Menu',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showRulesDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -905,9 +1048,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
               const Text(
                 'How to Play Karma Palace',
                 style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               const SingleChildScrollView(
@@ -917,23 +1061,28 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                   children: [
                     _RuleSection('Goal'),
                     _RuleText(
-                        'Get rid of all your cards. The last player with cards loses!'),
+                      'Get rid of all your cards. The last player with cards loses!',
+                    ),
                     SizedBox(height: 12),
                     _RuleSection('Setup'),
                     _RuleText(
-                        'Each player gets 3 face-down, 3 face-up, and 3 hand cards.'),
+                      'Each player gets 3 face-down, 3 face-up, and 3 hand cards.',
+                    ),
                     SizedBox(height: 12),
                     _RuleSection('Playing'),
                     _RuleBullet(
-                        'Play cards equal to or higher than the top card'),
+                      'Play cards equal to or higher than the top card',
+                    ),
                     _RuleBullet(
-                        'Play multiple cards of the same rank together'),
+                      'Play multiple cards of the same rank together',
+                    ),
                     _RuleBullet("If you can't play, pick up the entire pile"),
                     SizedBox(height: 12),
                     _RuleSection('Special Cards'),
                     _RuleBullet('2 — Reset, can be played on anything'),
                     _RuleBullet(
-                        '5 — Glass (transparent), see through to card below'),
+                      '5 — Glass (transparent), see through to card below',
+                    ),
                     _RuleBullet('7 — Next player must play 7 or lower'),
                     _RuleBullet('9 — Skip the next player\'s turn'),
                     _RuleBullet('10 — Burns the pile, same player goes again'),
@@ -941,7 +1090,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     SizedBox(height: 12),
                     _RuleSection('Card Order'),
                     _RuleText(
-                        'Hand first, then face-up, then face-down (blind!).'),
+                      'Hand first, then face-up, then face-down (blind!).',
+                    ),
                   ],
                 ),
               ),
@@ -960,7 +1110,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     'Got it!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -1032,7 +1184,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                     // Custom header — Exit | Title/Turn | Rules
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1054,7 +1208,10 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                               Consumer<LocalGameService>(
                                 builder: (context, svc, _) {
                                   final r = svc.currentRoom;
-                                  if (r == null || r.gameState != GameState.playing) return const SizedBox.shrink();
+                                  if (r == null ||
+                                      r.gameState != GameState.playing) {
+                                    return const SizedBox.shrink();
+                                  }
                                   final isMyTurn =
                                       r.currentPlayer == svc.currentPlayerId;
                                   final turnName = isMyTurn
@@ -1063,7 +1220,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                                   return Text(
                                     turnName,
                                     style: const TextStyle(
-                                        color: Colors.white70, fontSize: 12),
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
                                   );
                                 },
                               ),
@@ -1082,7 +1241,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                       child: SinglePlayerBoardWidget(
                         pileKey: _pileKey,
                         onCardTap: _onCardTap,
-                        selectedCardIds: room.gameState == GameState.waiting && _swapSelectedCard != null
+                        selectedCardIds:
+                            room.gameState == GameState.waiting &&
+                                _swapSelectedCard != null
                             ? {_swapSelectedCard!.id}
                             : _selectedCardIds,
                         isMultiSelectMode: _isMultiSelectMode,
@@ -1130,7 +1291,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                                         )
                                       : _GameButton(
                                           label: 'Pick Up Pile',
-                                          color: gameService.currentPlayerId ==
+                                          color:
+                                              gameService.currentPlayerId ==
                                                       room.currentPlayer &&
                                                   (gameService.revealedFaceDownCard !=
                                                           null ||
@@ -1138,7 +1300,8 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                                                           !_isInFaceDownOnlyPhase()))
                                               ? const Color(0xFFF97316)
                                               : Colors.grey.shade700,
-                                          onTap: gameService.currentPlayerId ==
+                                          onTap:
+                                              gameService.currentPlayerId ==
                                                       room.currentPlayer &&
                                                   (gameService.revealedFaceDownCard !=
                                                           null ||
@@ -1189,7 +1352,9 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
                                     child: _GameButton(
                                       label: 'Start Game',
                                       color: const Color(0xFF22C55E),
-                                      onTap: gameService.isHost ? _startGame : null,
+                                      onTap: gameService.isHost
+                                          ? _startGame
+                                          : null,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -1231,35 +1396,35 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
 
               // Flying card overlay
               if (_flyingCard != null)
-                  AnimatedBuilder(
-                    animation: _cardFlyController,
-                    builder: (context, child) {
-                      const cardW = 56.0;
-                      const cardH = 56.0 * 46 / 32;
-                      return Positioned(
-                        left: _flyAnimation.value.dx - cardW / 2,
-                        top: _flyAnimation.value.dy - cardH / 2,
-                        child: IgnorePointer(
-                          child: Transform.rotate(
-                            angle: _flyRotation.value,
-                            child: Transform.scale(
-                              scale: _flyScale.value,
-                              child: Opacity(
-                                opacity: _flyOpacity.value.clamp(0.0, 1.0),
-                                child: child,
-                              ),
+                AnimatedBuilder(
+                  animation: _cardFlyController,
+                  builder: (context, child) {
+                    const cardW = 56.0;
+                    const cardH = 56.0 * 46 / 32;
+                    return Positioned(
+                      left: _flyAnimation.value.dx - cardW / 2,
+                      top: _flyAnimation.value.dy - cardH / 2,
+                      child: IgnorePointer(
+                        child: Transform.rotate(
+                          angle: _flyRotation.value,
+                          child: Transform.scale(
+                            scale: _flyScale.value,
+                            child: Opacity(
+                              opacity: _flyOpacity.value.clamp(0.0, 1.0),
+                              child: child,
                             ),
                           ),
                         ),
-                      );
-                    },
-                    child: KarmaPalaceCardWidget(
-                      card: _flyingCard!,
-                      isFaceDown: false,
-                      isPlayable: false,
-                      size: const Size(56, 56 * 46 / 32),
-                    ),
+                      ),
+                    );
+                  },
+                  child: KarmaPalaceCardWidget(
+                    card: _flyingCard!,
+                    isFaceDown: false,
+                    isPlayable: false,
+                    size: const Size(56, 56 * 46 / 32),
                   ),
+                ),
             ],
           ),
         ),
@@ -1301,20 +1466,27 @@ class _DialogCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(card.value,
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        height: 1.1)),
-                Text(card.suit,
-                    style: TextStyle(color: color, fontSize: 13, height: 1.0)),
+                Text(
+                  card.value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  card.suit,
+                  style: TextStyle(color: color, fontSize: 13, height: 1.0),
+                ),
               ],
             ),
           ),
           Center(
-            child:
-                Text(card.suit, style: TextStyle(color: color, fontSize: 34)),
+            child: Text(
+              card.suit,
+              style: TextStyle(color: color, fontSize: 34),
+            ),
           ),
           Positioned(
             bottom: 6,
@@ -1325,15 +1497,19 @@ class _DialogCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(card.value,
-                      style: TextStyle(
-                          color: color,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1)),
-                  Text(card.suit,
-                      style:
-                          TextStyle(color: color, fontSize: 13, height: 1.0)),
+                  Text(
+                    card.value,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    card.suit,
+                    style: TextStyle(color: color, fontSize: 13, height: 1.0),
+                  ),
                 ],
               ),
             ),
@@ -1421,13 +1597,16 @@ class _RuleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 13,
+      ),
+    ),
+  );
 }
 
 class _RuleText extends StatelessWidget {
@@ -1435,10 +1614,8 @@ class _RuleText extends StatelessWidget {
   const _RuleText(this.text);
 
   @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(color: Colors.white70, fontSize: 13),
-      );
+  Widget build(BuildContext context) =>
+      Text(text, style: const TextStyle(color: Colors.white70, fontSize: 13));
 }
 
 class _RuleBullet extends StatelessWidget {
@@ -1447,12 +1624,12 @@ class _RuleBullet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 2),
-        child: Text(
-          '• $text',
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
-        ),
-      );
+    padding: const EdgeInsets.only(left: 4, bottom: 2),
+    child: Text(
+      '• $text',
+      style: const TextStyle(color: Colors.white70, fontSize: 13),
+    ),
+  );
 }
 
 class _ConfirmLeaveDialog extends StatelessWidget {
@@ -1511,7 +1688,9 @@ class _ConfirmLeaveDialog extends StatelessWidget {
                         'Cancel',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w500),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
