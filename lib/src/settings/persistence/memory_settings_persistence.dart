@@ -48,7 +48,7 @@ class MemoryOnlySettingsPersistence implements SettingsPersistence {
   Future<void> saveHapticsOn(bool value) async => hapticsOn = value;
 
   int lastAiPlayerCount = 2;
-  String lastAiDifficulty = 'medium';
+  String lastAiDifficulty = 'easy';
 
   @override
   Future<int> getLastAiPlayerCount({required int defaultValue}) async =>

@@ -20,7 +20,7 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
   static final Logger _log = Logger('SinglePlayerSetupScreen');
 
   final TextEditingController _playerNameController = TextEditingController();
-  AIDifficulty _selectedDifficulty = AIDifficulty.medium;
+  AIDifficulty _selectedDifficulty = AIDifficulty.easy;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -38,7 +38,7 @@ class _SinglePlayerSetupScreenState extends State<SinglePlayerSetupScreen> {
     _playerNameController.text = savedName;
     final savedDifficulty = AIDifficulty.values.firstWhere(
       (d) => d.name == settings.lastAiDifficulty.value,
-      orElse: () => AIDifficulty.medium,
+      orElse: () => AIDifficulty.easy,
     );
     setState(() => _selectedDifficulty = savedDifficulty);
     if (savedName == 'Player') {

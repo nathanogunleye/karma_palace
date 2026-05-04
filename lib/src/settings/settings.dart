@@ -40,7 +40,7 @@ class SettingsController {
 
   ValueNotifier<int> lastAiPlayerCount = ValueNotifier(2);
 
-  ValueNotifier<String> lastAiDifficulty = ValueNotifier('medium');
+  ValueNotifier<String> lastAiDifficulty = ValueNotifier('easy');
 
   /// Creates a new instance of [SettingsController] backed by [store].
   ///
@@ -113,7 +113,7 @@ class SettingsController {
           .getLastAiPlayerCount(defaultValue: 2)
           .then((value) => lastAiPlayerCount.value = value),
       _store
-          .getLastAiDifficulty(defaultValue: 'medium')
+          .getLastAiDifficulty(defaultValue: 'easy')
           .then((value) => lastAiDifficulty.value = value),
     ]);
 
