@@ -48,95 +48,108 @@ class LiveBoardWidget extends StatelessWidget {
       orElse: () => room.players.last,
     );
 
-    final otherPlayers =
-        room.players.where((p) => p.id != gameService.currentPlayerId).toList();
+    final otherPlayers = room.players
+        .where((p) => p.id != gameService.currentPlayerId)
+        .toList();
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final tileWidth =
-        otherPlayers.length == 1 ? screenWidth - 24 : (screenWidth - 40) / 2;
+    final tileWidth = otherPlayers.length == 1
+        ? screenWidth - 24
+        : (screenWidth - 40) / 2;
 
     return CardBounceScope(
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Other players grid
-        if (otherPlayers.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: otherPlayers
-                  .map((p) => _OtherPlayerTile(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Other players grid
+          if (otherPlayers.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: otherPlayers
+                    .map(
+                      (p) => _OtherPlayerTile(
                         player: p,
-                        isCurrentTurn: room.gameState == GameState.playing && p.id == room.currentPlayer,
+                        isCurrentTurn:
+                            room.gameState == GameState.playing &&
+                            p.id == room.currentPlayer,
                         tileWidth: tileWidth,
-                      ))
-                  .toList(),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+
+          const Spacer(),
+
+          // Deck + Pile
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _DeckTile(deckCount: room.deck.length),
+              const SizedBox(width: 32),
+              SizedBox(
+                key: pileKey,
+                child: _PileTile(playPile: room.playPile),
+              ),
+            ],
+          ),
+
+          const Spacer(),
+
+          // Fixed-height slot above player card area — always reserves space so layout never shifts
+          SizedBox(
+            height: 44,
+            child: inlineMessage != null
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: inlineMessageColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        inlineMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+
+          // Current player zones
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: _CurrentPlayerZones(
+              key: playerAreaKey,
+              player: humanPlayer,
+              isCurrentTurn:
+                  room.gameState == GameState.playing &&
+                  room.currentPlayer == humanPlayer.id,
+              isPreGame: isPreGame,
+              onCardTap: onCardTap,
+              selectedCardIds: selectedCardIds,
+              isMultiSelectMode: isMultiSelectMode,
+              multiSelectValue: multiSelectValue,
+              multiSelectSourceZone: multiSelectSourceZone,
             ),
           ),
 
-        const Spacer(),
-
-        // Deck + Pile
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _DeckTile(deckCount: room.deck.length),
-            const SizedBox(width: 32),
-            SizedBox(key: pileKey, child: _PileTile(playPile: room.playPile)),
-          ],
-        ),
-
-        const Spacer(),
-
-        // Fixed-height slot above player card area — always reserves space so layout never shifts
-        SizedBox(
-          height: 44,
-          child: inlineMessage != null
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                  child: Container(
-                    width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: inlineMessageColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      inlineMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                )
-              : null,
-        ),
-
-        // Current player zones
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: _CurrentPlayerZones(
-            key: playerAreaKey,
-            player: humanPlayer,
-            isCurrentTurn: room.gameState == GameState.playing && room.currentPlayer == humanPlayer.id,
-            isPreGame: isPreGame,
-            onCardTap: onCardTap,
-            selectedCardIds: selectedCardIds,
-            isMultiSelectMode: isMultiSelectMode,
-            multiSelectValue: multiSelectValue,
-            multiSelectSourceZone: multiSelectSourceZone,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-      ],
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
@@ -159,6 +172,7 @@ class _OtherPlayerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return _GlowingTileContainer(
       isCurrentTurn: isCurrentTurn,
+      isOut: player.hasWon,
       width: tileWidth,
       padding: const EdgeInsets.all(8),
       borderRadius: 10,
@@ -180,22 +194,19 @@ class _OtherPlayerTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (isCurrentTurn) ...[
+              if (player.hasWon) ...[
                 const SizedBox(width: 4),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFACC15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'TURN',
-                    style: TextStyle(
-                        fontSize: 7,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold),
-                  ),
+                const _StatusBadge(
+                  label: 'OUT',
+                  backgroundColor: Color(0xFF6B7280),
+                  textColor: Colors.white,
+                ),
+              ] else if (isCurrentTurn) ...[
+                const SizedBox(width: 4),
+                const _StatusBadge(
+                  label: 'TURN',
+                  backgroundColor: Color(0xFFFACC15),
+                  textColor: Colors.black,
                 ),
               ],
             ],
@@ -232,33 +243,43 @@ class _OtherPlayerTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               if (player.faceUp.isNotEmpty)
-                ...player.faceUp.take(3).map((card) => Padding(
-                      padding: const EdgeInsets.only(left: 3),
-                      child: KarmaPalaceCardWidget(
-                        card: card,
-                        isFaceDown: false,
-                        isPlayable: false,
-                        size: const Size(34, 49),
-                      ),
-                    ))
-              else
-                ...player.faceDown.take(3).map((_) => Padding(
-                      padding: const EdgeInsets.only(left: 3),
-                      child: Container(
-                        width: 34,
-                        height: 49,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                              color: const Color(0x66FFFFFF), width: 0.5),
+                ...player.faceUp
+                    .take(3)
+                    .map(
+                      (card) => Padding(
+                        padding: const EdgeInsets.only(left: 3),
+                        child: KarmaPalaceCardWidget(
+                          card: card,
+                          isFaceDown: false,
+                          isPlayable: false,
+                          size: const Size(34, 49),
                         ),
                       ),
-                    )),
+                    )
+              else
+                ...player.faceDown
+                    .take(3)
+                    .map(
+                      (_) => Padding(
+                        padding: const EdgeInsets.only(left: 3),
+                        child: Container(
+                          width: 34,
+                          height: 49,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: const Color(0x66FFFFFF),
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ],
@@ -314,8 +335,11 @@ class _DeckTile extends StatelessWidget {
                       fontSize: 20,
                     ),
                   )
-                : const Icon(Icons.inbox_outlined,
-                    size: 24, color: Colors.white38),
+                : const Icon(
+                    Icons.inbox_outlined,
+                    size: 24,
+                    color: Colors.white38,
+                  ),
           ),
         ),
       ],
@@ -388,8 +412,10 @@ class _PileTile extends StatelessWidget {
               children: [
                 Icon(Icons.inbox_outlined, size: 26, color: Colors.white38),
                 SizedBox(height: 4),
-                Text('Empty',
-                    style: TextStyle(fontSize: 12, color: Colors.white38)),
+                Text(
+                  'Empty',
+                  style: TextStyle(fontSize: 12, color: Colors.white38),
+                ),
               ],
             ),
           ),
@@ -426,6 +452,7 @@ class _CurrentPlayerZones extends StatelessWidget {
   Widget build(BuildContext context) {
     return _GlowingTileContainer(
       isCurrentTurn: isCurrentTurn,
+      isOut: player.hasWon,
       padding: const EdgeInsets.all(10),
       borderRadius: 12,
       child: LayoutBuilder(
@@ -434,8 +461,10 @@ class _CurrentPlayerZones extends StatelessWidget {
           final cardW = ((constraints.maxWidth - 2) / 6).clamp(0.0, 60.0);
           final cardH = cardW * (46 / 32);
           // Face-down/up: 2 zones × (3 cards + 2 gaps of 3pt) + 2pt zone divider = 14pt total, scaled down
-          final faceCardW =
-              (((constraints.maxWidth - 14) / 6) * 0.85).clamp(32.0, 60.0);
+          final faceCardW = (((constraints.maxWidth - 14) / 6) * 0.85).clamp(
+            32.0,
+            60.0,
+          );
           final faceCardH = faceCardW * (46 / 32);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,26 +475,24 @@ class _CurrentPlayerZones extends StatelessWidget {
                   const Text(
                     'You',
                     style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  if (isCurrentTurn) ...[
+                  if (player.hasWon) ...[
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFACC15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'YOUR TURN',
-                        style: TextStyle(
-                            fontSize: 7,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold),
-                      ),
+                    const _StatusBadge(
+                      label: 'OUT',
+                      backgroundColor: Color(0xFF6B7280),
+                      textColor: Colors.white,
+                    ),
+                  ] else if (isCurrentTurn) ...[
+                    const SizedBox(width: 6),
+                    const _StatusBadge(
+                      label: 'YOUR TURN',
+                      backgroundColor: Color(0xFFFACC15),
+                      textColor: Colors.black,
                     ),
                   ],
                 ],
@@ -480,7 +507,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                       label: 'Face Down',
                       cards: player.faceDown,
                       isFaceDown: true,
-                      isPlayable: isCurrentTurn &&
+                      isPlayable:
+                          isCurrentTurn &&
                           player.hand.isEmpty &&
                           player.faceUp.isEmpty,
                       zone: 'faceDown',
@@ -499,7 +527,8 @@ class _CurrentPlayerZones extends StatelessWidget {
                       label: 'Face Up',
                       cards: player.faceUp,
                       isFaceDown: false,
-                      isPlayable: isPreGame || (isCurrentTurn && player.hand.isEmpty),
+                      isPlayable:
+                          isPreGame || (isCurrentTurn && player.hand.isEmpty),
                       zone: 'faceUp',
                       cardW: faceCardW,
                       cardH: faceCardH,
@@ -598,13 +627,15 @@ class _CardZoneColumn extends StatelessWidget {
         isHand && displayCards.length > 3
             ? LayoutBuilder(
                 builder: (context, constraints) {
-                  final contentWidth = displayCards.length * cardW +
+                  final contentWidth =
+                      displayCards.length * cardW +
                       (displayCards.length - 1) * 3.0;
                   final cardWidgets = [
                     for (int i = 0; i < displayCards.length; i++)
                       Padding(
                         padding: EdgeInsets.only(
-                            right: i < displayCards.length - 1 ? 3.0 : 0),
+                          right: i < displayCards.length - 1 ? 3.0 : 0,
+                        ),
                         child: KarmaPalaceCardWidget(
                           card: displayCards[i],
                           isFaceDown: isFaceDown,
@@ -613,11 +644,11 @@ class _CardZoneColumn extends StatelessWidget {
                           onTap: null,
                           onTapWithCenter: onCardTap != null
                               ? (center) =>
-                                  onCardTap!(displayCards[i], zone, center)
+                                    onCardTap!(displayCards[i], zone, center)
                               : null,
                           isSelected:
                               selectedCardIds?.contains(displayCards[i].id) ??
-                                  false,
+                              false,
                           isMultiSelectMode: isMultiSelectMode,
                           isMultiSelectEligible: _isEligible(displayCards[i]),
                         ),
@@ -630,7 +661,8 @@ class _CardZoneColumn extends StatelessWidget {
                       child: contentWidth <= constraints.maxWidth
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: cardWidgets)
+                              children: cardWidgets,
+                            )
                           : SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(children: cardWidgets),
@@ -657,14 +689,20 @@ class _CardZoneColumn extends StatelessWidget {
                                 onTap: null,
                                 onTapWithCenter: onCardTap != null
                                     ? (center) => onCardTap!(
-                                        displayCards[i], zone, center)
+                                        displayCards[i],
+                                        zone,
+                                        center,
+                                      )
                                     : null,
-                                isSelected: selectedCardIds
-                                        ?.contains(displayCards[i].id) ??
+                                isSelected:
+                                    selectedCardIds?.contains(
+                                      displayCards[i].id,
+                                    ) ??
                                     false,
                                 isMultiSelectMode: isMultiSelectMode,
-                                isMultiSelectEligible:
-                                    _isEligible(displayCards[i]),
+                                isMultiSelectEligible: _isEligible(
+                                  displayCards[i],
+                                ),
                               )
                             : Container(
                                 width: cardW,
@@ -688,6 +726,7 @@ class _CardZoneColumn extends StatelessWidget {
 
 class _GlowingTileContainer extends StatefulWidget {
   final bool isCurrentTurn;
+  final bool isOut;
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
@@ -695,6 +734,7 @@ class _GlowingTileContainer extends StatefulWidget {
 
   const _GlowingTileContainer({
     required this.isCurrentTurn,
+    this.isOut = false,
     required this.child,
     required this.padding,
     required this.borderRadius,
@@ -717,9 +757,10 @@ class _GlowingTileContainerState extends State<_GlowingTileContainer>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _glow = Tween<double>(begin: 8, end: 24).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _glow = Tween<double>(
+      begin: 8,
+      end: 24,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -730,6 +771,46 @@ class _GlowingTileContainerState extends State<_GlowingTileContainer>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isOut) {
+      return Container(
+        width: widget.width,
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          color: const Color(0x26374151),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(color: const Color(0x668B949E)),
+        ),
+        child: Opacity(
+          opacity: 0.45,
+          child: ColorFiltered(
+            colorFilter: const ColorFilter.matrix(<double>[
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+            ]),
+            child: widget.child,
+          ),
+        ),
+      );
+    }
+
     if (!widget.isCurrentTurn) {
       return Container(
         width: widget.width,
@@ -771,6 +852,37 @@ class _GlowingTileContainerState extends State<_GlowingTileContainer>
         child: child,
       ),
       child: widget.child,
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const _StatusBadge({
+    required this.label,
+    required this.backgroundColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 7,
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }
