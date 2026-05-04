@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:karma_palace/src/model/firebase/room.dart';
 import 'package:karma_palace/src/model/firebase/player.dart';
+import 'package:karma_palace/src/analytics/analytics_service.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
 
 class FirebaseGameService extends ChangeNotifier {
@@ -18,6 +19,12 @@ class FirebaseGameService extends ChangeNotifier {
 
   final FirebaseDatabase _database = FirebaseDatabase.instance;
   static const Uuid _uuid = Uuid();
+
+  AnalyticsService? _analytics;
+
+  void attachAnalytics(AnalyticsService analytics) {
+    _analytics = analytics;
+  }
 
   // Current room and player info
   String? _currentRoomId;
@@ -112,6 +119,7 @@ class FirebaseGameService extends ChangeNotifier {
       await _database.ref('rooms/$roomId').set(room.toJson());
 
       _log.info('Created room: $roomId');
+      unawaited(_analytics?.logRoomCreated());
 
       // Join the room
       await _joinRoom(roomId, playerId, room);
@@ -185,6 +193,7 @@ class FirebaseGameService extends ChangeNotifier {
       await roomRef.set(updatedRoom.toJson());
 
       _log.info('Joined room: $roomId');
+      unawaited(_analytics?.logRoomJoined());
 
       // Join the room
       await _joinRoom(roomId, playerId, updatedRoom);
@@ -236,6 +245,10 @@ class FirebaseGameService extends ChangeNotifier {
 
       await roomRef.set(updatedRoom.toJson());
       _log.info('Game started in room: $_currentRoomId');
+      unawaited(_analytics?.logGameStarted(
+        mode: 'multiplayer',
+        playerCount: updatedRoom.players.length,
+      ));
     } catch (e) {
       _log.severe('Failed to start game: $e');
       rethrow;
@@ -710,6 +723,7 @@ class FirebaseGameService extends ChangeNotifier {
 
       await roomRef.set(updatedRoom.toJson());
       _log.info('Picked up play pile, drew ${cardsDrawn.length} cards');
+      unawaited(_analytics?.logPickupPile(mode: 'multiplayer'));
 
       // Notify UI about pick-up effect
       _onPickUpEffect?.call(_displayName(_currentPlayerId!));

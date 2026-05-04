@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:karma_palace/src/model/firebase/room.dart';
 import 'package:karma_palace/src/model/firebase/player.dart';
 import 'package:karma_palace/src/model/firebase/card.dart' as game_card;
+import 'package:karma_palace/src/analytics/analytics_service.dart';
 import 'package:karma_palace/src/games_services/ai_player_service.dart';
 
 class LocalGameService extends ChangeNotifier {
@@ -17,6 +18,12 @@ class LocalGameService extends ChangeNotifier {
   LocalGameService._internal();
 
   static const Uuid _uuid = Uuid();
+
+  AnalyticsService? _analytics;
+
+  void attachAnalytics(AnalyticsService analytics) {
+    _analytics = analytics;
+  }
 
   // Game state
   Room? _currentRoom;
@@ -250,6 +257,11 @@ class LocalGameService extends ChangeNotifier {
 
       _currentRoom = updatedRoom;
       _log.info('Started single player game');
+      unawaited(_analytics?.logGameStarted(
+        mode: 'single_player',
+        playerCount: updatedRoom.players.length,
+        difficulty: _aiDifficulty.name,
+      ));
       notifyListeners();
 
       if (startPlayerId != _currentPlayerId) {
@@ -686,6 +698,7 @@ class LocalGameService extends ChangeNotifier {
       _currentRoom = updatedRoom;
       _revealedFaceDownCard = null;
       _log.info('Human picked up play pile, drew ${cardsDrawn.length} cards');
+      unawaited(_analytics?.logPickupPile(mode: 'single_player'));
       notifyListeners();
 
       // Notify UI about pick-up effect

@@ -12,6 +12,7 @@ import 'package:karma_palace/firebase_options.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
+import 'src/analytics/analytics_service.dart';
 import 'src/app_lifecycle/app_lifecycle.dart';
 import 'src/audio/audio_controller.dart';
 import 'src/game_internals/karma_palace_game_state.dart';
@@ -65,12 +66,25 @@ class MyApp extends StatelessWidget {
         providers: [
           Provider(create: (context) => SettingsController()),
           Provider(create: (context) => Palette()),
+          Provider(create: (context) => AnalyticsService()),
           // Karma Palace game state
           ChangeNotifierProvider(create: (context) => KarmaPalaceGameState()),
           // Firebase game service
-          ChangeNotifierProvider(create: (context) => FirebaseGameService()),
+          ChangeNotifierProxyProvider<AnalyticsService, FirebaseGameService>(
+            create: (context) => FirebaseGameService(),
+            update: (context, analytics, service) {
+              service!.attachAnalytics(analytics);
+              return service;
+            },
+          ),
           // Local game service for single player
-          ChangeNotifierProvider(create: (context) => LocalGameService()),
+          ChangeNotifierProxyProvider<AnalyticsService, LocalGameService>(
+            create: (context) => LocalGameService(),
+            update: (context, analytics, service) {
+              service!.attachAnalytics(analytics);
+              return service;
+            },
+          ),
           // Set up audio.
           ProxyProvider2<
             AppLifecycleStateNotifier,

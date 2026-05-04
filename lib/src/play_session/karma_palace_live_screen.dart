@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
+import 'package:karma_palace/src/analytics/analytics_service.dart';
 import 'package:karma_palace/src/audio/audio_controller.dart';
 import 'package:karma_palace/src/settings/settings.dart';
 import 'package:karma_palace/src/audio/sounds.dart';
@@ -892,6 +893,7 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
 
     if (humanPlayer.hasWon && !_winAnnounced) {
       _winAnnounced = true;
+      context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'win');
       final playersWithCards = room.players.where((p) => !p.hasWon).toList();
       final isLastToFinish = playersWithCards.isEmpty;
       _showWinNotification(room.playPile.lastOrNull, isLastToFinish: isLastToFinish);
@@ -909,6 +911,9 @@ class _KarmaPalaceLiveScreenState extends State<KarmaPalaceLiveScreen>
         if (!isMe) {
           _loserAnnounced = true;
           _showLoserNotification(loser.name, room.playPile.lastOrNull);
+        } else {
+          _loserAnnounced = true;
+          context.read<AnalyticsService>().logGameEnded(mode: 'multiplayer', outcome: 'loss');
         }
       }
     }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
+import 'package:karma_palace/src/analytics/analytics_service.dart';
 import 'package:karma_palace/src/audio/audio_controller.dart';
 import 'package:karma_palace/src/settings/settings.dart';
 import 'package:karma_palace/src/audio/sounds.dart';
@@ -833,6 +834,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (humanIsOut) {
       _resultAnnounced = true;
       context.read<AudioController>().playSfx(SfxType.congrats);
+      context.read<AnalyticsService>().logGameEnded(mode: 'single_player', outcome: 'win');
       gameService.stopGame();
       _showWinDialog(room.playPile.lastOrNull);
       return;
@@ -841,6 +843,7 @@ class _SinglePlayerGameScreenState extends State<SinglePlayerGameScreen>
     if (allOpponentsAreOut) {
       _resultAnnounced = true;
       context.read<AudioController>().playSfx(SfxType.erase);
+      context.read<AnalyticsService>().logGameEnded(mode: 'single_player', outcome: 'loss');
       gameService.stopGame();
       _showLossDialog();
       return;
