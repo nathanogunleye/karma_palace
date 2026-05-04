@@ -65,16 +65,20 @@ class FirebaseGameService extends ChangeNotifier {
   String _displayName(String playerId) {
     if (playerId == _currentPlayerId) return 'You';
     return _currentRoom!.players
-        .firstWhere((p) => p.id == playerId, orElse: () => _currentRoom!.players.first)
+        .firstWhere(
+          (p) => p.id == playerId,
+          orElse: () => _currentRoom!.players.first,
+        )
         .name;
   }
 
   /// Create a new room and join as host
   Future<String> createRoom(String playerName) async {
     try {
-      final roomId = _uuid
-          .v4()
-          .substring(0, 8); // Use first 8 characters for shorter room ID
+      final roomId = _uuid.v4().substring(
+        0,
+        8,
+      ); // Use first 8 characters for shorter room ID
       final playerId = _uuid.v4();
 
       // Create initial deck and deal 9 cards to host immediately
@@ -139,7 +143,8 @@ class FirebaseGameService extends ChangeNotifier {
       }
       final room = Room.fromJson(_convertFirebaseMap(roomData));
       _log.info(
-          'DEBUG: Current room players: ${room.players.map((p) => p.id).toList()}');
+        'DEBUG: Current room players: ${room.players.map((p) => p.id).toList()}',
+      );
 
       if (room.gameState != GameState.waiting) {
         throw Exception('Game already in progress');
@@ -244,14 +249,16 @@ class FirebaseGameService extends ChangeNotifier {
       throw Exception('Can only swap before the game starts');
     }
 
-    final playerIndex =
-        _currentRoom!.players.indexWhere((p) => p.id == _currentPlayerId);
+    final playerIndex = _currentRoom!.players.indexWhere(
+      (p) => p.id == _currentPlayerId,
+    );
     if (playerIndex == -1) throw Exception('Player not found');
 
     final player = _currentRoom!.players[playerIndex];
     final handCardIndex = player.hand.indexWhere((c) => c.id == handCardId);
-    final faceUpCardIndex =
-        player.faceUp.indexWhere((c) => c.id == faceUpCardId);
+    final faceUpCardIndex = player.faceUp.indexWhere(
+      (c) => c.id == faceUpCardId,
+    );
 
     if (handCardIndex == -1) throw Exception('Hand card not found');
     if (faceUpCardIndex == -1) throw Exception('Face-up card not found');
@@ -301,8 +308,9 @@ class FirebaseGameService extends ChangeNotifier {
 
     try {
       final roomRef = _database.ref('rooms/$_currentRoomId');
-      final currentPlayer =
-          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+      final currentPlayer = _currentRoom!.players.firstWhere(
+        (p) => p.id == _currentPlayerId,
+      );
 
       if (_currentRoom!.currentPlayer != _currentPlayerId) {
         throw Exception('Not your turn');
@@ -310,8 +318,13 @@ class FirebaseGameService extends ChangeNotifier {
 
       // For face-down cards, an invalid flip forces an automatic pick-up —
       // the card goes to the pile and the player takes it all back.
-      if (sourceZone == 'faceDown' && !_canPlayCard(card, currentPlayer, sourceZone)) {
-        final flippedPlayer = _removeCardFromPlayer(currentPlayer, card, 'faceDown');
+      if (sourceZone == 'faceDown' &&
+          !_canPlayCard(card, currentPlayer, sourceZone)) {
+        final flippedPlayer = _removeCardFromPlayer(
+          currentPlayer,
+          card,
+          'faceDown',
+        );
         final pileWithFlipped = [..._currentRoom!.playPile, card];
         final updatedHand = [...flippedPlayer.hand, ...pileWithFlipped];
         final finalPlayer = Player(
@@ -327,7 +340,9 @@ class FirebaseGameService extends ChangeNotifier {
         );
         final nextPlayerId = _getNextPlayerId();
         final updatedPlayers = _syncPlayersForTurn(
-          _currentRoom!.players.map((p) => p.id == _currentPlayerId ? finalPlayer : p).toList(),
+          _currentRoom!.players
+              .map((p) => p.id == _currentPlayerId ? finalPlayer : p)
+              .toList(),
           nextPlayerId,
         );
         final updatedRoom = Room(
@@ -352,8 +367,11 @@ class FirebaseGameService extends ChangeNotifier {
       }
 
       // Remove card from player's zone
-      final updatedPlayer =
-          _removeCardFromPlayer(currentPlayer, card, sourceZone);
+      final updatedPlayer = _removeCardFromPlayer(
+        currentPlayer,
+        card,
+        sourceZone,
+      );
 
       // Add card to play pile
       final updatedPlayPile = [..._currentRoom!.playPile, card];
@@ -413,11 +431,20 @@ class FirebaseGameService extends ChangeNotifier {
       }).toList();
 
       // Handle special card effects
-      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
-          _handleSpecialCardEffects(
-              card, updatedPlayPile, nextPlayerId, updatedPlayers);
-      final finalPlayers =
-          _syncPlayersForTurn(finalCurrentPlayer, finalNextPlayerId);
+      final (
+        finalPlayPile,
+        finalCurrentPlayer,
+        finalNextPlayerId,
+      ) = _handleSpecialCardEffects(
+        card,
+        updatedPlayPile,
+        nextPlayerId,
+        updatedPlayers,
+      );
+      final finalPlayers = _syncPlayersForTurn(
+        finalCurrentPlayer,
+        finalNextPlayerId,
+      );
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -433,7 +460,8 @@ class FirebaseGameService extends ChangeNotifier {
 
       await roomRef.set(updatedRoom.toJson());
       _log.info(
-          'Played card: ${card.displayString}, drew ${cardsDrawn.length} cards');
+        'Played card: ${card.displayString}, drew ${cardsDrawn.length} cards',
+      );
     } catch (e) {
       _log.severe('Failed to play card: $e');
       rethrow;
@@ -442,7 +470,9 @@ class FirebaseGameService extends ChangeNotifier {
 
   /// Play multiple cards of the same value at once
   Future<void> playMultipleCards(
-      List<game_card.Card> cards, String sourceZone) async {
+    List<game_card.Card> cards,
+    String sourceZone,
+  ) async {
     if (_currentRoom == null || _currentPlayerId == null) {
       throw Exception('Not in a game');
     }
@@ -453,8 +483,9 @@ class FirebaseGameService extends ChangeNotifier {
 
     try {
       final roomRef = _database.ref('rooms/$_currentRoomId');
-      final currentPlayer =
-          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+      final currentPlayer = _currentRoom!.players.firstWhere(
+        (p) => p.id == _currentPlayerId,
+      );
 
       if (_currentRoom!.currentPlayer != _currentPlayerId) {
         throw Exception('Not your turn');
@@ -516,11 +547,21 @@ class FirebaseGameService extends ChangeNotifier {
       }).toList();
 
       final lastCard = cards.last;
-      final (finalPlayPile, finalCurrentPlayer, finalNextPlayerId) =
-          _handleSpecialCardEffects(
-              lastCard, updatedPlayPile, nextPlayerId, updatedPlayers);
-      final finalPlayers =
-          _syncPlayersForTurn(finalCurrentPlayer, finalNextPlayerId);
+      final (
+        finalPlayPile,
+        finalCurrentPlayer,
+        finalNextPlayerId,
+      ) = _handleSpecialCardEffects(
+        lastCard,
+        updatedPlayPile,
+        nextPlayerId,
+        updatedPlayers,
+        skipCount: cards.where((card) => card.value == '9').length,
+      );
+      final finalPlayers = _syncPlayersForTurn(
+        finalCurrentPlayer,
+        finalNextPlayerId,
+      );
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -536,7 +577,8 @@ class FirebaseGameService extends ChangeNotifier {
 
       await roomRef.set(updatedRoom.toJson());
       _log.info(
-          'Played ${cards.length} cards, drew ${cardsDrawn.length} cards');
+        'Played ${cards.length} cards, drew ${cardsDrawn.length} cards',
+      );
     } catch (e) {
       _log.severe('Failed to play multiple cards: $e');
       rethrow;
@@ -551,8 +593,9 @@ class FirebaseGameService extends ChangeNotifier {
 
     try {
       final roomRef = _database.ref('rooms/$_currentRoomId');
-      final currentPlayer =
-          _currentRoom!.players.firstWhere((p) => p.id == _currentPlayerId);
+      final currentPlayer = _currentRoom!.players.firstWhere(
+        (p) => p.id == _currentPlayerId,
+      );
 
       if (_currentRoom!.currentPlayer != _currentPlayerId) {
         throw Exception('Not your turn');
@@ -593,25 +636,26 @@ class FirebaseGameService extends ChangeNotifier {
       final nextPlayerId = _getNextPlayerId();
 
       final updatedPlayers = _syncPlayersForTurn(
-          _currentRoom!.players.map((p) {
-            if (p.id == _currentPlayerId) {
-              return Player(
-                id: updatedPlayer.id,
-                name: updatedPlayer.name,
-                isPlaying: updatedPlayer.isPlaying,
-                hand: updatedPlayer.hand,
-                faceUp: updatedPlayer.faceUp,
-                faceDown: updatedPlayer.faceDown,
-                isConnected: updatedPlayer.isConnected,
-                lastSeen: updatedPlayer.lastSeen,
-                turnOrder: updatedPlayer.turnOrder,
-                forcedToPlayLow: false,
-              );
-            }
+        _currentRoom!.players.map((p) {
+          if (p.id == _currentPlayerId) {
+            return Player(
+              id: updatedPlayer.id,
+              name: updatedPlayer.name,
+              isPlaying: updatedPlayer.isPlaying,
+              hand: updatedPlayer.hand,
+              faceUp: updatedPlayer.faceUp,
+              faceDown: updatedPlayer.faceDown,
+              isConnected: updatedPlayer.isConnected,
+              lastSeen: updatedPlayer.lastSeen,
+              turnOrder: updatedPlayer.turnOrder,
+              forcedToPlayLow: false,
+            );
+          }
 
-            return p;
-          }).toList(),
-          nextPlayerId);
+          return p;
+        }).toList(),
+        nextPlayerId,
+      );
 
       final updatedRoom = Room(
         id: _currentRoom!.id,
@@ -708,12 +752,15 @@ class FirebaseGameService extends ChangeNotifier {
           final convertedData = _convertFirebaseMap(data);
           final updatedRoom = Room.fromJson(convertedData);
           _log.info(
-              'DEBUG: Room updated - Game state: ${updatedRoom.gameState}');
+            'DEBUG: Room updated - Game state: ${updatedRoom.gameState}',
+          );
           _log.info(
-              'DEBUG: Room updated - Current player: ${updatedRoom.currentPlayer}');
+            'DEBUG: Room updated - Current player: ${updatedRoom.currentPlayer}',
+          );
           _log.info('DEBUG: Room updated - My player ID: $_currentPlayerId');
           _log.info(
-              'DEBUG: Room updated - Players: ${updatedRoom.players.map((p) => p.id).toList()}');
+            'DEBUG: Room updated - Players: ${updatedRoom.players.map((p) => p.id).toList()}',
+          );
           _currentRoom = updatedRoom;
           notifyListeners();
         }
@@ -739,7 +786,7 @@ class FirebaseGameService extends ChangeNotifier {
       'J',
       'Q',
       'K',
-      'A'
+      'A',
     ];
 
     final deck = <game_card.Card>[];
@@ -747,11 +794,7 @@ class FirebaseGameService extends ChangeNotifier {
 
     for (final suit in suits) {
       for (final value in values) {
-        deck.add(game_card.Card(
-          suit: suit,
-          value: value,
-          id: uuid.v4(),
-        ));
+        deck.add(game_card.Card(suit: suit, value: value, id: uuid.v4()));
       }
     }
 
@@ -761,7 +804,10 @@ class FirebaseGameService extends ChangeNotifier {
 
   /// Remove a card from a player's zone
   Player _removeCardFromPlayer(
-      Player player, game_card.Card card, String sourceZone) {
+    Player player,
+    game_card.Card card,
+    String sourceZone,
+  ) {
     List<game_card.Card> updatedZone;
 
     switch (sourceZone) {
@@ -821,8 +867,9 @@ class FirebaseGameService extends ChangeNotifier {
     if (_currentRoom == null) return '';
 
     final players = _currentRoom!.players;
-    final currentIndex =
-        players.indexWhere((p) => p.id == _currentRoom!.currentPlayer);
+    final currentIndex = players.indexWhere(
+      (p) => p.id == _currentRoom!.currentPlayer,
+    );
     if (currentIndex == -1) return players.first.id;
 
     for (int i = 1; i <= players.length; i++) {
@@ -837,21 +884,26 @@ class FirebaseGameService extends ChangeNotifier {
   }
 
   List<Player> _syncPlayersForTurn(
-      List<Player> players, String currentPlayerId) {
+    List<Player> players,
+    String currentPlayerId,
+  ) {
     return players
-        .map((p) => Player(
-              id: p.id,
-              name: p.name,
-              isPlaying: p.id == currentPlayerId,
-              hand: p.hand,
-              faceUp: p.faceUp,
-              faceDown: p.faceDown,
-              isConnected: p.isConnected,
-              lastSeen: p.lastSeen,
-              turnOrder: p.turnOrder,
-              forcedToPlayLow:
-                  p.id == currentPlayerId ? p.forcedToPlayLow : false,
-            ))
+        .map(
+          (p) => Player(
+            id: p.id,
+            name: p.name,
+            isPlaying: p.id == currentPlayerId,
+            hand: p.hand,
+            faceUp: p.faceUp,
+            faceDown: p.faceDown,
+            isConnected: p.isConnected,
+            lastSeen: p.lastSeen,
+            turnOrder: p.turnOrder,
+            forcedToPlayLow: p.id == currentPlayerId
+                ? p.forcedToPlayLow
+                : false,
+          ),
+        )
         .toList();
   }
 
@@ -860,8 +912,9 @@ class FirebaseGameService extends ChangeNotifier {
     game_card.Card card,
     List<game_card.Card> playPile,
     String nextPlayerId,
-    List<Player> players,
-  ) {
+    List<Player> players, {
+    int skipCount = 1,
+  }) {
     var finalPlayPile = playPile;
     var finalPlayers = players;
     var finalNextPlayerId = nextPlayerId;
@@ -905,10 +958,13 @@ class FirebaseGameService extends ChangeNotifier {
         break;
 
       case game_card.SpecialEffect.skip:
-        // 9 - Skips the next player
-        finalNextPlayerId = _getNextPlayerIdAfter(nextPlayerId);
+        // 9 - Skips one active player per 9 played
+        for (int i = 0; i < skipCount; i++) {
+          finalNextPlayerId = _getNextPlayerIdAfter(finalNextPlayerId);
+        }
         _log.info(
-            'Card 9 played - skipped player: $nextPlayerId, next player: $finalNextPlayerId');
+          '$skipCount card 9(s) played - next player: $finalNextPlayerId',
+        );
         break;
 
       case game_card.SpecialEffect.burn:
@@ -931,7 +987,8 @@ class FirebaseGameService extends ChangeNotifier {
       finalPlayPile = [];
       finalNextPlayerId = _currentPlayerId!; // Same player plays again
       _log.info(
-          '4-of-a-kind detected - play pile burned, same player plays again');
+        '4-of-a-kind detected - play pile burned, same player plays again',
+      );
       // Notify UI about burn effect
       _onBurnEffect?.call(_displayName(_currentPlayerId!));
     }
@@ -943,8 +1000,9 @@ class FirebaseGameService extends ChangeNotifier {
       orElse: () => finalPlayers.first,
     );
     if (nextTarget.hasWon) {
-      final startIndex =
-          finalPlayers.indexWhere((p) => p.id == finalNextPlayerId);
+      final startIndex = finalPlayers.indexWhere(
+        (p) => p.id == finalNextPlayerId,
+      );
       for (int i = 1; i < finalPlayers.length; i++) {
         final candidate = finalPlayers[(startIndex + i) % finalPlayers.length];
         if (!candidate.hasWon) {
@@ -966,12 +1024,14 @@ class FirebaseGameService extends ChangeNotifier {
 
     // Check if all 4 cards have the same value
     final firstValue = lastFourCards[0].value;
-    final allSameValue =
-        lastFourCards.every((card) => card.value == firstValue);
+    final allSameValue = lastFourCards.every(
+      (card) => card.value == firstValue,
+    );
 
     if (allSameValue) {
       _log.info(
-          '4-of-a-kind detected: ${lastFourCards.map((c) => c.displayString).join(', ')}');
+        '4-of-a-kind detected: ${lastFourCards.map((c) => c.displayString).join(', ')}',
+      );
     }
 
     return allSameValue;
@@ -1034,15 +1094,15 @@ class FirebaseGameService extends ChangeNotifier {
 
     // Debug logging
     _log.info(
-        'DEBUG: Validating card ${card.displayString} on effective top card ${effectiveTopCard.displayString}');
+      'DEBUG: Validating card ${card.displayString} on effective top card ${effectiveTopCard.displayString}',
+    );
     _log.info(
-        'DEBUG: Play pile: ${_currentRoom!.playPile.map((c) => c.displayString).join(' → ')}');
+      'DEBUG: Play pile: ${_currentRoom!.playPile.map((c) => c.displayString).join(' → ')}',
+    );
     _log.info('DEBUG: Card has special effect: ${card.hasSpecialEffect}');
-    _log.info('DEBUG: Effective top card is high card: ${[
-      'J',
-      'Q',
-      'K'
-    ].contains(effectiveTopCard.value)}');
+    _log.info(
+      'DEBUG: Effective top card is high card: ${['J', 'Q', 'K'].contains(effectiveTopCard.value)}',
+    );
 
     // Check if reset effect is active (2 was played)
     if (_currentRoom!.resetActive == true) {
@@ -1054,7 +1114,8 @@ class FirebaseGameService extends ChangeNotifier {
     if (player.forcedToPlayLow == true) {
       final canPlay = card.numericValue <= 7;
       _log.info(
-          'DEBUG: Player forced to play low - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay');
+        'DEBUG: Player forced to play low - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay',
+      );
       return canPlay;
     }
 
@@ -1062,7 +1123,8 @@ class FirebaseGameService extends ChangeNotifier {
     if (['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       final canPlay = card.canPlayOnHighCard(effectiveTopCard);
       _log.info(
-          'DEBUG: Playing on high card ${effectiveTopCard.value} - canPlayOnHighCard result: $canPlay');
+        'DEBUG: Playing on high card ${effectiveTopCard.value} - canPlayOnHighCard result: $canPlay',
+      );
       return canPlay;
     }
 
@@ -1070,7 +1132,8 @@ class FirebaseGameService extends ChangeNotifier {
     if (effectiveTopCard.value == '7') {
       final canPlay = card.numericValue <= 7;
       _log.info(
-          'DEBUG: Top card is 7 - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay');
+        'DEBUG: Top card is 7 - playing ${card.value} (value: ${card.numericValue}) - can play: $canPlay',
+      );
       return canPlay;
     }
 
@@ -1078,14 +1141,16 @@ class FirebaseGameService extends ChangeNotifier {
     if (card.hasSpecialEffect &&
         !['J', 'Q', 'K'].contains(effectiveTopCard.value)) {
       _log.info(
-          'DEBUG: Playing special card ${card.value} on non-royal ${effectiveTopCard.value} - can play: true');
+        'DEBUG: Playing special card ${card.value} on non-royal ${effectiveTopCard.value} - can play: true',
+      );
       return true; // Special cards can be played on any non-royal card
     }
 
     // Normal card comparison
     final canPlay = card.numericValue >= effectiveTopCard.numericValue;
     _log.info(
-        'DEBUG: Playing ${card.value} on ${effectiveTopCard.value} - normal comparison result: $canPlay');
+      'DEBUG: Playing ${card.value} on ${effectiveTopCard.value} - normal comparison result: $canPlay',
+    );
     return canPlay;
   }
 

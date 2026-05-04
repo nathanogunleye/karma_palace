@@ -495,6 +495,7 @@ class LocalGameService extends ChangeNotifier {
         updatedPlayPile,
         nextPlayerId,
         updatedPlayers,
+        skipCount: cards.where((card) => card.value == '9').length,
       );
 
       final updatedRoom = Room(
@@ -779,6 +780,7 @@ class LocalGameService extends ChangeNotifier {
         updatedPlayPile,
         nextPlayerId,
         updatedPlayers,
+        skipCount: cards.where((card) => card.value == '9').length,
       );
 
       final updatedRoom = Room(
@@ -999,8 +1001,9 @@ class LocalGameService extends ChangeNotifier {
     game_card.Card card,
     List<game_card.Card> playPile,
     String nextPlayerId,
-    List<Player> players,
-  ) {
+    List<Player> players, {
+    int skipCount = 1,
+  }) {
     var finalPlayPile = playPile;
     var finalPlayers = players;
     var finalNextPlayerId = nextPlayerId;
@@ -1028,8 +1031,10 @@ class LocalGameService extends ChangeNotifier {
 
     // Handle card 9 effect (skip next player)
     if (card.value == '9') {
-      // Skip the next player by moving to the player after next
-      finalNextPlayerId = _getNextPlayerIdAfter(nextPlayerId);
+      // Skip one active player per 9 played.
+      for (int i = 0; i < skipCount; i++) {
+        finalNextPlayerId = _getNextPlayerIdAfter(finalNextPlayerId);
+      }
     }
 
     // Handle card 10 effect (burn - clear play pile and same player goes again)
